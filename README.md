@@ -1,2 +1,656 @@
-# Financial-Statement
-รายงานทางการเงินเปรียบเทียบ2566-2569
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>รายงานการเงิน 2566–2569</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg: #fffdf5;
+  --surface: #ffffff;
+  --surface2: #fdf8ec;
+  --border: rgba(0,0,0,0.08);
+  --border2: rgba(0,0,0,0.15);
+  --text: #1a1a1a;
+  --muted: #7a7060;
+  --accent: #2563eb;
+  --green: #16a34a;
+  --amber: #b45309;
+  --red: #dc2626;
+  --teal: #0d9488;
+  --purple: #7c3aed;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Sarabun', sans-serif;
+  --c-blue: #2563eb;
+  --c-teal: #0d9488;
+  --c-green: #16a34a;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px 60px; }
+
+/* Header */
+header {
+  padding: 40px 0 28px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 2px solid #e8e0cc;
+  margin-bottom: 32px;
+}
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .12em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+h1 {
+  font-size: clamp(22px, 3vw, 30px);
+  font-weight: 600;
+  color: #111;
+  letter-spacing: -.02em;
+  line-height: 1.2;
+}
+h1 span { color: var(--accent); }
+.header-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  text-align: right;
+  line-height: 1.9;
+}
+
+/* Section label */
+.section-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .14em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-title::before {
+  content: '';
+  display: inline-block;
+  width: 4px; height: 4px;
+  background: var(--accent);
+  border-radius: 50%;
+}
+
+/* KPI Cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 14px;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow .2s, transform .2s;
+}
+.kpi:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-2px); }
+.kpi::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 10px 10px 0 0;
+}
+.kpi.blue::after  { background: var(--c-blue); }
+.kpi.green::after { background: var(--c-green); }
+.kpi-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+.kpi-val {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 500;
+  color: #111;
+  line-height: 1;
+  margin-bottom: 5px;
+}
+.kpi-val small { font-size: 11px; color: var(--muted); }
+.kpi-change { font-family: var(--mono); font-size: 11px; }
+.up   { color: var(--red); }
+.dn   { color: var(--green); }
+.flat { color: var(--muted); }
+
+/* Chart card */
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 20px 14px;
+  margin-bottom: 28px;
+}
+.chart-title { font-size: 13px; font-weight: 600; color: #111; margin-bottom: 3px; }
+.chart-sub { font-size: 11px; color: var(--muted); margin-bottom: 14px; }
+.chart-wrap { position: relative; }
+
+/* Scenario cards */
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.sc-card {
+  border-radius: 10px;
+  padding: 18px;
+  border: 1px solid transparent;
+}
+.sc-card.green { background: #f0fdf4; border-color: #bbf7d0; }
+.sc-card.amber { background: #fffbeb; border-color: #fde68a; }
+.sc-card.red   { background: #fef2f2; border-color: #fecaca; }
+.sc-badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .06em;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.sc-card.green .sc-badge { background: #dcfce7; color: #166534; }
+.sc-card.amber .sc-badge { background: #fef3c7; color: #92400e; }
+.sc-card.red   .sc-badge { background: #fee2e2; color: #991b1b; }
+.sc-num {
+  font-family: var(--mono);
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.1;
+  margin-bottom: 5px;
+}
+.sc-card.green .sc-num { color: #15803d; }
+.sc-card.amber .sc-num { color: #b45309; }
+.sc-card.red   .sc-num { color: #dc2626; }
+.sc-title { font-size: 13px; font-weight: 600; color: #222; margin-bottom: 4px; }
+.sc-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+/* Verdict */
+.verdict-banner {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-left: 3px solid #f59e0b;
+  border-radius: 0 10px 10px 0;
+  padding: 14px 18px;
+  margin-bottom: 28px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.verdict-icon { font-size: 18px; line-height: 1; padding-top: 2px; flex-shrink: 0; }
+.verdict-text { font-size: 13px; color: #78350f; line-height: 1.7; }
+.verdict-text strong { color: #92400e; font-weight: 600; }
+.verdict-text em { color: #111; font-style: normal; font-weight: 500; }
+
+/* Bottom grid */
+.bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 16px;
+}
+
+/* Table card */
+.table-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.table-header { padding: 14px 16px 10px; border-bottom: 1px solid var(--border); }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .06em;
+  color: var(--muted);
+  text-transform: uppercase;
+  padding: 9px 12px;
+  text-align: right;
+  font-weight: 400;
+  border-bottom: 1px solid var(--border);
+  background: #faf8f2;
+  white-space: nowrap;
+}
+thead th:first-child { text-align: left; }
+tbody tr:hover { background: #fdf8ec; }
+tbody td {
+  padding: 8px 12px;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: #333;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+tbody td:first-child {
+  text-align: left;
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--muted);
+}
+.row-total td { font-weight: 600; color: #111 !important; background: #f5f3ec; border-top: 1.5px solid #d4c9a8; }
+.row-pct td { font-size: 11px; color: var(--muted) !important; }
+.proj-col { color: var(--accent) !important; font-weight: 500; }
+.pct-sub { font-size: 10px; color: var(--muted); display: block; }
+
+/* Expense table */
+.exp-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.exp-table thead th {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  padding: 8px 10px;
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+  background: #faf8f2;
+  white-space: nowrap;
+  letter-spacing: .04em;
+}
+.exp-table thead th:first-child { text-align: left; }
+.exp-table tbody tr:hover { background: #fdf8ec; }
+.exp-table tbody td {
+  padding: 7px 10px;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: #333;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.exp-table tbody td:first-child {
+  text-align: left;
+  font-family: var(--sans);
+  font-size: 12px;
+  color: #444;
+  max-width: 130px;
+}
+.exp-table .row-total td { font-weight: 600; background: #f5f3ec; color: #111 !important; border-top: 1.5px solid #d4c9a8; }
+.chg-pos { color: #dc2626; }
+.chg-neg { color: #16a34a; }
+.dot-ind { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+
+/* Footer */
+footer {
+  margin-top: 40px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.footer-text { font-family: var(--mono); font-size: 10px; color: var(--muted); line-height: 1.8; }
+.pulse { display: inline-block; width: 6px; height: 6px; background: #16a34a; border-radius: 50%; margin-right: 5px; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
+
+/* Responsive */
+@media (max-width: 960px) {
+  .kpi-grid { grid-template-columns: repeat(3,1fr); }
+  .scenario-grid { grid-template-columns: 1fr; }
+  .bottom-row { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .kpi-grid { grid-template-columns: repeat(2,1fr); }
+  header { flex-direction: column; align-items: flex-start; }
+  .header-meta { text-align: left; }
+}
+
+.fade-in { opacity:0; transform:translateY(12px); animation:fi .4s ease forwards; }
+@keyframes fi { to{opacity:1;transform:translateY(0)} }
+.fade-in:nth-child(1){animation-delay:.05s}
+.fade-in:nth-child(2){animation-delay:.10s}
+.fade-in:nth-child(3){animation-delay:.15s}
+.fade-in:nth-child(4){animation-delay:.20s}
+.fade-in:nth-child(5){animation-delay:.25s}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <div class="eyebrow">Financial Dashboard · รายงานการเงิน</div>
+    <h1>งบรวมทุกสาขา <span>2566–2569</span></h1>
+  </div>
+  <div class="header-meta">
+    ปี 2569 = คาดการณ์ทั้งปี (4 เดือนจริง × ratio เฉลี่ย 2566/2568)<br>
+    หน่วย: ล้านบาท (M)
+  </div>
+</header>
+
+<!-- KPI -->
+<div class="section-title">ตัวชี้วัดหลัก</div>
+<div class="kpi-grid">
+  <div class="kpi blue fade-in">
+    <div class="kpi-label">ยอดขาย 2566 (ดีที่สุด)</div>
+    <div class="kpi-val">364.6 <small>M</small></div>
+    <div class="kpi-change flat">กำไรสุทธิ 36.1M (9.9%)</div>
+  </div>
+  <div class="kpi blue fade-in">
+    <div class="kpi-label">ยอดขาย 2567</div>
+    <div class="kpi-val">343.6 <small>M</small></div>
+    <div class="kpi-change up">▼ 5.8% จากปีก่อน</div>
+  </div>
+  <div class="kpi blue fade-in">
+    <div class="kpi-label">ยอดขาย 2568</div>
+    <div class="kpi-val">332.0 <small>M</small></div>
+    <div class="kpi-change up">▼ 3.4% จากปีก่อน</div>
+  </div>
+  <div class="kpi blue fade-in">
+    <div class="kpi-label">ยอดขาย 2569 คาดการณ์</div>
+    <div class="kpi-val">334.9 <small>M</small></div>
+    <div class="kpi-change dn">▲ 0.9% จากปีก่อน</div>
+  </div>
+  <div class="kpi green fade-in">
+    <div class="kpi-label">กำไรสุทธิ 2569 คาด</div>
+    <div class="kpi-val">15.6 <small>M</small></div>
+    <div class="kpi-change flat">4.7% net margin</div>
+  </div>
+</div>
+
+<!-- Bar Chart -->
+<div class="section-title">แนวโน้มรายปี</div>
+<div class="chart-card">
+  <div class="chart-title">ยอดขาย / กำไรขั้นต้น / กำไรสุทธิ</div>
+  <div class="chart-sub">ปี 2566–2569 · หน่วย: ล้านบาท · 2569* = คาดการณ์</div>
+  <div class="chart-wrap">
+    <canvas id="mainChart" height="300" role="img" aria-label="แผนภูมิแท่งเปรียบเทียบยอดขาย กำไรขั้นต้น กำไรสุทธิ 2566-2569">ยอดขาย กำไรขั้นต้น กำไรสุทธิ ปี 2566-2569</canvas>
+  </div>
+  <div id="chartLegend" style="display:flex;gap:20px;margin-top:10px;justify-content:center;flex-wrap:wrap;"></div>
+</div>
+
+<!-- Scenarios -->
+<div class="section-title">เกณฑ์ยอดขายปี 2569 · Scenario Analysis</div>
+<div class="scenario-grid">
+  <div class="sc-card green">
+    <div class="sc-badge">✦ TARGET — มีกำไร + โบนัส</div>
+    <div class="sc-num">&gt; 418M</div>
+    <div class="sc-title">อยู่สบาย มีค่าคอม มีโบนัส</div>
+    <div class="sc-desc">กำไรสุทธิระดับปี 2566 (~36M) ต้องเพิ่มยอดขาย +25% จากคาดการณ์ปัจจุบัน หรือลดค่าใช้จ่ายลง ~18M</div>
+  </div>
+  <div class="sc-card amber">
+    <div class="sc-badge">⚡ BREAK-EVEN — ไม่มีกำไร</div>
+    <div class="sc-num">~302M</div>
+    <div class="sc-title">อยู่ได้แต่ไม่มีกำไรเลย</div>
+    <div class="sc-desc">กำไรขั้นต้น = ค่าใช้จ่ายดำเนินงาน พอดี · คาดการณ์ 334.9M สูงกว่า break-even ~33M · ปลอดภัยพอสมควร</div>
+  </div>
+  <div class="sc-card red">
+    <div class="sc-badge">✕ DANGER — ขาดทุน</div>
+    <div class="sc-num">&lt; 302M</div>
+    <div class="sc-title">เริ่มติดลบ บริษัทอยู่ไม่ได้</div>
+    <div class="sc-desc">ทุกๆ 10M ที่ยอดขายหาย = ขาดทุนเพิ่ม ~3.1M · ถ้าลดไป 50M = ขาดทุน ~15M ต้องใช้เงินสำรอง</div>
+  </div>
+</div>
+
+<!-- Verdict -->
+<div class="verdict-banner">
+  <div class="verdict-icon">📍</div>
+  <div class="verdict-text">
+    คาดการณ์ปี 2569 ยอดขาย <strong>~334.9 ล้านบาท</strong> → <em>อยู่ระหว่างข้อ 2 และ 3</em> · มีกำไรสุทธิ ~15.6M (4.7%) แต่ยังไม่พอจ่าย<strong>ค่าคอมและโบนัสระดับปี 2566</strong> · สาเหตุหลัก: ค่าใช้จ่ายดำเนินงานเพิ่ม <strong>+23%</strong> (76M→94M) ขณะที่ยอดขายลด -8%
+  </div>
+</div>
+
+<!-- Bottom row -->
+<div class="section-title">รายละเอียดการเงิน</div>
+<div class="bottom-row">
+
+  <!-- P&L Table -->
+  <div class="table-card">
+    <div class="table-header">
+      <div class="chart-title">งบกำไรขาดทุน</div>
+      <div class="chart-sub">หน่วย: ล้านบาท · * = คาดการณ์</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>รายการ</th>
+            <th>2566</th><th>2567</th><th>2568</th><th>2569*</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ยอดขาย</td>
+            <td>364.6</td><td>343.6</td><td>332.0</td><td class="proj-col">334.9</td>
+          </tr>
+          <tr>
+            <td>ต้นทุนสินค้า<span class="pct-sub">% ของยอดขาย</span></td>
+            <td>250.8<span class="pct-sub">68.8%</span></td>
+            <td>237.0<span class="pct-sub">69.0%</span></td>
+            <td>229.6<span class="pct-sub">69.2%</span></td>
+            <td class="proj-col">225.7<span class="pct-sub">67.4%</span></td>
+          </tr>
+          <tr>
+            <td>กำไรขั้นต้น</td>
+            <td>113.8</td><td>123.5</td><td>102.3</td><td class="proj-col">109.2</td>
+          </tr>
+          <tr class="row-pct">
+            <td>% กำไรขั้นต้น</td>
+            <td>31.2%</td><td>35.9%</td><td>30.8%</td><td class="proj-col">32.6%</td>
+          </tr>
+          <tr>
+            <td>ค่าใช้จ่ายดำเนินงาน</td>
+            <td>76.1</td><td>94.2</td><td>91.2</td><td class="proj-col">93.6</td>
+          </tr>
+          <tr class="row-total">
+            <td>กำไรสุทธิ</td>
+            <td>36.1</td><td>18.0</td><td>11.1</td><td class="proj-col">15.6</td>
+          </tr>
+          <tr class="row-pct">
+            <td>% กำไรสุทธิ</td>
+            <td>9.9%</td><td>5.2%</td><td>3.3%</td><td class="proj-col">4.7%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Expense Table -->
+  <div class="table-card">
+    <div class="table-header">
+      <div class="chart-title">ค่าใช้จ่ายสำคัญ ทุกปี</div>
+      <div class="chart-sub">หน่วย: ล้านบาท · 2569* = คาดการณ์ทั้งปี · เรียงตาม 2568</div>
+    </div>
+    <div class="table-wrap">
+      <table class="exp-table">
+        <thead>
+          <tr>
+            <th>รายการ</th>
+            <th>2566</th><th>2567</th><th>2568</th><th>2569*</th><th>Δ 66→68</th>
+          </tr>
+        </thead>
+        <tbody id="expTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-text">
+    <span class="pulse"></span>อัปเดตล่าสุด: เมษายน 2569 · ข้อมูล 4 เดือนจริง · ปี 2569 ทั้งปี = คาดการณ์
+  </div>
+  <div class="footer-text" style="text-align:right;">
+    รายงานการเงินรวมทุกสาขา · จัดทำโดย Claude AI
+  </div>
+</footer>
+</div>
+
+<script>
+const COLORS = {
+  blue:   '#2563eb',
+  teal:   '#0d9488',
+  green:  '#16a34a',
+  muted:  '#9ca3af',
+};
+
+// ── Bar Chart with data labels ──
+const years  = ['2566','2567','2568','2569*'];
+const sales  = [364.6, 343.6, 332.0, 334.9];
+const gross  = [113.8, 123.5, 102.3, 109.2];
+const net    = [ 36.1,  18.0,  11.1,  15.6];
+
+// Custom plugin: draw value labels on top of bars
+const dataLabelPlugin = {
+  id: 'dataLabels',
+  afterDatasetsDraw(chart) {
+    const { ctx, data } = chart;
+    chart.data.datasets.forEach((ds, dsIdx) => {
+      const meta = chart.getDatasetMeta(dsIdx);
+      if (meta.hidden) return;
+      meta.data.forEach((bar, idx) => {
+        const val = ds.data[idx];
+        const { x, y } = bar.getCenterPoint ? bar.getCenterPoint() : { x: bar.x, y: bar.y };
+        // Position: near top of bar
+        const barTop = bar.y;
+        ctx.save();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = "bold 11px 'IBM Plex Mono', monospace";
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        // Draw shadow for readability
+        ctx.shadowColor = 'rgba(0,0,0,0.25)';
+        ctx.shadowBlur = 3;
+        ctx.fillText(val.toFixed(1) + 'M', x, barTop - 4);
+        ctx.restore();
+      });
+    });
+  }
+};
+
+const mCtx = document.getElementById('mainChart').getContext('2d');
+new Chart(mCtx, {
+  type: 'bar',
+  plugins: [dataLabelPlugin],
+  data: {
+    labels: years,
+    datasets: [
+      {
+        label: 'ยอดขาย',
+        data: sales,
+        backgroundColor: 'rgba(37,99,235,0.82)',
+        borderColor: '#2563eb',
+        borderWidth: 1,
+        borderRadius: 3,
+      },
+      {
+        label: 'กำไรขั้นต้น',
+        data: gross,
+        backgroundColor: 'rgba(13,148,136,0.82)',
+        borderColor: '#0d9488',
+        borderWidth: 1,
+        borderRadius: 3,
+      },
+      {
+        label: 'กำไรสุทธิ',
+        data: net,
+        backgroundColor: 'rgba(22,163,74,0.82)',
+        borderColor: '#16a34a',
+        borderWidth: 1,
+        borderRadius: 3,
+      },
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: { padding: { top: 28 } },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#fff',
+        borderColor: '#e5e7eb',
+        borderWidth: 1,
+        titleColor: '#111',
+        bodyColor: '#555',
+        padding: 10,
+        callbacks: { label: c => ` ${c.dataset.label}: ${c.parsed.y.toFixed(1)}M` }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: 'rgba(0,0,0,0.05)' },
+        ticks: { color: '#7a7060', font: { family: "'IBM Plex Mono'", size: 11 } }
+      },
+      y: {
+        grid: { color: 'rgba(0,0,0,0.05)' },
+        ticks: {
+          color: '#7a7060',
+          font: { family: "'IBM Plex Mono'", size: 10 },
+          callback: v => v + 'M'
+        }
+      }
+    }
+  }
+});
+
+// Legend
+const leg = document.getElementById('chartLegend');
+[['#2563eb','ยอดขาย'],['#0d9488','กำไรขั้นต้น'],['#16a34a','กำไรสุทธิ']].forEach(([c,l]) => {
+  leg.innerHTML += `<span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#7a7060;font-family:'IBM Plex Mono'"><span style="width:9px;height:9px;border-radius:2px;background:${c};display:inline-block;"></span>${l}</span>`;
+});
+
+// ── Expense Table ──
+const expenses = [
+  { name:'เงินเดือนพนักงาน',     v66:31.07, v67:36.80, v68:37.62, v69:35.70, color:'#2563eb' },
+  { name:'ค่าใช้จ่ายรวม (Total)',  v66:76.13, v67:94.23, v68:91.22, v69:93.52, color:null, total:true },
+  { name:'น้ำมันรถ',               v66:7.52,  v67:8.49,  v68:9.02,  v69:8.52,  color:'#0d9488' },
+  { name:'ค่าเช่าที่',              v66:6.14,  v67:7.02,  v68:7.64,  v69:7.84,  color:'#7c3aed' },
+  { name:'พิเศษ/Commission',       v66:8.61,  v67:6.26,  v68:4.85,  v69:5.19,  color:'#94a3b8' },
+  { name:'หนี้สงสัยจะสูญ',         v66:6.97,  v67:2.03,  v68:1.12,  v69:1.55,  color:'#94a3b8' },
+  { name:'ค่าเสื่อมราคา-ยานพาหนะ',v66:1.45,  v67:8.22,  v68:8.64,  v69:7.99,  color:'#f59e0b' },
+  { name:'เงินเดือนเจ้าของ',        v66:3.76,  v67:4.87,  v68:4.87,  v69:4.87,  color:'#0d9488' },
+  { name:'อะไหล่/ซ่อมรถ',          v66:3.16,  v67:4.15,  v68:3.25,  v69:3.02,  color:'#94a3b8' },
+  { name:'โทรศัพท์/อินเตอร์เน็ต', v66:1.24,  v67:2.86,  v68:3.90,  v69:3.77,  color:'#dc2626' },
+  { name:'ภาษีที่ดิน',              v66:2.22,  v67:3.45,  v68:0.96,  v69:0.00,  color:'#94a3b8' },
+  { name:'ค่าตรวจสอบบัญชี',        v66:1.95,  v67:1.09,  v68:1.11,  v69:0.97,  color:'#94a3b8' },
+];
+
+// Sort: total first, then by v68 desc (excluding total)
+const nonTotal = expenses.filter(e => !e.total).sort((a,b) => b.v68 - a.v68);
+const totalRow = expenses.find(e => e.total);
+const sorted = [totalRow, ...nonTotal];
+
+const tbody = document.getElementById('expTableBody');
+sorted.forEach(e => {
+  const chg = ((e.v68 - e.v66) / e.v66 * 100).toFixed(0);
+  const chgClass = chg > 0 ? 'chg-pos' : 'chg-neg';
+  const chgSign = chg > 0 ? '+' : '';
+  const dot = e.color ? `<span class="dot-ind" style="background:${e.color}"></span>` : '';
+  const rowClass = e.total ? ' class="row-total"' : '';
+  tbody.innerHTML += `<tr${rowClass}>
+    <td>${dot}${e.name}</td>
+    <td>${e.v66.toFixed(1)}</td>
+    <td>${e.v67.toFixed(1)}</td>
+    <td>${e.v68.toFixed(1)}</td>
+    <td class="proj-col">${e.v69.toFixed(1)}</td>
+    <td class="${chgClass}">${chgSign}${chg}%</td>
+  </tr>`;
+});
+</script>
+</body>
+</html>
