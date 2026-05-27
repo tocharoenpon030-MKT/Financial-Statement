@@ -138,10 +138,10 @@ h1 span { color: var(--accent); }
 /* KPI Cards */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
   margin-bottom: 28px;
-}}
+}
 .kpi {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -189,14 +189,10 @@ h1 span { color: var(--accent); }
 
 /* Scenario cards */
 .scenario-grid {
-.kpi-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-bottom: 28px;
-  max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
 }
 .sc-card {
   border-radius: 10px;
@@ -514,40 +510,56 @@ footer {
 
 <header>
   <div>
-    <h1> Financial Dashboard · รายงานการเงิน <span>2566–2569</span></h1>
+    <div class="eyebrow">Financial Dashboard · รายงานการเงิน</div>
+    <h1>งบรวมทุกสาขา <span>2566–2569</span></h1>
+  </div>
+  <div class="header-meta">
+    ปี 2569 = คาดการณ์ทั้งปี (4 เดือนจริง × ratio เฉลี่ย)<br>
+    หน่วย: ล้านบาท (M)
   </div>
 </header>
 
 <!-- Page Tabs -->
 <div class="page-tabs">
-  <button class="tab-btn active" onclick="switchTab('p1')">หน้า 1 · หน้าสรุป</button>
+  <button class="tab-btn active" onclick="switchTab('p1')">หน้า 1 · ภาพรวมและ Scenario</button>
   <button class="tab-btn" onclick="switchTab('p2')">หน้า 2 · งบกำไรขาดทุน</button>
+</div>
+
+<!-- Google Sheet note -->
+<div class="gs-note">
+  📊 <strong>เชื่อมต่อ Google Sheets:</strong> อัปโหลดไฟล์ Excel ไปที่ Google Sheets → แชร์แบบ "ทุกคนที่มีลิงก์สามารถดูได้" → คัดลอก Sheet ID จาก URL → อัปเดต <code>SHEET_ID</code> และ <code>SHEET_NAME</code> ในส่วน <code>CONFIG</code> ของ script ด้านล่าง → แดชบอร์ดจะโหลดข้อมูลสดจาก Sheets โดยอัตโนมัติ (แก้ไข Sheets ข้อมูลเปลี่ยนทันที)
 </div>
 
 <!-- PAGE 1 -->
 <div id="page-p1" class="page active">
 
 <!-- KPI -->
+<div class="section-title">ตัวชี้วัดหลัก</div>
 <div class="kpi-grid">
   <div class="kpi blue fade-in">
     <div class="kpi-label">ยอดขาย 2566 (ดีที่สุด)</div>
-    <div class="kpi-val" style="color:#2563eb">364.6 <small>ล้าน</small></div>
+    <div class="kpi-val" style="color:#2563eb">364.6 <small>M</small></div>
     <div class="kpi-change flat">กำไรสุทธิ 30.4M (8.3%)</div>
   </div>
   <div class="kpi blue fade-in">
     <div class="kpi-label">ยอดขาย 2567</div>
-    <div class="kpi-val" style="color:#2563eb">343.6 <small>ล้าน</small></div>
+    <div class="kpi-val" style="color:#2563eb">343.6 <small>M</small></div>
     <div class="kpi-change up">▼ 5.8% จากปีก่อน</div>
   </div>
   <div class="kpi blue fade-in">
     <div class="kpi-label">ยอดขาย 2568</div>
-    <div class="kpi-val" style="color:#2563eb">332.0 <small>ล้าน</small></div>
+    <div class="kpi-val" style="color:#2563eb">332.0 <small>M</small></div>
     <div class="kpi-change up">▼ 3.4% จากปีก่อน</div>
   </div>
   <div class="kpi blue fade-in">
     <div class="kpi-label">ยอดขาย 2569 คาดการณ์</div>
-    <div class="kpi-val" style="color:#2563eb">334.1 <small>ล้าน</small></div>
+    <div class="kpi-val" style="color:#2563eb">334.1 <small>M</small></div>
     <div class="kpi-change dn">▲ 0.6% จากปีก่อน</div>
+  </div>
+  <div class="kpi green fade-in">
+    <div class="kpi-label">กำไรสุทธิ 2569 คาด</div>
+    <div class="kpi-val" style="color:#16a34a">6.9 <small>M</small></div>
+    <div class="kpi-change flat">2.1% net margin</div>
   </div>
 </div>
 
