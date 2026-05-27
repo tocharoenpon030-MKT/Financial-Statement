@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="th">
 <head>
 <meta charset="UTF-8">
@@ -39,15 +40,41 @@ body {
 }
 .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px 60px; }
 
+/* Page tabs */
+.page-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 12px 0 0;
+  border-bottom: 2px solid #e8e0cc;
+  margin-bottom: 0;
+}
+.tab-btn {
+  padding: 8px 20px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color .2s, border-color .2s;
+}
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.page { display: none; padding-top: 32px; }
+.page.active { display: block; }
+
 /* Header */
 header {
-  padding: 40px 0 28px;
+  padding: 40px 0 0;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 16px;
-  border-bottom: 2px solid #e8e0cc;
-  margin-bottom: 32px;
 }
 .eyebrow {
   font-family: var(--mono);
@@ -72,6 +99,20 @@ h1 span { color: var(--accent); }
   text-align: right;
   line-height: 1.9;
 }
+
+/* Note banner */
+.gs-note {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-left: 3px solid #2563eb;
+  border-radius: 0 8px 8px 0;
+  padding: 10px 14px;
+  margin: 16px 0 28px;
+  font-size: 12px;
+  color: #1d4ed8;
+  line-height: 1.6;
+}
+.gs-note strong { font-weight: 600; }
 
 /* Section label */
 .section-title {
@@ -126,7 +167,6 @@ h1 span { color: var(--accent); }
   font-family: var(--mono);
   font-size: 20px;
   font-weight: 500;
-  color: #111;
   line-height: 1;
   margin-bottom: 5px;
 }
@@ -153,7 +193,7 @@ h1 span { color: var(--accent); }
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
-  margin-bottom: 28px;
+  margin-bottom: 12px;
 }
 .sc-card {
   border-radius: 10px;
@@ -188,6 +228,72 @@ h1 span { color: var(--accent); }
 .sc-card.red   .sc-num { color: #dc2626; }
 .sc-title { font-size: 13px; font-weight: 600; color: #222; margin-bottom: 4px; }
 .sc-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+/* Energy bar */
+.energy-bar-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 28px;
+}
+.energy-bar-title { font-size: 12px; font-weight: 600; color: #333; margin-bottom: 6px; }
+.energy-bar-sub { font-size: 11px; color: var(--muted); margin-bottom: 14px; }
+.ebar-track {
+  width: 100%;
+  height: 36px;
+  border-radius: 8px;
+  background: #fee2e2;
+  position: relative;
+  overflow: visible;
+  display: flex;
+}
+.ebar-seg {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: #fff;
+  transition: all .3s;
+  position: relative;
+}
+.ebar-seg.red   { background: #ef4444; border-radius: 8px 0 0 8px; }
+.ebar-seg.amber { background: #f59e0b; }
+.ebar-seg.green { background: #22c55e; border-radius: 0 8px 8px 0; }
+.ebar-marker {
+  position: absolute;
+  top: -28px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: #111;
+  background: #fff;
+  border: 1.5px solid #111;
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+.ebar-marker::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: #111;
+}
+.ebar-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+}
 
 /* Verdict */
 .verdict-banner {
@@ -294,6 +400,78 @@ tbody td:first-child {
 .chg-neg { color: #16a34a; }
 .dot-ind { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
 
+/* Monthly target table */
+.monthly-table-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+.monthly-table { width: 100%; border-collapse: collapse; }
+.monthly-table thead th {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  padding: 8px 10px;
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+  background: #faf8f2;
+  white-space: nowrap;
+  letter-spacing: .04em;
+}
+.monthly-table thead th:first-child { text-align: left; min-width: 60px; }
+.monthly-table tbody td {
+  padding: 7px 10px;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: #333;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.monthly-table tbody td:first-child {
+  text-align: left;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: #555;
+}
+.monthly-table .row-green td { background: #f0fdf4; }
+.monthly-table .row-amber td { background: #fffbeb; }
+.monthly-table .row-red td   { background: #fef2f2; }
+.monthly-table .actual-col { color: #888 !important; font-style: italic; }
+.monthly-table td.green-val { color: #15803d !important; font-weight: 500; }
+.monthly-table td.amber-val { color: #b45309 !important; font-weight: 500; }
+.monthly-table td.red-val   { color: #dc2626 !important; font-weight: 500; }
+
+/* P2 scenario section */
+.p2-scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.p2-sc {
+  border-radius: 10px;
+  padding: 14px 16px;
+  border: 1px solid transparent;
+}
+.p2-sc.green { background: #f0fdf4; border-color: #bbf7d0; }
+.p2-sc.amber { background: #fffbeb; border-color: #fde68a; }
+.p2-sc.red   { background: #fef2f2; border-color: #fecaca; }
+.p2-sc-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing:.06em; margin-bottom: 6px; }
+.p2-sc.green .p2-sc-label { color: #166534; }
+.p2-sc.amber .p2-sc-label { color: #92400e; }
+.p2-sc.red   .p2-sc-label { color: #991b1b; }
+.p2-sc-title { font-size: 12px; font-weight: 600; color: #222; margin-bottom: 8px; }
+.p2-sc-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3px; }
+.p2-sc-rowlabel { font-size: 11px; color: var(--muted); }
+.p2-sc-val { font-family: var(--mono); font-size: 12px; font-weight: 500; }
+.p2-sc.green .p2-sc-val { color: #15803d; }
+.p2-sc.amber .p2-sc-val { color: #b45309; }
+.p2-sc.red   .p2-sc-val { color: #dc2626; }
+
 /* Footer */
 footer {
   margin-top: 40px;
@@ -310,7 +488,7 @@ footer {
 /* Responsive */
 @media (max-width: 960px) {
   .kpi-grid { grid-template-columns: repeat(3,1fr); }
-  .scenario-grid { grid-template-columns: 1fr; }
+  .scenario-grid, .p2-scenario-grid { grid-template-columns: 1fr; }
   .bottom-row { grid-template-columns: 1fr; }
 }
 @media (max-width: 600px) {
@@ -337,38 +515,52 @@ footer {
     <h1>งบรวมทุกสาขา <span>2566–2569</span></h1>
   </div>
   <div class="header-meta">
-    ปี 2569 = คาดการณ์ทั้งปี (4 เดือนจริง × ratio เฉลี่ย 2566/2568)<br>
+    ปี 2569 = คาดการณ์ทั้งปี (4 เดือนจริง × ratio เฉลี่ย)<br>
     หน่วย: ล้านบาท (M)
   </div>
 </header>
+
+<!-- Page Tabs -->
+<div class="page-tabs">
+  <button class="tab-btn active" onclick="switchTab('p1')">หน้า 1 · ภาพรวมและ Scenario</button>
+  <button class="tab-btn" onclick="switchTab('p2')">หน้า 2 · งบกำไรขาดทุน</button>
+</div>
+
+<!-- Google Sheet note -->
+<div class="gs-note">
+  📊 <strong>เชื่อมต่อ Google Sheets:</strong> อัปโหลดไฟล์ Excel ไปที่ Google Sheets → แชร์แบบ "ทุกคนที่มีลิงก์สามารถดูได้" → คัดลอก Sheet ID จาก URL → อัปเดต <code>SHEET_ID</code> และ <code>SHEET_NAME</code> ในส่วน <code>CONFIG</code> ของ script ด้านล่าง → แดชบอร์ดจะโหลดข้อมูลสดจาก Sheets โดยอัตโนมัติ (แก้ไข Sheets ข้อมูลเปลี่ยนทันที)
+</div>
+
+<!-- PAGE 1 -->
+<div id="page-p1" class="page active">
 
 <!-- KPI -->
 <div class="section-title">ตัวชี้วัดหลัก</div>
 <div class="kpi-grid">
   <div class="kpi blue fade-in">
     <div class="kpi-label">ยอดขาย 2566 (ดีที่สุด)</div>
-    <div class="kpi-val">364.6 <small>M</small></div>
-    <div class="kpi-change flat">กำไรสุทธิ 36.1M (9.9%)</div>
+    <div class="kpi-val" style="color:#2563eb">364.6 <small>M</small></div>
+    <div class="kpi-change flat">กำไรสุทธิ 30.4M (8.3%)</div>
   </div>
   <div class="kpi blue fade-in">
     <div class="kpi-label">ยอดขาย 2567</div>
-    <div class="kpi-val">343.6 <small>M</small></div>
+    <div class="kpi-val" style="color:#2563eb">343.6 <small>M</small></div>
     <div class="kpi-change up">▼ 5.8% จากปีก่อน</div>
   </div>
   <div class="kpi blue fade-in">
     <div class="kpi-label">ยอดขาย 2568</div>
-    <div class="kpi-val">332.0 <small>M</small></div>
+    <div class="kpi-val" style="color:#2563eb">332.0 <small>M</small></div>
     <div class="kpi-change up">▼ 3.4% จากปีก่อน</div>
   </div>
   <div class="kpi blue fade-in">
     <div class="kpi-label">ยอดขาย 2569 คาดการณ์</div>
-    <div class="kpi-val">334.9 <small>M</small></div>
-    <div class="kpi-change dn">▲ 0.9% จากปีก่อน</div>
+    <div class="kpi-val" style="color:#2563eb">334.1 <small>M</small></div>
+    <div class="kpi-change dn">▲ 0.6% จากปีก่อน</div>
   </div>
   <div class="kpi green fade-in">
     <div class="kpi-label">กำไรสุทธิ 2569 คาด</div>
-    <div class="kpi-val">15.6 <small>M</small></div>
-    <div class="kpi-change flat">4.7% net margin</div>
+    <div class="kpi-val" style="color:#16a34a">6.9 <small>M</small></div>
+    <div class="kpi-change flat">2.1% net margin</div>
   </div>
 </div>
 
@@ -377,8 +569,8 @@ footer {
 <div class="chart-card">
   <div class="chart-title">ยอดขาย / กำไรขั้นต้น / กำไรสุทธิ</div>
   <div class="chart-sub">ปี 2566–2569 · หน่วย: ล้านบาท · 2569* = คาดการณ์</div>
-  <div class="chart-wrap">
-    <canvas id="mainChart" height="300" role="img" aria-label="แผนภูมิแท่งเปรียบเทียบยอดขาย กำไรขั้นต้น กำไรสุทธิ 2566-2569">ยอดขาย กำไรขั้นต้น กำไรสุทธิ ปี 2566-2569</canvas>
+  <div class="chart-wrap" style="height:300px">
+    <canvas id="mainChart" role="img" aria-label="แผนภูมิแท่งเปรียบเทียบยอดขาย กำไรขั้นต้น กำไรสุทธิ 2566-2569"></canvas>
   </div>
   <div id="chartLegend" style="display:flex;gap:20px;margin-top:10px;justify-content:center;flex-wrap:wrap;"></div>
 </div>
@@ -387,22 +579,39 @@ footer {
 <div class="section-title">เกณฑ์ยอดขายปี 2569 · Scenario Analysis</div>
 <div class="scenario-grid">
   <div class="sc-card green">
-    <div class="sc-badge">✦ TARGET — มีกำไร + โบนัส</div>
-    <div class="sc-num">&gt; 418M</div>
-    <div class="sc-title">อยู่สบาย มีค่าคอม มีโบนัส</div>
-    <div class="sc-desc">กำไรสุทธิระดับปี 2566 (~36M) ต้องเพิ่มยอดขาย +25% จากคาดการณ์ปัจจุบัน หรือลดค่าใช้จ่ายลง ~18M</div>
+    <div class="sc-badge">✦ TARGET — อยู่สบาย</div>
+    <div class="sc-num">407M</div>
+    <div class="sc-title">อยู่สบาย ค่าคอม โบนัสดี</div>
+    <div class="sc-desc">ยอดขายต้องถึง <strong>407 ล้านบาท</strong> · กำไรสุทธิ ~28.9M · ค่าคอมและโบนัสครบ · ต้องเพิ่มยอดขาย +22% จากคาดการณ์ปัจจุบัน</div>
   </div>
   <div class="sc-card amber">
-    <div class="sc-badge">⚡ BREAK-EVEN — ไม่มีกำไร</div>
-    <div class="sc-num">~302M</div>
-    <div class="sc-title">อยู่ได้แต่ไม่มีกำไรเลย</div>
-    <div class="sc-desc">กำไรขั้นต้น = ค่าใช้จ่ายดำเนินงาน พอดี · คาดการณ์ 334.9M สูงกว่า break-even ~33M · ปลอดภัยพอสมควร</div>
+    <div class="sc-badge">⚡ SUSTAIN — อยู่ได้</div>
+    <div class="sc-num">350M</div>
+    <div class="sc-title">อยู่ได้แต่กำไรไม่เพิ่มขึ้น</div>
+    <div class="sc-desc">ยอดขายต้องถึง <strong>350 ล้านบาท</strong> · กำไรสุทธิ ~11.5M · บริษัทดำเนินต่อได้ แต่ไม่มีการเติบโต · ต้องเพิ่มยอดขาย +5% จากคาดการณ์</div>
   </div>
   <div class="sc-card red">
-    <div class="sc-badge">✕ DANGER — ขาดทุน</div>
-    <div class="sc-num">&lt; 302M</div>
-    <div class="sc-title">เริ่มติดลบ บริษัทอยู่ไม่ได้</div>
-    <div class="sc-desc">ทุกๆ 10M ที่ยอดขายหาย = ขาดทุนเพิ่ม ~3.1M · ถ้าลดไป 50M = ขาดทุน ~15M ต้องใช้เงินสำรอง</div>
+    <div class="sc-badge">✕ DANGER — เสี่ยงขาดทุน</div>
+    <div class="sc-num">313M</div>
+    <div class="sc-title">เริ่มติดลบ บริษัทขาดทุน</div>
+    <div class="sc-desc">ถ้ายอดขายต่ำกว่า <strong>313 ล้านบาท</strong> · กำไรสุทธิเหลือน้อยมาก ~0.2M · เสี่ยงขาดทุนถ้าเกิดค่าใช้จ่ายพิเศษ</div>
+  </div>
+</div>
+
+<!-- Energy Bar -->
+<div class="energy-bar-wrap">
+  <div class="energy-bar-title">คาดการณ์ปี 2569 อยู่ในโซนไหน?</div>
+  <div class="energy-bar-sub">ยอดขายคาดการณ์ 334.1M · เปรียบเทียบกับเกณฑ์ 3 ระดับ</div>
+  <div style="position:relative; padding-top:36px;">
+    <div class="ebar-track" id="ebarTrack">
+      <div class="ebar-seg red"   id="seg-red"   style="width:33.33%">ขาดทุน<br>&lt;313M</div>
+      <div class="ebar-seg amber" id="seg-amber" style="width:33.33%">อยู่ได้<br>313–350M</div>
+      <div class="ebar-seg green" id="seg-green" style="width:33.34%">อยู่สบาย<br>&gt;407M</div>
+    </div>
+    <div id="ebarMarker"></div>
+  </div>
+  <div class="ebar-labels">
+    <span>0M</span><span>313M (ติดลบ)</span><span>350M (อยู่ได้)</span><span>407M (สบาย)</span><span>500M+</span>
   </div>
 </div>
 
@@ -410,14 +619,36 @@ footer {
 <div class="verdict-banner">
   <div class="verdict-icon">📍</div>
   <div class="verdict-text">
-    คาดการณ์ปี 2569 ยอดขาย <strong>~334.9 ล้านบาท</strong> → <em>อยู่ระหว่างข้อ 2 และ 3</em> · มีกำไรสุทธิ ~15.6M (4.7%) แต่ยังไม่พอจ่าย<strong>ค่าคอมและโบนัสระดับปี 2566</strong> · สาเหตุหลัก: ค่าใช้จ่ายดำเนินงานเพิ่ม <strong>+23%</strong> (76M→94M) ขณะที่ยอดขายลด -8%
+    คาดการณ์ปี 2569 ยอดขาย <strong>~334.1 ล้านบาท</strong> → <em>อยู่ระหว่างโซน "อยู่ได้" และ "เสี่ยงขาดทุน"</em> (ใกล้กับโซน 313–350M) · มีกำไรสุทธิ ~6.9M (2.1%) ซึ่ง<strong>ต่ำกว่าเกณฑ์ "อยู่ได้" ที่ 350M</strong> · ต้องเพิ่มยอดขาย <strong>+15.9M</strong> จึงจะถึงโซนอยู่ได้ หรือ <strong>+72.9M</strong> จึงจะถึงโซนสบาย
+  </div>
+</div>
+
+<!-- Monthly Target Table -->
+<div class="section-title">ตารางยอดขายต่อเดือนที่ต้องทำ · ปี 2569</div>
+<div class="monthly-table-card">
+  <div class="table-header">
+    <div class="chart-title">ยอดขายต่อเดือนที่ต้องทำเพื่อแต่ละ Scenario</div>
+    <div class="chart-sub">เดือน 1–4 = ข้อมูลจริง · เดือน 5–12 = เป้าหมายที่ต้องทำ · หน่วย: ล้านบาท</div>
+  </div>
+  <div class="table-wrap">
+    <table class="monthly-table">
+      <thead>
+        <tr>
+          <th>Scenario</th>
+          <th>ม.ค.</th><th>ก.พ.</th><th>มี.ค.</th><th>เม.ย.</th>
+          <th>พ.ค.</th><th>มิ.ย.</th><th>ก.ค.</th><th>ส.ค.</th>
+          <th>ก.ย.</th><th>ต.ค.</th><th>พ.ย.</th><th>ธ.ค.</th>
+          <th>รวม</th>
+        </tr>
+      </thead>
+      <tbody id="monthlyTableBody"></tbody>
+    </table>
   </div>
 </div>
 
 <!-- Bottom row -->
 <div class="section-title">รายละเอียดการเงิน</div>
 <div class="bottom-row">
-
   <!-- P&L Table -->
   <div class="table-card">
     <div class="table-header">
@@ -432,39 +663,7 @@ footer {
             <th>2566</th><th>2567</th><th>2568</th><th>2569*</th>
           </tr>
         </thead>
-        <tbody>
-          <tr>
-            <td>ยอดขาย</td>
-            <td>364.6</td><td>343.6</td><td>332.0</td><td class="proj-col">334.9</td>
-          </tr>
-          <tr>
-            <td>ต้นทุนสินค้า<span class="pct-sub">% ของยอดขาย</span></td>
-            <td>250.8<span class="pct-sub">68.8%</span></td>
-            <td>237.0<span class="pct-sub">69.0%</span></td>
-            <td>229.6<span class="pct-sub">69.2%</span></td>
-            <td class="proj-col">225.7<span class="pct-sub">67.4%</span></td>
-          </tr>
-          <tr>
-            <td>กำไรขั้นต้น</td>
-            <td>113.8</td><td>123.5</td><td>102.3</td><td class="proj-col">109.2</td>
-          </tr>
-          <tr class="row-pct">
-            <td>% กำไรขั้นต้น</td>
-            <td>31.2%</td><td>35.9%</td><td>30.8%</td><td class="proj-col">32.6%</td>
-          </tr>
-          <tr>
-            <td>ค่าใช้จ่ายดำเนินงาน</td>
-            <td>76.1</td><td>94.2</td><td>91.2</td><td class="proj-col">93.6</td>
-          </tr>
-          <tr class="row-total">
-            <td>กำไรสุทธิ</td>
-            <td>36.1</td><td>18.0</td><td>11.1</td><td class="proj-col">15.6</td>
-          </tr>
-          <tr class="row-pct">
-            <td>% กำไรสุทธิ</td>
-            <td>9.9%</td><td>5.2%</td><td>3.3%</td><td class="proj-col">4.7%</td>
-          </tr>
-        </tbody>
+        <tbody id="plTableBody"></tbody>
       </table>
     </div>
   </div>
@@ -487,8 +686,66 @@ footer {
       </table>
     </div>
   </div>
-
 </div>
+
+</div><!-- end page-p1 -->
+
+<!-- PAGE 2 -->
+<div id="page-p2" class="page">
+
+<div class="section-title">งบกำไรขาดทุน · รายละเอียด</div>
+
+<!-- Scenario cards on page 2 -->
+<div class="p2-scenario-grid" style="margin-bottom:24px;">
+  <div class="p2-sc green">
+    <div class="p2-sc-label">✦ อยู่สบาย ค่าคอม โบนัสดี</div>
+    <div class="p2-sc-title">ยอดขายต้องถึง 407M/ปี</div>
+    <div class="p2-sc-row"><span class="p2-sc-rowlabel">ยอดขาย</span><span class="p2-sc-val">407.0M</span></div>
+    <div class="p2-sc-row"><span class="p2-sc-rowlabel">กำไรขั้นต้น</span><span class="p2-sc-val">124.3M</span></div>
+    <div class="p2-sc-row"><span class="p2-sc-rowlabel">ค่าใช้จ่ายรวม</span><span class="p2-sc-val">95.4M</span></div>
+    <div class="p2-sc-row"><span class="p2-sc-rowlabel">กำไรสุทธิ</span><span class="p2-sc-val">28.9M</span></div>
+  </div>
+  <div class="p2-sc amber">
+    <div class="p2-sc-label">⚡ อยู่ได้แต่กำไรไม่เพิ่มขึ้น</div>
+    <div class="p2-sc-title">ยอดขายต้องถึง 350M/ปี</div>
+    <div class="p2-sc-row"><span class="p2-sc-rowlabel">ยอดขาย</span><span class="p2-sc-val">350.0M</span></div>
+    <div class="p2-sc-row"><span class="p2-sc-rowlabel">กำไรขั้นต้น</span><span class="p2-sc-val">106.9M</span></div>
+    <div class="p2-sc-row"><span class="p2-sc-rowlabel">ค่าใช้จ่ายรวม</span><span class="p2-sc-val">95.4M</span></div>
+    <div class="p2-sc-row"><span class="p2-sc-rowlabel">กำไรสุทธิ</span><span class="p2-sc-val">11.5M</span></div>
+  </div>
+  <div class="p2-sc red">
+    <div class="p2-sc-label">✕ เริ่มติดลบ บริษัทขาดทุน</div>
+    <div class="p2-sc-title">ยอดขายต่ำกว่า 313M/ปี</div>
+    <div class="p2-sc-row"><span class="p2-sc-rowlabel">ยอดขาย</span><span class="p2-sc-val">313.0M</span></div>
+    <div class="p2-sc-row"><span class="p2-sc-rowlabel">กำไรขั้นต้น</span><span class="p2-sc-val">95.6M</span></div>
+    <div class="p2-sc-row"><span class="p2-sc-rowlabel">ค่าใช้จ่ายรวม</span><span class="p2-sc-val">95.4M</span></div>
+    <div class="p2-sc-row"><span class="p2-sc-rowlabel">กำไรสุทธิ</span><span class="p2-sc-val">0.2M</span></div>
+  </div>
+</div>
+
+<!-- Full P&L Table page 2 -->
+<div class="table-card" style="margin-bottom:28px;">
+  <div class="table-header">
+    <div class="chart-title">งบกำไรขาดทุน · รายละเอียดทุกรายการ</div>
+    <div class="chart-sub">หน่วย: ล้านบาท · * = คาดการณ์</div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="text-align:left;min-width:180px;">รายการ</th>
+          <th>2566</th><th>2567</th><th>2568</th><th>2569*</th>
+          <th style="color:#15803d">อยู่สบาย</th>
+          <th style="color:#b45309">อยู่ได้</th>
+          <th style="color:#dc2626">ติดลบ</th>
+        </tr>
+      </thead>
+      <tbody id="fullPlTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+</div><!-- end page-p2 -->
 
 <footer>
   <div class="footer-text">
@@ -498,9 +755,88 @@ footer {
     รายงานการเงินรวมทุกสาขา · จัดทำโดย Claude AI
   </div>
 </footer>
-</div>
+
+</div><!-- .wrap -->
 
 <script>
+// ══════════════════════════════════════════════
+// CONFIG — อัปเดตค่านี้เพื่อเชื่อมต่อ Google Sheets
+// ══════════════════════════════════════════════
+const CONFIG = {
+  // วิธีเปิดใช้งาน Google Sheets:
+  // 1. อัปโหลดไฟล์ Excel ไปที่ Google Sheets
+  // 2. แชร์: "ทุกคนที่มีลิงก์สามารถดูได้"
+  // 3. คัดลอก Sheet ID จาก URL เช่น: docs.google.com/spreadsheets/d/[SHEET_ID]/edit
+  // 4. ใส่ค่า SHEET_ID และ SHEET_NAME (ชื่อ sheet = สรุป)
+  SHEET_ID: '',   // ← ใส่ Google Sheet ID ที่นี่
+  SHEET_NAME: 'สรุป',
+  USE_SHEETS: false  // เปลี่ยนเป็น true เมื่อตั้งค่าแล้ว
+};
+
+// ── Static data from Excel (used when Google Sheets not connected) ──
+const STATIC = {
+  // Annual (ล้านบาท)
+  sales:    { y66: 364.6, y67: 343.6, y68: 332.0, y69: 334.1 },
+  gross:    { y66: 113.8, y67: 123.5, y68: 102.3, y69: 102.3 },
+  expenses: { y66:  83.4, y67:  94.2, y68:  91.2, y69:  95.4 },
+  net:      { y66:  30.4, y67:  29.2, y68:  11.1, y69:   6.9 },
+  cogs:     { y66: 250.8, y67: 236.98, y68: 229.6, y69: 232.1 },
+  // Scenario thresholds (from Excel BC/BD/BE)
+  sc: {
+    sales:  { green: 407.0, amber: 350.0, red: 313.0 },
+    gross:  { green: 124.3, amber: 106.9, red: 95.6 },
+    net:    { green: 28.9,  amber: 11.5,  red: 0.2 },
+    cogs:   { green: 282.7, amber: 243.1, red: 217.4 },
+    opex:   { green: 95.4,  amber: 95.4,  red: 95.4 },
+  },
+  // Monthly targets (from Excel rows 35,36,37 วิธีคิดยอดขาย)
+  monthly: {
+    // m1-m4 = actual (same for all), m5-m12 = target per scenario
+    actual: [25.64, 24.34, 26.45, 22.75],
+    green:  [25.64, 24.34, 26.45, 22.75, 24.50, 39.33, 40.08, 38.53, 40.93, 41.08, 36.52, 31.20],
+    amber:  [25.64, 24.34, 26.45, 22.75, 24.50, 31.27, 31.87, 30.64, 32.55, 32.66, 29.04, 24.81],
+    red:    [25.64, 24.34, 26.45, 22.75, 24.50, 26.05, 26.55, 25.52, 27.11, 27.21, 24.19, 20.66],
+  }
+};
+
+// ── Tab switching ──
+function switchTab(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ── Google Sheets loader ──
+async function loadFromSheets() {
+  if (!CONFIG.USE_SHEETS || !CONFIG.SHEET_ID) return null;
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(CONFIG.SHEET_NAME)}`;
+    const res = await fetch(url);
+    const text = await res.text();
+    const json = JSON.parse(text.substring(47).slice(0,-2));
+    const rows = json.table.rows;
+    // Parse rows — same structure as Excel
+    // Row index 1 = ยอดขาย, row 3 = กำไรขั้นต้น, row 27 = ค่าใช้จ่ายทั้งหมด, row 28 = กำไรสุทธิ
+    // Columns AX=49, AY=50, AZ=51, BB=53 (0-indexed)
+    const getVal = (row, col) => {
+      try { return parseFloat((rows[row].c[col] || {}).v) || 0; } catch(e) { return 0; }
+    };
+    return {
+      sales:    { y66: getVal(1,49)/1e6, y67: getVal(1,50)/1e6, y68: getVal(1,51)/1e6, y69: getVal(1,53)/1e6 },
+      gross:    { y66: getVal(3,49)/1e6, y67: getVal(3,50)/1e6, y68: getVal(3,51)/1e6, y69: getVal(3,53)/1e6 },
+      expenses: { y66: getVal(27,49)/1e6, y67: getVal(27,50)/1e6, y68: getVal(27,51)/1e6, y69: getVal(27,53)/1e6 },
+      net:      { y66: getVal(28,49)/1e6, y67: getVal(28,50)/1e6, y68: getVal(28,51)/1e6, y69: getVal(28,53)/1e6 },
+      cogs:     { y66: getVal(2,49)/1e6, y67: getVal(2,50)/1e6, y68: getVal(2,51)/1e6, y69: getVal(2,53)/1e6 },
+      sc: STATIC.sc, // Scenario thresholds kept from Excel
+      monthly: STATIC.monthly,
+    };
+  } catch(e) {
+    console.warn('Google Sheets load failed, using static data:', e);
+    return null;
+  }
+}
+
 const COLORS = {
   blue:   '#2563eb',
   teal:   '#0d9488',
@@ -508,150 +844,238 @@ const COLORS = {
   muted:  '#9ca3af',
 };
 
-// ── Bar Chart with data labels ──
-const years  = ['2566','2567','2568','2569*'];
-const sales  = [364.6, 343.6, 332.0, 334.9];
-const gross  = [113.8, 123.5, 102.3, 109.2];
-const net    = [ 36.1,  18.0,  11.1,  15.6];
+// ── Main init ──
+async function init() {
+  const data = (await loadFromSheets()) || STATIC;
+  renderChart(data);
+  renderEnergyBar(data);
+  renderPLTable(data);
+  renderExpTable(data);
+  renderMonthlyTable(data);
+  renderFullPLTable(data);
+}
 
-// Custom plugin: draw value labels on top of bars
-const dataLabelPlugin = {
-  id: 'dataLabels',
-  afterDatasetsDraw(chart) {
-    const { ctx, data } = chart;
-    chart.data.datasets.forEach((ds, dsIdx) => {
-      const meta = chart.getDatasetMeta(dsIdx);
-      if (meta.hidden) return;
-      meta.data.forEach((bar, idx) => {
-        const val = ds.data[idx];
-        const { x, y } = bar.getCenterPoint ? bar.getCenterPoint() : { x: bar.x, y: bar.y };
-        // Position: near top of bar
-        const barTop = bar.y;
-        ctx.save();
-        ctx.fillStyle = '#ffffff';
-        ctx.font = "bold 11px 'IBM Plex Mono', monospace";
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'bottom';
-        // Draw shadow for readability
-        ctx.shadowColor = 'rgba(0,0,0,0.25)';
-        ctx.shadowBlur = 3;
-        ctx.fillText(val.toFixed(1) + 'M', x, barTop - 4);
-        ctx.restore();
+// ── Bar Chart ──
+function renderChart(d) {
+  const years  = ['2566','2567','2568','2569*'];
+  const sales  = [d.sales.y66, d.sales.y67, d.sales.y68, d.sales.y69];
+  const gross  = [d.gross.y66, d.gross.y67, d.gross.y68, d.gross.y69];
+  const net    = [d.net.y66,   d.net.y67,   d.net.y68,   d.net.y69];
+
+  const dataLabelPlugin = {
+    id: 'dataLabels',
+    afterDatasetsDraw(chart) {
+      const { ctx } = chart;
+      chart.data.datasets.forEach((ds, dsIdx) => {
+        const meta = chart.getDatasetMeta(dsIdx);
+        if (meta.hidden) return;
+        meta.data.forEach((bar, idx) => {
+          const val = ds.data[idx];
+          const barTop = bar.y;
+          const { x } = bar.getCenterPoint ? bar.getCenterPoint() : { x: bar.x };
+          ctx.save();
+          ctx.fillStyle = ds.borderColor;
+          ctx.font = "bold 11px 'IBM Plex Mono', monospace";
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(val.toFixed(1) + 'M', x, barTop - 4);
+          ctx.restore();
+        });
       });
-    });
-  }
-};
+    }
+  };
 
-const mCtx = document.getElementById('mainChart').getContext('2d');
-new Chart(mCtx, {
-  type: 'bar',
-  plugins: [dataLabelPlugin],
-  data: {
-    labels: years,
-    datasets: [
-      {
-        label: 'ยอดขาย',
-        data: sales,
-        backgroundColor: 'rgba(37,99,235,0.82)',
-        borderColor: '#2563eb',
-        borderWidth: 1,
-        borderRadius: 3,
-      },
-      {
-        label: 'กำไรขั้นต้น',
-        data: gross,
-        backgroundColor: 'rgba(13,148,136,0.82)',
-        borderColor: '#0d9488',
-        borderWidth: 1,
-        borderRadius: 3,
-      },
-      {
-        label: 'กำไรสุทธิ',
-        data: net,
-        backgroundColor: 'rgba(22,163,74,0.82)',
-        borderColor: '#16a34a',
-        borderWidth: 1,
-        borderRadius: 3,
-      },
-    ]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    layout: { padding: { top: 28 } },
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: '#fff',
-        borderColor: '#e5e7eb',
-        borderWidth: 1,
-        titleColor: '#111',
-        bodyColor: '#555',
-        padding: 10,
-        callbacks: { label: c => ` ${c.dataset.label}: ${c.parsed.y.toFixed(1)}M` }
-      }
+  const mCtx = document.getElementById('mainChart').getContext('2d');
+  new Chart(mCtx, {
+    type: 'bar',
+    plugins: [dataLabelPlugin],
+    data: {
+      labels: years,
+      datasets: [
+        { label:'ยอดขาย',     data:sales, backgroundColor:'rgba(37,99,235,0.82)',  borderColor:'#2563eb', borderWidth:1, borderRadius:3 },
+        { label:'กำไรขั้นต้น', data:gross, backgroundColor:'rgba(13,148,136,0.82)', borderColor:'#0d9488', borderWidth:1, borderRadius:3 },
+        { label:'กำไรสุทธิ',  data:net,   backgroundColor:'rgba(22,163,74,0.82)',  borderColor:'#16a34a', borderWidth:1, borderRadius:3 },
+      ]
     },
-    scales: {
-      x: {
-        grid: { color: 'rgba(0,0,0,0.05)' },
-        ticks: { color: '#7a7060', font: { family: "'IBM Plex Mono'", size: 11 } }
-      },
-      y: {
-        grid: { color: 'rgba(0,0,0,0.05)' },
-        ticks: {
-          color: '#7a7060',
-          font: { family: "'IBM Plex Mono'", size: 10 },
-          callback: v => v + 'M'
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      layout: { padding: { top: 28 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#fff', borderColor: '#e5e7eb', borderWidth: 1,
+          titleColor: '#111', bodyColor: '#555', padding: 10,
+          callbacks: { label: c => ` ${c.dataset.label}: ${c.parsed.y.toFixed(1)}M` }
         }
+      },
+      scales: {
+        x: { grid:{color:'rgba(0,0,0,0.05)'}, ticks:{color:'#7a7060',font:{family:"'IBM Plex Mono'",size:11}} },
+        y: { grid:{color:'rgba(0,0,0,0.05)'}, ticks:{color:'#7a7060',font:{family:"'IBM Plex Mono'",size:10},callback:v=>v+'M'} }
       }
     }
-  }
-});
+  });
 
-// Legend
-const leg = document.getElementById('chartLegend');
-[['#2563eb','ยอดขาย'],['#0d9488','กำไรขั้นต้น'],['#16a34a','กำไรสุทธิ']].forEach(([c,l]) => {
-  leg.innerHTML += `<span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#7a7060;font-family:'IBM Plex Mono'"><span style="width:9px;height:9px;border-radius:2px;background:${c};display:inline-block;"></span>${l}</span>`;
-});
+  const leg = document.getElementById('chartLegend');
+  [['#2563eb','ยอดขาย'],['#0d9488','กำไรขั้นต้น'],['#16a34a','กำไรสุทธิ']].forEach(([c,l]) => {
+    leg.innerHTML += `<span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#7a7060;font-family:'IBM Plex Mono'"><span style="width:9px;height:9px;border-radius:2px;background:${c};display:inline-block;"></span>${l}</span>`;
+  });
+}
+
+// ── Energy Bar ──
+function renderEnergyBar(d) {
+  const proj = d.sales.y69;
+  const minVal = 250, maxVal = 500;
+  const range = maxVal - minVal;
+  const redEnd  = 313, amberEnd = 407;
+  
+  const pctRed   = (redEnd - minVal) / range * 100;
+  const pctAmber = (amberEnd - redEnd) / range * 100;
+  const pctGreen = (maxVal - amberEnd) / range * 100;
+  
+  document.getElementById('seg-red').style.width   = pctRed + '%';
+  document.getElementById('seg-amber').style.width = pctAmber + '%';
+  document.getElementById('seg-green').style.width = pctGreen + '%';
+  
+  const markerPct = Math.min(Math.max((proj - minVal) / range * 100, 2), 98);
+  const track = document.getElementById('ebarTrack');
+  const marker = document.getElementById('ebarMarker');
+  marker.innerHTML = `<div class="ebar-marker" style="left:${markerPct}%;position:absolute;top:-28px;">${proj.toFixed(1)}M คาดการณ์ ▼</div>`;
+}
+
+// ── P&L Table Page 1 ──
+function renderPLTable(d) {
+  const tbody = document.getElementById('plTableBody');
+  const fmt = v => (v/1).toFixed(1);
+  const pct = (n,d) => (n/d*100).toFixed(1)+'%';
+  
+  tbody.innerHTML = `
+    <tr><td>ยอดขาย</td><td>${d.sales.y66.toFixed(1)}</td><td>${d.sales.y67.toFixed(1)}</td><td>${d.sales.y68.toFixed(1)}</td><td class="proj-col">${d.sales.y69.toFixed(1)}</td></tr>
+    <tr><td>ต้นทุนสินค้า<span class="pct-sub">% ของยอดขาย</span></td>
+      <td>${d.cogs.y66.toFixed(1)}<span class="pct-sub">${pct(d.cogs.y66,d.sales.y66)}</span></td>
+      <td>${d.cogs.y67.toFixed(1)}<span class="pct-sub">${pct(d.cogs.y67,d.sales.y67)}</span></td>
+      <td>${d.cogs.y68.toFixed(1)}<span class="pct-sub">${pct(d.cogs.y68,d.sales.y68)}</span></td>
+      <td class="proj-col">${d.cogs.y69.toFixed(1)}<span class="pct-sub">${pct(d.cogs.y69,d.sales.y69)}</span></td></tr>
+    <tr><td>กำไรขั้นต้น</td><td>${d.gross.y66.toFixed(1)}</td><td>${d.gross.y67.toFixed(1)}</td><td>${d.gross.y68.toFixed(1)}</td><td class="proj-col">${d.gross.y69.toFixed(1)}</td></tr>
+    <tr class="row-pct"><td>% กำไรขั้นต้น</td>
+      <td>${pct(d.gross.y66,d.sales.y66)}</td><td>${pct(d.gross.y67,d.sales.y67)}</td>
+      <td>${pct(d.gross.y68,d.sales.y68)}</td><td class="proj-col">${pct(d.gross.y69,d.sales.y69)}</td></tr>
+    <tr><td>ค่าใช้จ่ายดำเนินงาน</td>
+      <td>${d.expenses.y66.toFixed(1)}</td><td>${d.expenses.y67.toFixed(1)}</td>
+      <td>${d.expenses.y68.toFixed(1)}</td><td class="proj-col">${d.expenses.y69.toFixed(1)}</td></tr>
+    <tr class="row-total"><td>กำไรสุทธิ</td>
+      <td style="color:#2563eb">${d.net.y66.toFixed(1)}</td>
+      <td style="color:#0d9488">${d.net.y67.toFixed(1)}</td>
+      <td style="color:#16a34a">${d.net.y68.toFixed(1)}</td>
+      <td class="proj-col">${d.net.y69.toFixed(1)}</td></tr>
+    <tr class="row-pct"><td>% กำไรสุทธิ</td>
+      <td>${pct(d.net.y66,d.sales.y66)}</td><td>${pct(d.net.y67,d.sales.y67)}</td>
+      <td>${pct(d.net.y68,d.sales.y68)}</td><td class="proj-col">${pct(d.net.y69,d.sales.y69)}</td></tr>
+  `;
+}
 
 // ── Expense Table ──
-const expenses = [
-  { name:'เงินเดือนพนักงาน',     v66:31.07, v67:36.80, v68:37.62, v69:35.70, color:'#2563eb' },
-  { name:'ค่าใช้จ่ายรวม (Total)',  v66:76.13, v67:94.23, v68:91.22, v69:93.52, color:null, total:true },
-  { name:'น้ำมันรถ',               v66:7.52,  v67:8.49,  v68:9.02,  v69:8.52,  color:'#0d9488' },
-  { name:'ค่าเช่าที่',              v66:6.14,  v67:7.02,  v68:7.64,  v69:7.84,  color:'#7c3aed' },
-  { name:'พิเศษ/Commission',       v66:8.61,  v67:6.26,  v68:4.85,  v69:5.19,  color:'#94a3b8' },
-  { name:'หนี้สงสัยจะสูญ',         v66:6.97,  v67:2.03,  v68:1.12,  v69:1.55,  color:'#94a3b8' },
-  { name:'ค่าเสื่อมราคา-ยานพาหนะ',v66:1.45,  v67:8.22,  v68:8.64,  v69:7.99,  color:'#f59e0b' },
-  { name:'เงินเดือนเจ้าของ',        v66:3.76,  v67:4.87,  v68:4.87,  v69:4.87,  color:'#0d9488' },
-  { name:'อะไหล่/ซ่อมรถ',          v66:3.16,  v67:4.15,  v68:3.25,  v69:3.02,  color:'#94a3b8' },
-  { name:'โทรศัพท์/อินเตอร์เน็ต', v66:1.24,  v67:2.86,  v68:3.90,  v69:3.77,  color:'#dc2626' },
-  { name:'ภาษีที่ดิน',              v66:2.22,  v67:3.45,  v68:0.96,  v69:0.00,  color:'#94a3b8' },
-  { name:'ค่าตรวจสอบบัญชี',        v66:1.95,  v67:1.09,  v68:1.11,  v69:0.97,  color:'#94a3b8' },
-];
+function renderExpTable(d) {
+  const expenses = [
+    { name:'เงินเดือนพนักงาน',     v66:33.66, v67:36.80, v68:37.62, v69:38.37, color:'#2563eb' },
+    { name:'ค่าใช้จ่ายรวม (Total)', v66:83.44, v67:94.24, v68:91.19, v69:95.37, color:null, total:true },
+    { name:'น้ำมันรถ',              v66:8.21,  v67:8.49,  v68:9.02,  v69:11.47, color:'#0d9488' },
+    { name:'ค่าเช่าที่',             v66:6.96,  v67:7.02,  v68:7.64,  v69:8.33,  color:'#7c3aed' },
+    { name:'พิเศษ/Commission',      v66:6.39,  v67:6.26,  v68:4.85,  v69:4.85,  color:'#94a3b8' },
+    { name:'หนี้สงสัยจะสูญ',        v66:7.09,  v67:2.03,  v68:1.12,  v69:1.12,  color:'#94a3b8' },
+    { name:'ค่าเสื่อมราคา-ยานพาหนะ',v66:1.93, v67:8.22,  v68:8.64,  v69:8.64,  color:'#f59e0b' },
+    { name:'เงินเดือนเจ้าของ',       v66:3.34,  v67:4.87,  v68:4.87,  v69:4.87,  color:'#0d9488' },
+    { name:'อะไหล่/ซ่อมรถ',         v66:2.69,  v67:4.15,  v68:3.25,  v69:3.25,  color:'#94a3b8' },
+    { name:'โทรศัพท์/อินเตอร์เน็ต', v66:1.00,  v67:2.86,  v68:3.90,  v69:3.90,  color:'#dc2626' },
+    { name:'ภาษีที่ดิน',             v66:2.08,  v67:3.45,  v68:0.96,  v69:0.96,  color:'#94a3b8' },
+    { name:'ค่าตรวจสอบบัญชี',       v66:1.61,  v67:1.09,  v68:1.11,  v69:1.11,  color:'#94a3b8' },
+  ];
 
-// Sort: total first, then by v68 desc (excluding total)
-const nonTotal = expenses.filter(e => !e.total).sort((a,b) => b.v68 - a.v68);
-const totalRow = expenses.find(e => e.total);
-const sorted = [totalRow, ...nonTotal];
+  const nonTotal = expenses.filter(e => !e.total).sort((a,b) => b.v68 - a.v68);
+  const totalRow = expenses.find(e => e.total);
+  const sorted = [totalRow, ...nonTotal];
 
-const tbody = document.getElementById('expTableBody');
-sorted.forEach(e => {
-  const chg = ((e.v68 - e.v66) / e.v66 * 100).toFixed(0);
-  const chgClass = chg > 0 ? 'chg-pos' : 'chg-neg';
-  const chgSign = chg > 0 ? '+' : '';
-  const dot = e.color ? `<span class="dot-ind" style="background:${e.color}"></span>` : '';
-  const rowClass = e.total ? ' class="row-total"' : '';
-  tbody.innerHTML += `<tr${rowClass}>
-    <td>${dot}${e.name}</td>
-    <td>${e.v66.toFixed(1)}</td>
-    <td>${e.v67.toFixed(1)}</td>
-    <td>${e.v68.toFixed(1)}</td>
-    <td class="proj-col">${e.v69.toFixed(1)}</td>
-    <td class="${chgClass}">${chgSign}${chg}%</td>
-  </tr>`;
-});
+  const tbody = document.getElementById('expTableBody');
+  sorted.forEach(e => {
+    const chg = ((e.v68 - e.v66) / e.v66 * 100).toFixed(0);
+    const chgClass = chg > 0 ? 'chg-pos' : 'chg-neg';
+    const chgSign = chg > 0 ? '+' : '';
+    const dot = e.color ? `<span class="dot-ind" style="background:${e.color}"></span>` : '';
+    const rowClass = e.total ? ' class="row-total"' : '';
+    tbody.innerHTML += `<tr${rowClass}>
+      <td>${dot}${e.name}</td>
+      <td>${e.v66.toFixed(1)}</td><td>${e.v67.toFixed(1)}</td>
+      <td>${e.v68.toFixed(1)}</td><td class="proj-col">${e.v69.toFixed(1)}</td>
+      <td class="${chgClass}">${chgSign}${chg}%</td>
+    </tr>`;
+  });
+}
+
+// ── Monthly target table ──
+function renderMonthlyTable(d) {
+  const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const { green, amber, red } = d.monthly;
+  
+  const totalGreen = green.reduce((s,v)=>s+v,0);
+  const totalAmber = amber.reduce((s,v)=>s+v,0);
+  const totalRed   = red.reduce((s,v)=>s+v,0);
+
+  const fmtCell = (val, idx, cls) => {
+    const isActual = idx < 4;
+    return `<td class="${isActual ? 'actual-col' : cls}">${val.toFixed(2)}</td>`;
+  };
+
+  const tbody = document.getElementById('monthlyTableBody');
+  
+  // Green row
+  let rowG = `<tr class="row-green"><td>✦ อยู่สบาย (407M)</td>`;
+  green.forEach((v,i) => rowG += fmtCell(v, i, 'green-val'));
+  rowG += `<td class="green-val" style="font-weight:600">${totalGreen.toFixed(1)}M</td></tr>`;
+  
+  // Amber row
+  let rowA = `<tr class="row-amber"><td>⚡ อยู่ได้ (350M)</td>`;
+  amber.forEach((v,i) => rowA += fmtCell(v, i, 'amber-val'));
+  rowA += `<td class="amber-val" style="font-weight:600">${totalAmber.toFixed(1)}M</td></tr>`;
+  
+  // Red row
+  let rowR = `<tr class="row-red"><td>✕ ติดลบ (313M)</td>`;
+  red.forEach((v,i) => rowR += fmtCell(v, i, 'red-val'));
+  rowR += `<td class="red-val" style="font-weight:600">${totalRed.toFixed(1)}M</td></tr>`;
+
+  tbody.innerHTML = rowG + rowA + rowR;
+}
+
+// ── Full P&L Table page 2 ──
+function renderFullPLTable(d) {
+  const rows = [
+    { label:'ยอดขายสินค้า', y66:364.6, y67:343.6, y68:332.0, y69:334.1, sc:{g:407.0, a:350.0, r:313.0}, bold:false },
+    { label:'ต้นทุนสินค้า',  y66:250.8, y67:237.0, y68:229.6, y69:232.1, sc:{g:282.7, a:243.1, r:217.4}, bold:false },
+    { label:'กำไรขั้นต้น',   y66:113.8, y67:123.5, y68:102.3, y69:102.3, sc:{g:124.3, a:106.9, r:95.6},  bold:true  },
+    { label:'ค่าเช่าที่',     y66:6.96,  y67:7.02,  y68:7.64,  y69:8.33,  sc:{g:8.33,  a:8.33,  r:8.33},  bold:false },
+    { label:'เงินเดือนเจ้าของ', y66:3.34, y67:4.87, y68:4.87, y69:4.87, sc:{g:4.87, a:4.87, r:4.87}, bold:false },
+    { label:'น้ำมันรถ',       y66:8.21,  y67:8.49,  y68:9.02,  y69:11.47, sc:{g:11.47, a:11.47, r:11.47}, bold:false },
+    { label:'เงินเดือนพนักงาน', y66:33.66, y67:36.80, y68:37.62, y69:38.37, sc:{g:38.37, a:38.37, r:38.37}, bold:false },
+    { label:'พิเศษ/Commission', y66:6.39, y67:6.26, y68:4.85, y69:4.85, sc:{g:4.85, a:4.85, r:4.85}, bold:false },
+    { label:'ค่าเสื่อมราคา',  y66:1.93,  y67:8.22,  y68:8.64,  y69:8.64,  sc:{g:8.64,  a:8.64,  r:8.64},  bold:false },
+    { label:'หนี้สงสัยจะสูญ', y66:7.09,  y67:2.03,  y68:1.12,  y69:1.12,  sc:{g:1.12,  a:1.12,  r:1.12},  bold:false },
+    { label:'ค่าใช้จ่ายรวม',  y66:83.44, y67:94.24, y68:91.19, y69:95.37, sc:{g:95.37, a:95.37, r:95.37}, bold:true, total:true },
+    { label:'กำไรสุทธิ',      y66:30.4,  y67:29.2,  y68:11.1,  y69:6.9,   sc:{g:28.9,  a:11.5,  r:0.2},   bold:true, total:true },
+  ];
+
+  const tbody = document.getElementById('fullPlTableBody');
+  rows.forEach(r => {
+    const cls = (r.total ? ' class="row-total"' : r.bold ? ' style="font-weight:600"' : '');
+    tbody.innerHTML += `<tr${cls}>
+      <td>${r.label}</td>
+      <td>${r.y66.toFixed(1)}</td><td>${r.y67.toFixed(1)}</td>
+      <td>${r.y68.toFixed(1)}</td><td class="proj-col">${r.y69.toFixed(1)}</td>
+      <td style="color:#15803d;font-weight:${r.bold?600:400}">${r.sc.g.toFixed(1)}</td>
+      <td style="color:#b45309;font-weight:${r.bold?600:400}">${r.sc.a.toFixed(1)}</td>
+      <td style="color:#dc2626;font-weight:${r.bold?600:400}">${r.sc.r.toFixed(1)}</td>
+    </tr>`;
+  });
+}
+
+init();
 </script>
 </body>
 </html>
-
