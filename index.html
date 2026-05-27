@@ -192,10 +192,16 @@ h1 span { color: var(--accent); }
 
 /* Scenario cards */
 .scenario-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
   margin-bottom: 28px;
+  justify-content: center;
+}
+.scenario-grid .sc-card {
+  flex: 1 1 260px;
+  max-width: 340px;
+  min-width: 220px;
 }
 .sc-card {
   border-radius: 10px;
@@ -515,6 +521,10 @@ footer {
   <div>
     <h1>Financial Dashboard · รายงานการเงิน <span></span></h1>
   </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+    <div class="footer-text" id="syncStatus" style="font-size:13px;color:#7a7060;">⏳ กำลังโหลด...</div>
+    <button onclick="toggleDataViewer()" style="font-family:var(--sans);font-size:14px;background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;padding:7px 16px;border-radius:8px;cursor:pointer;font-weight:500;">📋 ดู DATA จาก Sheets</button>
+  </div>
 </header>
 
 <!-- Page Tabs -->
@@ -525,7 +535,16 @@ footer {
 
 <!-- Google Sheet note -->
 <div class="gs-note">
-  📊 <strong>เชื่อมต่อ Google Sheets:</strong> อัปโหลดไฟล์ Excel ไปที่ Google Sheets → แชร์แบบ "ทุกคนที่มีลิงก์สามารถดูได้" → คัดลอก Sheet ID จาก URL → อัปเดต <code>SHEET_ID</code> และ <code>SHEET_NAME</code> ในส่วน <code>CONFIG</code> ของ script ด้านล่าง → แดชบอร์ดจะโหลดข้อมูลสดจาก Sheets โดยอัตโนมัติ (แก้ไข Sheets ข้อมูลเปลี่ยนทันที)
+  📊 <strong>เชื่อมต่อ Google Sheets แล้ว:</strong> ข้อมูลโหลดจาก Sheet <code>สรุป</code> และ <code>ยอดขาย</code> โดยอัตโนมัติ · แก้ไขข้อมูลใน Google Sheets แล้วรีเฟรชหน้าเพื่ออัปเดตแดชบอร์ด
+</div>
+
+<!-- Data Viewer Panel -->
+<div id="dataViewerPanel" style="display:none;background:#fff;border:1px solid #bfdbfe;border-radius:12px;padding:20px;margin-bottom:20px;overflow:hidden;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+    <div style="font-weight:600;font-size:16px;">📋 ข้อมูลจาก Google Sheets</div>
+    <button onclick="toggleDataViewer()" style="background:none;border:none;cursor:pointer;font-size:20px;color:#888;">✕</button>
+  </div>
+  <div id="dataViewerContent">กำลังโหลด...</div>
 </div>
 
 <!-- PAGE 1 -->
@@ -608,7 +627,7 @@ footer {
 <!-- Verdict -->
 <div class="verdict-banner">
   <div class="verdict-icon">📍</div>
-  <div class="verdict-text">
+  <div class="verdict-text" id="verdictText">
     คาดการณ์ปี 2569 ยอดขาย <strong>~334.1 ล้านบาท</strong> → <em>อยู่ระหว่างโซน "อยู่ได้" และ "เสี่ยงขาดทุน"</em> (ใกล้กับโซน 313–350M) · มีกำไรสุทธิ ~6.9M (2.1%) ซึ่ง<strong>ต่ำกว่าเกณฑ์ "อยู่ได้" ที่ 350M</strong> · ต้องเพิ่มยอดขาย <strong>+15.9M</strong> จึงจะถึงโซนอยู่ได้ หรือ <strong>+72.9M</strong> จึงจะถึงโซนสบาย
   </div>
 </div>
@@ -669,7 +688,7 @@ footer {
         <thead>
           <tr>
             <th>รายการ</th>
-            <th>2566</th><th>2567</th><th>2568</th><th>2569*</th><th>Δ 66→68</th>
+            <th>2566</th><th>2567</th><th>2568</th><th>2569*</th><th>Δ 68→69</th>
           </tr>
         </thead>
         <tbody id="expTableBody"></tbody>
@@ -752,14 +771,9 @@ footer {
 // CONFIG — อัปเดตค่านี้เพื่อเชื่อมต่อ Google Sheets
 // ══════════════════════════════════════════════
 const CONFIG = {
-  // วิธีเปิดใช้งาน Google Sheets:
-  // 1. อัปโหลดไฟล์ Excel ไปที่ Google Sheets
-  // 2. แชร์: "ทุกคนที่มีลิงก์สามารถดูได้"
-  // 3. คัดลอก Sheet ID จาก URL เช่น: docs.google.com/spreadsheets/d/[SHEET_ID]/edit
-  // 4. ใส่ค่า SHEET_ID และ SHEET_NAME (ชื่อ sheet = สรุป)
-  SHEET_ID: '',   // ← ใส่ Google Sheet ID ที่นี่
-  SHEET_NAME: 'สรุป',
-  USE_SHEETS: false  // เปลี่ยนเป็น true เมื่อตั้งค่าแล้ว
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwUC_00qvWdHaKZk6mpbgwTC3zYtX9HdRO7gghGo4Z8m8-1GbkFjegfQvVMT68Bkhxp/exec',
+  USE_SHEETS: true,
+  REFRESH_MS: 5 * 60 * 1000  // รีเฟรชทุก 5 นาที
 };
 
 // ── Static data from Excel (used when Google Sheets not connected) ──
@@ -796,32 +810,87 @@ function switchTab(id) {
   event.target.classList.add('active');
 }
 
-// ── Google Sheets loader ──
+// ── Google Sheets loader (via Apps Script) ──
+function numVal(v) {
+  const n = parseFloat(String(v).replace(/,/g, ''));
+  return isNaN(n) ? 0 : n;
+}
+
+function findRowInObjects(arr, keyword) {
+  // arr = array of objects from Apps Script JSON
+  return arr.find(obj => {
+    const first = Object.values(obj)[0];
+    return first && String(first).includes(keyword);
+  });
+}
+
+function extractByLabelFromObjects(arr, label) {
+  const row = findRowInObjects(arr, label);
+  if (!row) return { y66: 0, y67: 0, y68: 0, y69: 0 };
+  const vals = Object.values(row).slice(1).map(numVal).filter((v, i, a) => {
+    // เอาเฉพาะที่ไม่ใช่ 0 หรือ string ว่าง จนครบ 4
+    return true;
+  });
+  // เอา 4 ค่าแรก
+  while (vals.length < 4) vals.push(0);
+  return { y66: vals[0], y67: vals[1], y68: vals[2], y69: vals[3] };
+}
+
 async function loadFromSheets() {
-  if (!CONFIG.USE_SHEETS || !CONFIG.SHEET_ID) return null;
+  if (!CONFIG.USE_SHEETS || !CONFIG.APPS_SCRIPT_URL) return null;
   try {
-    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(CONFIG.SHEET_NAME)}`;
-    const res = await fetch(url);
-    const text = await res.text();
-    const json = JSON.parse(text.substring(47).slice(0,-2));
-    const rows = json.table.rows;
-    // Parse rows — same structure as Excel
-    // Row index 1 = ยอดขาย, row 3 = กำไรขั้นต้น, row 27 = ค่าใช้จ่ายทั้งหมด, row 28 = กำไรสุทธิ
-    // Columns AX=49, AY=50, AZ=51, BB=53 (0-indexed)
-    const getVal = (row, col) => {
-      try { return parseFloat((rows[row].c[col] || {}).v) || 0; } catch(e) { return 0; }
-    };
+    const res = await fetch(CONFIG.APPS_SCRIPT_URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+
+    if (json.error) throw new Error(json.error);
+
+    // Apps Script ส่งมาเป็น { สรุป: [...], ยอดขาย: [...] }
+    const summaryRows = json['สรุป'] || [];
+    const salesRows   = json['ยอดขาย'] || [];
+
+    // ── Parse ข้อมูลจาก Sheet สรุป ──
+    const salesData    = extractByLabelFromObjects(summaryRows, 'ยอดขาย');
+    const cogsData     = extractByLabelFromObjects(summaryRows, 'ต้นทุน');
+    const grossData    = extractByLabelFromObjects(summaryRows, 'กำไรขั้นต้น');
+    const expensesData = extractByLabelFromObjects(summaryRows, 'ค่าใช้จ่าย');
+    const netData      = extractByLabelFromObjects(summaryRows, 'กำไรสุทธิ');
+
+    // ── Parse ค่าใช้จ่ายรายการ จาก Sheet ยอดขาย ──
+    const expenseKeywords = [
+      'เงินเดือนพนักงาน','น้ำมันรถ','ค่าเช่าที่','พิเศษ','Commission',
+      'หนี้สงสัยจะสูญ','ค่าเสื่อมราคา','เงินเดือนเจ้าของ','อะไหล่',
+      'โทรศัพท์','ภาษีที่ดิน','ค่าตรวจสอบ','ค่าใช้จ่ายรวม'
+    ];
+    const expenseItems = [];
+    expenseKeywords.forEach(kw => {
+      const row = findRowInObjects(salesRows, kw);
+      if (row) {
+        const vals = Object.values(row).slice(1).map(numVal);
+        while (vals.length < 4) vals.push(0);
+        expenseItems.push({
+          name: String(Object.values(row)[0]).trim(),
+          v66: vals[0], v67: vals[1], v68: vals[2], v69: vals[3],
+          total: kw.includes('รวม')
+        });
+      }
+    });
+
+    const sc = STATIC.sc;
+
     return {
-      sales:    { y66: getVal(1,49)/1e6, y67: getVal(1,50)/1e6, y68: getVal(1,51)/1e6, y69: getVal(1,53)/1e6 },
-      gross:    { y66: getVal(3,49)/1e6, y67: getVal(3,50)/1e6, y68: getVal(3,51)/1e6, y69: getVal(3,53)/1e6 },
-      expenses: { y66: getVal(27,49)/1e6, y67: getVal(27,50)/1e6, y68: getVal(27,51)/1e6, y69: getVal(27,53)/1e6 },
-      net:      { y66: getVal(28,49)/1e6, y67: getVal(28,50)/1e6, y68: getVal(28,51)/1e6, y69: getVal(28,53)/1e6 },
-      cogs:     { y66: getVal(2,49)/1e6, y67: getVal(2,50)/1e6, y68: getVal(2,51)/1e6, y69: getVal(2,53)/1e6 },
-      sc: STATIC.sc, // Scenario thresholds kept from Excel
+      sales: salesData,
+      gross: grossData,
+      expenses: expensesData,
+      net: netData,
+      cogs: cogsData,
+      sc,
       monthly: STATIC.monthly,
+      expenseItems,
+      _raw: { summary: summaryRows, sales: salesRows }
     };
   } catch(e) {
-    console.warn('Google Sheets load failed, using static data:', e);
+    console.warn('Apps Script load failed, using static data:', e.message);
     return null;
   }
 }
@@ -835,13 +904,141 @@ const COLORS = {
 
 // ── Main init ──
 async function init() {
+  showStatus('loading');
   const data = (await loadFromSheets()) || STATIC;
+  window._DATA = data;
   renderChart(data);
   renderEnergyBar(data);
   renderPLTable(data);
   renderExpTable(data);
   renderMonthlyTable(data);
   renderFullPLTable(data);
+  renderVerdict(data);
+  showStatus('ok');
+
+  // Auto-refresh
+  if (CONFIG.USE_SHEETS) {
+    setTimeout(async () => {
+      const fresh = (await loadFromSheets()) || STATIC;
+      window._DATA = fresh;
+      // re-render all
+      renderChart(fresh);
+      renderEnergyBar(fresh);
+      renderPLTable(fresh);
+      document.getElementById('expTableBody').innerHTML = '';
+      renderExpTable(fresh);
+      renderMonthlyTable(fresh);
+      document.getElementById('fullPlTableBody').innerHTML = '';
+      renderFullPLTable(fresh);
+      renderVerdict(fresh);
+      showStatus('ok');
+    }, CONFIG.REFRESH_MS);
+  }
+}
+
+function showStatus(state) {
+  const el = document.getElementById('syncStatus');
+  if (!el) return;
+  const now = new Date().toLocaleTimeString('th-TH');
+  if (state === 'loading') {
+    el.innerHTML = `<span style="color:#b45309">⏳ กำลังโหลดจาก Google Sheets...</span>`;
+  } else {
+    el.innerHTML = `<span class="pulse"></span>ซิงค์จาก Google Sheets · อัปเดต ${now}`;
+  }
+}
+
+// ── Dynamic Verdict Banner ──
+function renderVerdict(d) {
+  const el = document.getElementById('verdictText');
+  if (!el) return;
+
+  const proj = d.sales.y69;
+  const projNet = d.net.y69;
+  const projPct = (projNet / proj * 100).toFixed(1);
+  const sc = d.sc || STATIC.sc;
+  const greenTarget = sc.sales.green;
+  const amberTarget = sc.sales.amber;
+  const redTarget   = sc.sales.red;
+  const toAmber = Math.max(0, amberTarget - proj).toFixed(1);
+  const toGreen = Math.max(0, greenTarget - proj).toFixed(1);
+
+  let zone = '';
+  if      (proj >= greenTarget) zone = 'อยู่ในโซน <em>"อยู่สบาย"</em> 🎉';
+  else if (proj >= amberTarget) zone = 'อยู่ในโซน <em>"อยู่ได้"</em>';
+  else if (proj >= redTarget)   zone = 'อยู่ระหว่างโซน <em>"อยู่ได้"</em> และ <em>"เสี่ยงขาดทุน"</em> (ใกล้กับโซน ${redTarget.toFixed(0)}–${amberTarget.toFixed(0)}M)';
+  else                           zone = 'อยู่ในโซน <em>"ขาดทุน"</em> ⚠️';
+
+  let extra = '';
+  if (proj < amberTarget) extra += ` · ต้องเพิ่มยอดขาย <strong>+${toAmber}M</strong> จึงจะถึงโซนอยู่ได้`;
+  if (proj < greenTarget) extra += ` หรือ <strong>+${toGreen}M</strong> จึงจะถึงโซนสบาย`;
+
+  el.innerHTML = `คาดการณ์ปี 2569 ยอดขาย <strong>~${proj.toFixed(1)} ล้านบาท</strong> → ${zone} · มีกำไรสุทธิ ~${projNet.toFixed(1)}M (${projPct}%) ซึ่ง<strong>${proj >= amberTarget ? 'ผ่าน' : 'ต่ำกว่า'}เกณฑ์ "อยู่ได้" ที่ ${amberTarget.toFixed(0)}M</strong>${extra}`;
+}
+
+// ── Data Viewer Panel ──
+function toggleDataViewer() {
+  const panel = document.getElementById('dataViewerPanel');
+  if (!panel) return;
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) renderDataViewer();
+}
+
+function renderDataViewer() {
+  const panel = document.getElementById('dataViewerContent');
+  if (!panel) return;
+  const d = window._DATA || STATIC;
+
+  const fmt = v => typeof v === 'number' ? v.toFixed(2) : v;
+
+  let html = `<div style="font-family:var(--mono);font-size:13px;">`;
+  html += `<div style="font-weight:600;margin-bottom:10px;color:#2563eb">📊 ข้อมูลที่โหลดจาก Google Sheets</div>`;
+
+  // Summary table
+  html += `<table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+    <thead><tr style="background:#f5f3ec;">
+      <th style="padding:6px 10px;text-align:left;border:1px solid #e5e7eb;">รายการ</th>
+      <th style="padding:6px 10px;border:1px solid #e5e7eb;">2566</th>
+      <th style="padding:6px 10px;border:1px solid #e5e7eb;">2567</th>
+      <th style="padding:6px 10px;border:1px solid #e5e7eb;">2568</th>
+      <th style="padding:6px 10px;border:1px solid #e5e7eb;color:#2563eb;">2569*</th>
+    </tr></thead><tbody>`;
+
+  [
+    ['ยอดขาย', d.sales],
+    ['ต้นทุนสินค้า', d.cogs],
+    ['กำไรขั้นต้น', d.gross],
+    ['ค่าใช้จ่ายรวม', d.expenses],
+    ['กำไรสุทธิ', d.net],
+  ].forEach(([label, row]) => {
+    html += `<tr>
+      <td style="padding:5px 10px;border:1px solid #e5e7eb;">${label}</td>
+      <td style="padding:5px 10px;border:1px solid #e5e7eb;text-align:right;">${fmt(row.y66)}</td>
+      <td style="padding:5px 10px;border:1px solid #e5e7eb;text-align:right;">${fmt(row.y67)}</td>
+      <td style="padding:5px 10px;border:1px solid #e5e7eb;text-align:right;">${fmt(row.y68)}</td>
+      <td style="padding:5px 10px;border:1px solid #e5e7eb;text-align:right;color:#2563eb;font-weight:600;">${fmt(row.y69)}</td>
+    </tr>`;
+  });
+
+  html += `</tbody></table>`;
+
+  // Raw rows if available
+  if (d._raw) {
+    html += `<div style="font-weight:600;margin-bottom:6px;margin-top:12px;">แถวดิบจาก Sheet "สรุป" (10 แถวแรก)</div>`;
+    html += `<div style="overflow-x:auto;max-height:200px;overflow-y:auto;">`;
+    html += `<table style="width:100%;border-collapse:collapse;font-size:12px;">`;
+    d._raw.summary.slice(0, 10).forEach((row, i) => {
+      html += `<tr style="background:${i%2?'#faf8f2':'#fff'}"><td style="padding:3px 6px;border:1px solid #e5e7eb;color:#888;min-width:20px;">${i}</td>`;
+      row.slice(0, 8).forEach(cell => {
+        html += `<td style="padding:3px 8px;border:1px solid #e5e7eb;white-space:nowrap;">${cell !== '' ? cell : '-'}</td>`;
+      });
+      html += `</tr>`;
+    });
+    html += `</table></div>`;
+  }
+
+  html += `</div>`;
+  panel.innerHTML = html;
 }
 
 // ── Bar Chart ──
@@ -964,7 +1161,8 @@ function renderPLTable(d) {
 
 // ── Expense Table ──
 function renderExpTable(d) {
-  const expenses = [
+  // ถ้ามีข้อมูลจาก Sheets ให้ใช้ก่อน
+  const expenses = (d.expenseItems && d.expenseItems.length > 0) ? d.expenseItems : [
     { name:'เงินเดือนพนักงาน',     v66:33.66, v67:36.80, v68:37.62, v69:38.37, color:'#2563eb' },
     { name:'ค่าใช้จ่ายรวม (Total)', v66:83.44, v67:94.24, v68:91.19, v69:95.37, color:null, total:true },
     { name:'น้ำมันรถ',              v66:8.21,  v67:8.49,  v68:9.02,  v69:11.47, color:'#0d9488' },
@@ -979,22 +1177,31 @@ function renderExpTable(d) {
     { name:'ค่าตรวจสอบบัญชี',       v66:1.61,  v67:1.09,  v68:1.11,  v69:1.11,  color:'#94a3b8' },
   ];
 
+  const colorMap = {
+    'เงินเดือนพนักงาน':'#2563eb','น้ำมันรถ':'#0d9488','ค่าเช่าที่':'#7c3aed',
+    'ค่าเสื่อมราคา':'#f59e0b','เงินเดือนเจ้าของ':'#0d9488','โทรศัพท์':'#dc2626',
+  };
+
   const nonTotal = expenses.filter(e => !e.total).sort((a,b) => b.v68 - a.v68);
   const totalRow = expenses.find(e => e.total);
-  const sorted = [totalRow, ...nonTotal];
+  const sorted = totalRow ? [totalRow, ...nonTotal] : nonTotal;
 
   const tbody = document.getElementById('expTableBody');
   sorted.forEach(e => {
-    const chg = ((e.v68 - e.v66) / e.v66 * 100).toFixed(0);
-    const chgClass = chg > 0 ? 'chg-pos' : 'chg-neg';
-    const chgSign = chg > 0 ? '+' : '';
-    const dot = e.color ? `<span class="dot-ind" style="background:${e.color}"></span>` : '';
+    // เปลี่ยนเป็น Δ 68→69
+    const chg68to69 = e.v68 !== 0 ? ((e.v69 - e.v68) / e.v68 * 100).toFixed(0) : 0;
+    const chgClass = chg68to69 > 0 ? 'chg-pos' : 'chg-neg';
+    const chgSign = chg68to69 > 0 ? '+' : '';
+
+    // หาสี
+    const color = e.color || Object.entries(colorMap).find(([k]) => e.name.includes(k))?.[1] || null;
+    const dot = color ? `<span class="dot-ind" style="background:${color}"></span>` : '';
     const rowClass = e.total ? ' class="row-total"' : '';
     tbody.innerHTML += `<tr${rowClass}>
       <td>${dot}${e.name}</td>
       <td>${e.v66.toFixed(1)}</td><td>${e.v67.toFixed(1)}</td>
       <td>${e.v68.toFixed(1)}</td><td class="proj-col">${e.v69.toFixed(1)}</td>
-      <td class="${chgClass}">${chgSign}${chg}%</td>
+      <td class="${chgClass}">${chgSign}${chg68to69}%</td>
     </tr>`;
   });
 }
