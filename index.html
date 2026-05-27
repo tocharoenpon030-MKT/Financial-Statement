@@ -523,7 +523,7 @@ footer {
   </div>
   <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
     <div class="footer-text" id="syncStatus" style="font-size:13px;color:#7a7060;">⏳ กำลังโหลด...</div>
-    <button onclick="toggleDataViewer()" style="font-family:var(--sans);font-size:14px;background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;padding:7px 16px;border-radius:8px;cursor:pointer;font-weight:500;">📋 ดู DATA จาก Sheets</button>
+    <a href="https://docs.google.com/spreadsheets/d/1rTHWxxQ-pTw7jvSDiTAQwGqiNENlV4dWG0xyb1wu4K4/edit?gid=1464307538#gid=1464307538" target="_blank" style="font-family:var(--sans);font-size:14px;background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;padding:7px 16px;border-radius:8px;cursor:pointer;font-weight:500;text-decoration:none;display:inline-block;">📋 ดู DATA จาก Sheets</a>
   </div>
 </header>
 
@@ -681,7 +681,7 @@ footer {
   <div class="table-card">
     <div class="table-header">
       <div class="chart-title">ค่าใช้จ่ายสำคัญ ทุกปี</div>
-      <div class="chart-sub">หน่วย: ล้านบาท · 2569* = คาดการณ์ทั้งปี · เรียงตาม 2568</div>
+      <div class="chart-sub">หน่วย: ล้านบาท · 2569* = คาดการณ์ทั้งปี · เรียงตาม 2568 · Δ = % เปลี่ยนแปลง 68→69 จาก Google Sheets</div>
     </div>
     <div class="table-wrap">
       <table class="exp-table">
@@ -697,7 +697,18 @@ footer {
   </div>
 </div>
 
-</div><!-- end page-p1 -->
+<!-- Pie Chart -->
+<div class="section-title">สัดส่วนค่าใช้จ่าย ปี 2569</div>
+<div class="chart-card">
+  <div class="chart-title">ค่าใช้จ่ายทั้งหมด 95.4 ล้านบาท แบ่งเป็นอะไรบ้าง?</div>
+  <div class="chart-sub">ปี 2569 คาดการณ์ · ดึงข้อมูลจาก Google Sheets · หน่วย: ล้านบาท</div>
+  <div style="display:flex;flex-wrap:wrap;gap:24px;align-items:center;justify-content:center;">
+    <div style="position:relative;width:300px;height:300px;flex-shrink:0;">
+      <canvas id="pieChart" width="300" height="300"></canvas>
+    </div>
+    <div id="pieLegend" style="display:flex;flex-direction:column;gap:7px;min-width:220px;max-width:340px;"></div>
+  </div>
+</div>
 
 <!-- PAGE 2 -->
 <div id="page-p2" class="page">
@@ -856,22 +867,45 @@ async function loadFromSheets() {
     const expensesData = extractByLabelFromObjects(summaryRows, 'ค่าใช้จ่าย');
     const netData      = extractByLabelFromObjects(summaryRows, 'กำไรสุทธิ');
 
-    // ── Parse ค่าใช้จ่ายรายการ จาก Sheet ยอดขาย ──
+    // ── Parse ค่าใช้จ่ายรายการ จาก Sheet ยอดขาย + bcPct จาก Sheet สรุป ──
+    // สร้าง map ชื่อ→bcPct จาก summaryRows
+    const bcMap = {};
+    summaryRows.forEach(obj => {
+      const keys = Object.keys(obj);
+      const nameKey = keys[0];
+      const bcKey = keys.find(k => String(k).includes('ขึ้นมากี่') || String(k).toLowerCase().includes('bc') || k === 'ขึ้นมากี่%');
+      if (nameKey && bcKey) {
+        const name = String(obj[nameKey]).trim();
+        const val = parseFloat(obj[bcKey]);
+        if (!isNaN(val)) bcMap[name] = val;
+      }
+    });
+
     const expenseKeywords = [
       'เงินเดือนพนักงาน','น้ำมันรถ','ค่าเช่าที่','พิเศษ','Commission',
       'หนี้สงสัยจะสูญ','ค่าเสื่อมราคา','เงินเดือนเจ้าของ','อะไหล่',
-      'โทรศัพท์','ภาษีที่ดิน','ค่าตรวจสอบ','ค่าใช้จ่ายรวม'
+      'โทรศัพท์','ภาษีที่ดิน','ค่าตรวจสอบ','ค่าใช้จ่ายทั้งหมด',
+      'ค่าอาหาร','น้ำ','ไฟ','พรบ','โฆษณา','ก่อสร้าง','จิปาถะ','สินทรัพย์'
     ];
     const expenseItems = [];
     expenseKeywords.forEach(kw => {
-      const row = findRowInObjects(salesRows, kw);
+      const row = findRowInObjects(salesRows, kw) || findRowInObjects(summaryRows, kw);
       if (row) {
         const vals = Object.values(row).slice(1).map(numVal);
         while (vals.length < 4) vals.push(0);
+        const name = String(Object.values(row)[0]).trim();
+        // หา bcPct จาก bcMap โดยค้นหาชื่อที่ใกล้เคียง
+        let bcPct = 0;
+        const matchKey = Object.keys(bcMap).find(k => k.includes(kw) || name.includes(kw) || kw.includes(k.substring(0,4)));
+        if (matchKey) bcPct = bcMap[matchKey];
+        // fallback คำนวณเอง
+        if (bcPct === 0 && vals[2] !== 0) bcPct = (vals[3] - vals[2]) / vals[2];
+
         expenseItems.push({
-          name: String(Object.values(row)[0]).trim(),
+          name,
           v66: vals[0], v67: vals[1], v68: vals[2], v69: vals[3],
-          total: kw.includes('รวม')
+          bcPct,
+          total: name.includes('ทั้งหมด') || name.includes('รวม')
         });
       }
     });
@@ -911,6 +945,7 @@ async function init() {
   renderEnergyBar(data);
   renderPLTable(data);
   renderExpTable(data);
+  renderPieChart(data);
   renderMonthlyTable(data);
   renderFullPLTable(data);
   renderVerdict(data);
@@ -927,6 +962,11 @@ async function init() {
       renderPLTable(fresh);
       document.getElementById('expTableBody').innerHTML = '';
       renderExpTable(fresh);
+      document.getElementById('pieLegend').innerHTML = '';
+      // destroy old pie chart if exists
+      const oldPie = Chart.getChart('pieChart');
+      if (oldPie) oldPie.destroy();
+      renderPieChart(fresh);
       renderMonthlyTable(fresh);
       document.getElementById('fullPlTableBody').innerHTML = '';
       renderFullPLTable(fresh);
@@ -1161,48 +1201,112 @@ function renderPLTable(d) {
 
 // ── Expense Table ──
 function renderExpTable(d) {
-  // ถ้ามีข้อมูลจาก Sheets ให้ใช้ก่อน
-  const expenses = (d.expenseItems && d.expenseItems.length > 0) ? d.expenseItems : [
-    { name:'เงินเดือนพนักงาน',     v66:33.66, v67:36.80, v68:37.62, v69:38.37, color:'#2563eb' },
-    { name:'ค่าใช้จ่ายรวม (Total)', v66:83.44, v67:94.24, v68:91.19, v69:95.37, color:null, total:true },
-    { name:'น้ำมันรถ',              v66:8.21,  v67:8.49,  v68:9.02,  v69:11.47, color:'#0d9488' },
-    { name:'ค่าเช่าที่',             v66:6.96,  v67:7.02,  v68:7.64,  v69:8.33,  color:'#7c3aed' },
-    { name:'พิเศษ/Commission',      v66:6.39,  v67:6.26,  v68:4.85,  v69:4.85,  color:'#94a3b8' },
-    { name:'หนี้สงสัยจะสูญ',        v66:7.09,  v67:2.03,  v68:1.12,  v69:1.12,  color:'#94a3b8' },
-    { name:'ค่าเสื่อมราคา-ยานพาหนะ',v66:1.93, v67:8.22,  v68:8.64,  v69:8.64,  color:'#f59e0b' },
-    { name:'เงินเดือนเจ้าของ',       v66:3.34,  v67:4.87,  v68:4.87,  v69:4.87,  color:'#0d9488' },
-    { name:'อะไหล่/ซ่อมรถ',         v66:2.69,  v67:4.15,  v68:3.25,  v69:3.25,  color:'#94a3b8' },
-    { name:'โทรศัพท์/อินเตอร์เน็ต', v66:1.00,  v67:2.86,  v68:3.90,  v69:3.90,  color:'#dc2626' },
-    { name:'ภาษีที่ดิน',             v66:2.08,  v67:3.45,  v68:0.96,  v69:0.96,  color:'#94a3b8' },
-    { name:'ค่าตรวจสอบบัญชี',       v66:1.61,  v67:1.09,  v68:1.11,  v69:1.11,  color:'#94a3b8' },
-  ];
-
   const colorMap = {
     'เงินเดือนพนักงาน':'#2563eb','น้ำมันรถ':'#0d9488','ค่าเช่าที่':'#7c3aed',
-    'ค่าเสื่อมราคา':'#f59e0b','เงินเดือนเจ้าของ':'#0d9488','โทรศัพท์':'#dc2626',
+    'ค่าเสื่อมราคา':'#f59e0b','เงินเดือนเจ้าของ':'#16a34a','โทรศัพท์':'#dc2626',
+    'พิเศษ':'#94a3b8','หนี้สงสัย':'#f97316','อะไหล่':'#8b5cf6','ภาษี':'#64748b',
+    'ค่าตรวจ':'#06b6d4','ค่าใช้จ่ายทั้งหมด':'#111',
   };
 
-  const nonTotal = expenses.filter(e => !e.total).sort((a,b) => b.v68 - a.v68);
+  // ถ้ามีข้อมูลจาก Sheets (expenseItems มี bcPct)
+  const expenses = (d.expenseItems && d.expenseItems.length > 0) ? d.expenseItems : [
+    { name:'เงินเดือนพนักงาน',      v66:33.66, v67:36.80, v68:37.62, v69:38.37, bcPct:0.02 },
+    { name:'ค่าใช้จ่ายทั้งหมด',     v66:83.44, v67:94.24, v68:91.19, v69:95.37, bcPct:0.046, total:true },
+    { name:'น้ำมันรถ',               v66:8.21,  v67:8.49,  v68:9.02,  v69:11.47, bcPct:0.272 },
+    { name:'ค่าเช่าที่',              v66:6.96,  v67:7.02,  v68:7.64,  v69:8.33,  bcPct:0.09 },
+    { name:'พิเศษ/Commission',       v66:6.39,  v67:6.26,  v68:4.85,  v69:4.85,  bcPct:0 },
+    { name:'หนี้สงสัยจะสูญ',         v66:7.09,  v67:2.03,  v68:1.12,  v69:1.12,  bcPct:0 },
+    { name:'ค่าเสื่อมราคา-ยานพาหนะ', v66:1.93,  v67:8.22,  v68:8.64,  v69:8.64,  bcPct:0 },
+    { name:'เงินเดือนเจ้าของ',        v66:3.34,  v67:4.87,  v68:4.87,  v69:4.87,  bcPct:0 },
+    { name:'อะไหล่/ซ่อมรถ',          v66:2.69,  v67:4.15,  v68:3.25,  v69:3.25,  bcPct:0 },
+    { name:'โทรศัพท์/อินเตอร์เน็ต',  v66:1.00,  v67:2.86,  v68:3.90,  v69:3.90,  bcPct:0 },
+    { name:'ภาษีที่ดิน',              v66:2.08,  v67:3.45,  v68:0.96,  v69:0.96,  bcPct:0 },
+    { name:'ค่าตรวจสอบบัญชี',        v66:1.61,  v67:1.09,  v68:1.11,  v69:1.11,  bcPct:0 },
+  ];
+
+  const nonTotal = expenses.filter(e => !e.total).sort((a,b) => b.v69 - a.v69);
   const totalRow = expenses.find(e => e.total);
   const sorted = totalRow ? [totalRow, ...nonTotal] : nonTotal;
 
   const tbody = document.getElementById('expTableBody');
   sorted.forEach(e => {
-    // เปลี่ยนเป็น Δ 68→69
-    const chg68to69 = e.v68 !== 0 ? ((e.v69 - e.v68) / e.v68 * 100).toFixed(0) : 0;
-    const chgClass = chg68to69 > 0 ? 'chg-pos' : 'chg-neg';
-    const chgSign = chg68to69 > 0 ? '+' : '';
+    // ใช้ bcPct จาก Google Sheets โดยตรง
+    const bcPct = e.bcPct !== undefined ? e.bcPct : (e.v68 !== 0 ? (e.v69 - e.v68) / e.v68 : 0);
+    const pctDisplay = (bcPct * 100).toFixed(1);
+    const chgClass = bcPct > 0.001 ? 'chg-pos' : bcPct < -0.001 ? 'chg-neg' : '';
+    const chgSign = bcPct > 0.001 ? '+' : '';
 
-    // หาสี
-    const color = e.color || Object.entries(colorMap).find(([k]) => e.name.includes(k))?.[1] || null;
-    const dot = color ? `<span class="dot-ind" style="background:${color}"></span>` : '';
+    const color = Object.entries(colorMap).find(([k]) => e.name.includes(k))?.[1] || '#94a3b8';
+    const dot = e.total ? '' : `<span class="dot-ind" style="background:${color}"></span>`;
     const rowClass = e.total ? ' class="row-total"' : '';
+
     tbody.innerHTML += `<tr${rowClass}>
       <td>${dot}${e.name}</td>
-      <td>${e.v66.toFixed(1)}</td><td>${e.v67.toFixed(1)}</td>
-      <td>${e.v68.toFixed(1)}</td><td class="proj-col">${e.v69.toFixed(1)}</td>
-      <td class="${chgClass}">${chgSign}${chg68to69}%</td>
+      <td>${(e.v66||0).toFixed(1)}</td>
+      <td>${(e.v67||0).toFixed(1)}</td>
+      <td>${(e.v68||0).toFixed(1)}</td>
+      <td class="proj-col">${(e.v69||0).toFixed(1)}</td>
+      <td class="${chgClass}" title="จาก Google Sheets คอลัมน์ BC">${chgSign}${pctDisplay}%</td>
     </tr>`;
+  });
+}
+
+// ── Pie Chart ค่าใช้จ่าย ──
+function renderPieChart(d) {
+  const expenses = (d.expenseItems && d.expenseItems.length > 0) ? d.expenseItems : [];
+  const items = expenses.filter(e => !e.total && e.v69 > 0).sort((a,b) => b.v69 - a.v69);
+
+  if (items.length === 0) return;
+
+  const total = items.reduce((s,e) => s + e.v69, 0);
+
+  const COLORS = [
+    '#2563eb','#0d9488','#7c3aed','#f59e0b','#16a34a',
+    '#dc2626','#f97316','#8b5cf6','#06b6d4','#64748b',
+    '#ec4899','#84cc16','#6366f1','#14b8a6',
+  ];
+
+  const labels = items.map(e => e.name);
+  const values = items.map(e => e.v69);
+  const colors = items.map((_, i) => COLORS[i % COLORS.length]);
+
+  const ctx = document.getElementById('pieChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{ data: values, backgroundColor: colors, borderColor: '#fff', borderWidth: 2, hoverOffset: 8 }]
+    },
+    options: {
+      responsive: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#fff', borderColor: '#e5e7eb', borderWidth: 1,
+          titleColor: '#111', bodyColor: '#555', padding: 10,
+          callbacks: {
+            label: c => {
+              const pct = (c.parsed / total * 100).toFixed(1);
+              return ` ${c.parsed.toFixed(1)}M (${pct}%)`;
+            }
+          }
+        }
+      },
+      cutout: '55%',
+    }
+  });
+
+  // Legend
+  const leg = document.getElementById('pieLegend');
+  items.forEach((e, i) => {
+    const pct = (e.v69 / total * 100).toFixed(1);
+    leg.innerHTML += `
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:2px;background:${colors[i]};flex-shrink:0;display:inline-block;"></span>
+        <span style="font-size:13px;color:#444;flex:1;">${e.name}</span>
+        <span style="font-family:var(--mono);font-size:13px;color:#111;font-weight:500;">${e.v69.toFixed(1)}M</span>
+        <span style="font-family:var(--mono);font-size:12px;color:#7a7060;min-width:40px;text-align:right;">${pct}%</span>
+      </div>`;
   });
 }
 
