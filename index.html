@@ -637,7 +637,7 @@ footer {
 <div class="monthly-table-card">
   <div class="table-header">
     <div class="chart-title">ยอดขายต่อเดือนที่ต้องทำเพื่อแต่ละ Scenario</div>
-    <div class="chart-sub" id="monthlySubtitle">⏳ กำลังโหลดจาก Google Sheets...</div>
+    <div class="chart-sub">เดือน 1–4 = ข้อมูลจริง · เดือน 5–12 = เป้าหมายที่ต้องทำ · หน่วย: ล้านบาท</div>
   </div>
   <div class="table-wrap">
     <table class="monthly-table">
@@ -912,39 +912,6 @@ async function loadFromSheets() {
 
     const sc = STATIC.sc;
 
-    // ── Parse monthly data from BJ/BK/BL/BI (คอลัมน์เป้าหมายรายเดือนแต่ละ Scenario) ──
-    let green = [], amber = [], red = [], actual = [];
-
-    if (summaryRows.length >= 3) {
-      const firstRowKeys = Object.keys(summaryRows[0] || {});
-
-      function findColKey(colLetter, colIndex) {
-        if (firstRowKeys.includes(colLetter)) return colLetter;
-        if (firstRowKeys.includes(String(colIndex))) return String(colIndex);
-        if (firstRowKeys[colIndex] !== undefined) return firstRowKeys[colIndex];
-        return null;
-      }
-
-      // BI=col 60 (A=0), BJ=61, BK=62, BL=63
-      const keyBI = findColKey('BI', 60);
-      const keyBJ = findColKey('BJ', 61);
-      const keyBK = findColKey('BK', 62);
-      const keyBL = findColKey('BL', 63);
-
-      // แถว 3–14 ของ Sheet = index 2–13 ใน summaryRows (12 เดือน)
-      const START_IDX = 2;
-      for (let i = START_IDX; i < START_IDX + 12; i++) {
-        const row = summaryRows[i] || {};
-        actual.push(keyBI ? numVal(row[keyBI]) : 0);
-        green.push( keyBJ ? numVal(row[keyBJ]) : 0);
-        amber.push( keyBK ? numVal(row[keyBK]) : 0);
-        red.push(   keyBL ? numVal(row[keyBL]) : 0);
-      }
-    }
-
-    // ถ้าดึงได้ข้อมูลไม่ครบ fallback ไป static
-    const hasMonthlyData = green.some(v => v > 0);
-
     return {
       sales: salesData,
       gross: grossData,
@@ -952,10 +919,7 @@ async function loadFromSheets() {
       net: netData,
       cogs: cogsData,
       sc,
-      monthly: hasMonthlyData
-        ? { green, amber, red, actual }
-        : STATIC.monthly,
-      _monthlySource: hasMonthlyData ? 'sheets' : 'static',
+      monthly: STATIC.monthly,
       expenseItems,
       _raw: { summary: summaryRows, sales: salesRows }
     };
@@ -1384,44 +1348,36 @@ function renderPieChart(d) {
 
 // ── Monthly target table ──
 function renderMonthlyTable(d) {
-  const { green, amber, red, actual = [] } = d.monthly;
-
+  const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const { green, amber, red } = d.monthly;
+  
   const totalGreen = green.reduce((s,v)=>s+v,0);
   const totalAmber = amber.reduce((s,v)=>s+v,0);
   const totalRed   = red.reduce((s,v)=>s+v,0);
 
-  // ใช้ actual array (จาก BI) ตัดสินว่าเดือนไหนเป็นข้อมูลจริง
-  const isActual = (i) => actual[i] && actual[i] > 0;
-
   const fmtCell = (val, idx, cls) => {
-    const display = val > 0 ? val.toFixed(2) : '–';
-    return `<td class="${isActual(idx) ? 'actual-col' : cls}">${display}</td>`;
+    const isActual = idx < 4;
+    return `<td class="${isActual ? 'actual-col' : cls}">${val.toFixed(2)}</td>`;
   };
 
   const tbody = document.getElementById('monthlyTableBody');
-
+  
+  // Green row
   let rowG = `<tr class="row-green"><td>✦ อยู่สบาย (407M)</td>`;
   green.forEach((v,i) => rowG += fmtCell(v, i, 'green-val'));
   rowG += `<td class="green-val" style="font-weight:600">${totalGreen.toFixed(1)}M</td></tr>`;
-
+  
+  // Amber row
   let rowA = `<tr class="row-amber"><td>⚡ อยู่ได้ (350M)</td>`;
   amber.forEach((v,i) => rowA += fmtCell(v, i, 'amber-val'));
   rowA += `<td class="amber-val" style="font-weight:600">${totalAmber.toFixed(1)}M</td></tr>`;
-
+  
+  // Red row
   let rowR = `<tr class="row-red"><td>✕ ติดลบ (313M)</td>`;
   red.forEach((v,i) => rowR += fmtCell(v, i, 'red-val'));
   rowR += `<td class="red-val" style="font-weight:600">${totalRed.toFixed(1)}M</td></tr>`;
 
   tbody.innerHTML = rowG + rowA + rowR;
-
-  // อัปเดต subtitle แสดงแหล่งข้อมูล
-  const sub = document.getElementById('monthlySubtitle');
-  if (sub) {
-    const actualMonths = actual.filter(v => v > 0).length;
-    sub.textContent = d._monthlySource === 'sheets'
-      ? `ดึงจาก Google Sheets คอลัมน์ BJ / BK / BL · เดือนที่มีข้อมูลจริง ${actualMonths} เดือน (ตัวเอียง) · เดือนที่เหลือ = เป้าหมาย · หน่วย: ล้านบาท`
-      : `⚠️ ใช้ข้อมูล fallback (ไม่พบคอลัมน์ BJ/BK/BL ใน Sheets) · กรุณาตรวจสอบ Apps Script`;
-  }
 }
 
 // ── Full P&L Table page 2 ──
