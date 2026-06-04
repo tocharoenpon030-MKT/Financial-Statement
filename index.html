@@ -429,6 +429,8 @@ tbody td:first-child {
   letter-spacing: .04em;
 }
 .monthly-table thead th:first-child { text-align: left; min-width: 80px; }
+.monthly-table thead th.actual-hdr { color: #888; font-style: italic; }
+.monthly-table thead th.target-hdr { color: #2563eb; }
 .monthly-table tbody td {
   padding: 9px 12px;
   text-align: right;
@@ -452,6 +454,11 @@ tbody td:first-child {
 .monthly-table td.green-val { color: #15803d !important; font-weight: 500; }
 .monthly-table td.amber-val { color: #b45309 !important; font-weight: 500; }
 .monthly-table td.red-val   { color: #dc2626 !important; font-weight: 500; }
+/* Divider between actual and target months */
+.monthly-table td.divider-col,
+.monthly-table th.divider-col {
+  border-left: 2px solid #d4c9a8 !important;
+}
 
 /* P2 scenario section */
 .p2-scenario-grid {
@@ -637,16 +644,29 @@ footer {
 <div class="monthly-table-card">
   <div class="table-header">
     <div class="chart-title">ยอดขายต่อเดือนที่ต้องทำเพื่อแต่ละ Scenario</div>
-    <div class="chart-sub">เดือน 1–4 = ข้อมูลจริง · เดือน 5–12 = เป้าหมายที่ต้องทำ · หน่วย: ล้านบาท</div>
+    <div class="chart-sub">
+      เดือน 1–5 = <span style="color:#888;font-style:italic;">ข้อมูลจริง (italic)</span> · 
+      เดือน 6–12 = <span style="color:#2563eb;font-weight:600;">เป้าหมายที่ต้องทำ</span> · 
+      หน่วย: บาท (แสดงทศนิยม 2 ตำแหน่ง)
+    </div>
   </div>
   <div class="table-wrap">
     <table class="monthly-table">
       <thead>
         <tr>
           <th>Scenario</th>
-          <th>ม.ค.</th><th>ก.พ.</th><th>มี.ค.</th><th>เม.ย.</th>
-          <th>พ.ค.</th><th>มิ.ย.</th><th>ก.ค.</th><th>ส.ค.</th>
-          <th>ก.ย.</th><th>ต.ค.</th><th>พ.ย.</th><th>ธ.ค.</th>
+          <th class="actual-hdr">ม.ค.</th>
+          <th class="actual-hdr">ก.พ.</th>
+          <th class="actual-hdr">มี.ค.</th>
+          <th class="actual-hdr">เม.ย.</th>
+          <th class="actual-hdr">พ.ค.</th>
+          <th class="target-hdr divider-col">มิ.ย.</th>
+          <th class="target-hdr">ก.ค.</th>
+          <th class="target-hdr">ส.ค.</th>
+          <th class="target-hdr">ก.ย.</th>
+          <th class="target-hdr">ต.ค.</th>
+          <th class="target-hdr">พ.ย.</th>
+          <th class="target-hdr">ธ.ค.</th>
           <th>รวม</th>
         </tr>
       </thead>
@@ -710,6 +730,8 @@ footer {
   </div>
 </div>
 
+</div><!-- end page-p1 -->
+
 <!-- PAGE 2 -->
 <div id="page-p2" class="page">
 
@@ -769,33 +791,30 @@ footer {
 
 <footer>
   <div class="footer-text">
-    <span class="pulse"></span>อัปเดตล่าสุด: เมษายน 2569 · ข้อมูล 4 เดือนจริง · ปี 2569 ทั้งปี = คาดการณ์
+    <span class="pulse"></span>อัปเดตล่าสุด: พฤษภาคม 2569 · ข้อมูล 5 เดือนจริง · เดือน 6–12 = เป้าหมาย
   </div>
-  <div class="footer-text" style="text-align:right;">
-  </div>
+  <div class="footer-text" style="text-align:right;"></div>
 </footer>
 
 </div><!-- .wrap -->
 
 <script>
 // ══════════════════════════════════════════════
-// CONFIG — อัปเดตค่านี้เพื่อเชื่อมต่อ Google Sheets
+// CONFIG
 // ══════════════════════════════════════════════
 const CONFIG = {
   APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwUC_00qvWdHaKZk6mpbgwTC3zYtX9HdRO7gghGo4Z8m8-1GbkFjegfQvVMT68Bkhxp/exec',
   USE_SHEETS: true,
-  REFRESH_MS: 5 * 60 * 1000  // รีเฟรชทุก 5 นาที
+  REFRESH_MS: 5 * 60 * 1000
 };
 
-// ── Static data from Excel (used when Google Sheets not connected) ──
+// ── Static data ──
 const STATIC = {
-  // Annual (ล้านบาท)
   sales:    { y66: 364.6, y67: 343.6, y68: 332.0, y69: 334.1 },
   gross:    { y66: 113.8, y67: 123.5, y68: 102.3, y69: 102.3 },
   expenses: { y66:  83.4, y67:  94.2, y68:  91.2, y69:  95.4 },
   net:      { y66:  30.4, y67:  29.2, y68:  11.1, y69:   6.9 },
   cogs:     { y66: 250.8, y67: 236.98, y68: 229.6, y69: 232.1 },
-  // Scenario thresholds (from Excel BC/BD/BE)
   sc: {
     sales:  { green: 407.0, amber: 350.0, red: 313.0 },
     gross:  { green: 124.3, amber: 106.9, red: 95.6 },
@@ -803,15 +822,58 @@ const STATIC = {
     cogs:   { green: 282.7, amber: 243.1, red: 217.4 },
     opex:   { green: 95.4,  amber: 95.4,  red: 95.4 },
   },
-  // Monthly targets (from Excel rows 35,36,37 วิธีคิดยอดขาย)
+  // ── อัปเดต: เดือน 1–5 = จริง, เดือน 6–12 = เป้าหมายใหม่ ──
   monthly: {
-    // m1-m4 = actual (same for all), m5-m12 = target per scenario
-    actual: [25.64, 24.34, 26.45, 22.75],
-    green:  [25.64, 24.34, 26.45, 22.75, 24.50, 39.33, 40.08, 38.53, 40.93, 41.08, 36.52, 31.20],
-    amber:  [25.64, 24.34, 26.45, 22.75, 24.50, 31.27, 31.87, 30.64, 32.55, 32.66, 29.04, 24.81],
-    red:    [25.64, 24.34, 26.45, 22.75, 24.50, 26.05, 26.55, 25.52, 27.11, 27.21, 24.19, 20.66],
+    // หน่วย: บาท (ตัวเลขเต็ม)
+    // เดือน 1–5 เหมือนกันทุก scenario (ข้อมูลจริง)
+    // เดือน 6–12 ต่างกันตาม scenario
+    green: [
+      25642226.63,  // ม.ค. จริง
+      24337375.32,  // ก.พ. จริง
+      26453770.11,  // มี.ค. จริง
+      22754147.12,  // เม.ย. จริง
+      25924560.86,  // พ.ค. จริง ← อัปเดต
+      39123798.00,  // มิ.ย. เป้า
+      39878947.15,  // ก.ค. เป้า
+      38329968.59,  // ส.ค. เป้า
+      40727616.45,  // ก.ย. เป้า
+      40876816.03,  // ต.ค. เป้า
+      36313467.17,  // พ.ย. เป้า
+      30983460.42,  // ธ.ค. เป้า
+    ],
+    amber: [
+      25642226.63,
+      24337375.32,
+      26453770.11,
+      22754147.12,
+      25924560.86,  // พ.ค. จริง ← อัปเดต
+      31069663.33,  // มิ.ย. เป้า
+      31669355.37,  // ก.ค. เป้า
+      30439253.87,  // ส.ค. เป้า
+      32343315.23,  // ก.ย. เป้า
+      32461800.16,  // ต.ค. เป้า
+      28837875.08,  // พ.ย. เป้า
+      24605118.45,  // ธ.ค. เป้า
+    ],
+    red: [
+      25642226.63,
+      24337375.32,
+      26453770.11,
+      22754147.12,
+      25924560.86,  // พ.ค. จริง ← อัปเดต
+      25841540.83,  // มิ.ย. เป้า
+      26340322.10,  // ก.ค. เป้า
+      25317210.98,  // ส.ค. เป้า
+      26900874.08,  // ก.ย. เป้า
+      26999421.44,  // ต.ค. เป้า
+      23985297.76,  // พ.ย. เป้า
+      20464791.21,  // ธ.ค. เป้า
+    ],
   }
 };
+
+// จำนวนเดือนที่เป็นข้อมูลจริง (1-based index)
+const ACTUAL_MONTHS = 5;
 
 // ── Tab switching ──
 function switchTab(id) {
@@ -821,14 +883,13 @@ function switchTab(id) {
   event.target.classList.add('active');
 }
 
-// ── Google Sheets loader (via Apps Script) ──
+// ── Google Sheets loader ──
 function numVal(v) {
   const n = parseFloat(String(v).replace(/,/g, ''));
   return isNaN(n) ? 0 : n;
 }
 
 function findRowInObjects(arr, keyword) {
-  // arr = array of objects from Apps Script JSON
   return arr.find(obj => {
     const first = Object.values(obj)[0];
     return first && String(first).includes(keyword);
@@ -838,11 +899,7 @@ function findRowInObjects(arr, keyword) {
 function extractByLabelFromObjects(arr, label) {
   const row = findRowInObjects(arr, label);
   if (!row) return { y66: 0, y67: 0, y68: 0, y69: 0 };
-  const vals = Object.values(row).slice(1).map(numVal).filter((v, i, a) => {
-    // เอาเฉพาะที่ไม่ใช่ 0 หรือ string ว่าง จนครบ 4
-    return true;
-  });
-  // เอา 4 ค่าแรก
+  const vals = Object.values(row).slice(1).map(numVal);
   while (vals.length < 4) vals.push(0);
   return { y66: vals[0], y67: vals[1], y68: vals[2], y69: vals[3] };
 }
@@ -853,22 +910,17 @@ async function loadFromSheets() {
     const res = await fetch(CONFIG.APPS_SCRIPT_URL);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
-
     if (json.error) throw new Error(json.error);
 
-    // Apps Script ส่งมาเป็น { สรุป: [...], ยอดขาย: [...] }
     const summaryRows = json['สรุป'] || [];
     const salesRows   = json['ยอดขาย'] || [];
 
-    // ── Parse ข้อมูลจาก Sheet สรุป ──
     const salesData    = extractByLabelFromObjects(summaryRows, 'ยอดขาย');
     const cogsData     = extractByLabelFromObjects(summaryRows, 'ต้นทุน');
     const grossData    = extractByLabelFromObjects(summaryRows, 'กำไรขั้นต้น');
     const expensesData = extractByLabelFromObjects(summaryRows, 'ค่าใช้จ่าย');
     const netData      = extractByLabelFromObjects(summaryRows, 'กำไรสุทธิ');
 
-    // ── Parse ค่าใช้จ่ายรายการ จาก Sheet ยอดขาย + bcPct จาก Sheet สรุป ──
-    // สร้าง map ชื่อ→bcPct จาก summaryRows
     const bcMap = {};
     summaryRows.forEach(obj => {
       const keys = Object.keys(obj);
@@ -894,32 +946,23 @@ async function loadFromSheets() {
         const vals = Object.values(row).slice(1).map(numVal);
         while (vals.length < 4) vals.push(0);
         const name = String(Object.values(row)[0]).trim();
-        // หา bcPct จาก bcMap โดยค้นหาชื่อที่ใกล้เคียง
         let bcPct = 0;
         const matchKey = Object.keys(bcMap).find(k => k.includes(kw) || name.includes(kw) || kw.includes(k.substring(0,4)));
         if (matchKey) bcPct = bcMap[matchKey];
-        // fallback คำนวณเอง
         if (bcPct === 0 && vals[2] !== 0) bcPct = (vals[3] - vals[2]) / vals[2];
-
         expenseItems.push({
-          name,
-          v66: vals[0], v67: vals[1], v68: vals[2], v69: vals[3],
+          name, v66: vals[0], v67: vals[1], v68: vals[2], v69: vals[3],
           bcPct,
           total: name.includes('ทั้งหมด') || name.includes('รวม')
         });
       }
     });
 
-    const sc = STATIC.sc;
-
     return {
-      sales: salesData,
-      gross: grossData,
-      expenses: expensesData,
-      net: netData,
-      cogs: cogsData,
-      sc,
-      monthly: STATIC.monthly,
+      sales: salesData, gross: grossData, expenses: expensesData,
+      net: netData, cogs: cogsData,
+      sc: STATIC.sc,
+      monthly: STATIC.monthly, // ใช้ monthly จาก STATIC เสมอ (อัปเดตแล้ว)
       expenseItems,
       _raw: { summary: summaryRows, sales: salesRows }
     };
@@ -928,13 +971,6 @@ async function loadFromSheets() {
     return null;
   }
 }
-
-const COLORS = {
-  blue:   '#2563eb',
-  teal:   '#0d9488',
-  green:  '#16a34a',
-  muted:  '#9ca3af',
-};
 
 // ── Main init ──
 async function init() {
@@ -951,19 +987,16 @@ async function init() {
   renderVerdict(data);
   showStatus('ok');
 
-  // Auto-refresh
   if (CONFIG.USE_SHEETS) {
     setTimeout(async () => {
       const fresh = (await loadFromSheets()) || STATIC;
       window._DATA = fresh;
-      // re-render all
       renderChart(fresh);
       renderEnergyBar(fresh);
       renderPLTable(fresh);
       document.getElementById('expTableBody').innerHTML = '';
       renderExpTable(fresh);
       document.getElementById('pieLegend').innerHTML = '';
-      // destroy old pie chart if exists
       const oldPie = Chart.getChart('pieChart');
       if (oldPie) oldPie.destroy();
       renderPieChart(fresh);
@@ -991,7 +1024,6 @@ function showStatus(state) {
 function renderVerdict(d) {
   const el = document.getElementById('verdictText');
   if (!el) return;
-
   const proj = d.sales.y69;
   const projNet = d.net.y69;
   const projPct = (projNet / proj * 100).toFixed(1);
@@ -1005,7 +1037,7 @@ function renderVerdict(d) {
   let zone = '';
   if      (proj >= greenTarget) zone = 'อยู่ในโซน <em>"อยู่สบาย"</em> 🎉';
   else if (proj >= amberTarget) zone = 'อยู่ในโซน <em>"อยู่ได้"</em>';
-  else if (proj >= redTarget)   zone = 'อยู่ระหว่างโซน <em>"อยู่ได้"</em> และ <em>"เสี่ยงขาดทุน"</em> (ใกล้กับโซน ${redTarget.toFixed(0)}–${amberTarget.toFixed(0)}M)';
+  else if (proj >= redTarget)   zone = 'อยู่ระหว่างโซน <em>"อยู่ได้"</em> และ <em>"เสี่ยงขาดทุน"</em>';
   else                           zone = 'อยู่ในโซน <em>"ขาดทุน"</em> ⚠️';
 
   let extra = '';
@@ -1028,13 +1060,9 @@ function renderDataViewer() {
   const panel = document.getElementById('dataViewerContent');
   if (!panel) return;
   const d = window._DATA || STATIC;
-
   const fmt = v => typeof v === 'number' ? v.toFixed(2) : v;
-
   let html = `<div style="font-family:var(--mono);font-size:13px;">`;
   html += `<div style="font-weight:600;margin-bottom:10px;color:#2563eb">📊 ข้อมูลที่โหลดจาก Google Sheets</div>`;
-
-  // Summary table
   html += `<table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
     <thead><tr style="background:#f5f3ec;">
       <th style="padding:6px 10px;text-align:left;border:1px solid #e5e7eb;">รายการ</th>
@@ -1043,13 +1071,9 @@ function renderDataViewer() {
       <th style="padding:6px 10px;border:1px solid #e5e7eb;">2568</th>
       <th style="padding:6px 10px;border:1px solid #e5e7eb;color:#2563eb;">2569*</th>
     </tr></thead><tbody>`;
-
   [
-    ['ยอดขาย', d.sales],
-    ['ต้นทุนสินค้า', d.cogs],
-    ['กำไรขั้นต้น', d.gross],
-    ['ค่าใช้จ่ายรวม', d.expenses],
-    ['กำไรสุทธิ', d.net],
+    ['ยอดขาย', d.sales], ['ต้นทุนสินค้า', d.cogs], ['กำไรขั้นต้น', d.gross],
+    ['ค่าใช้จ่ายรวม', d.expenses], ['กำไรสุทธิ', d.net],
   ].forEach(([label, row]) => {
     html += `<tr>
       <td style="padding:5px 10px;border:1px solid #e5e7eb;">${label}</td>
@@ -1059,25 +1083,7 @@ function renderDataViewer() {
       <td style="padding:5px 10px;border:1px solid #e5e7eb;text-align:right;color:#2563eb;font-weight:600;">${fmt(row.y69)}</td>
     </tr>`;
   });
-
-  html += `</tbody></table>`;
-
-  // Raw rows if available
-  if (d._raw) {
-    html += `<div style="font-weight:600;margin-bottom:6px;margin-top:12px;">แถวดิบจาก Sheet "สรุป" (10 แถวแรก)</div>`;
-    html += `<div style="overflow-x:auto;max-height:200px;overflow-y:auto;">`;
-    html += `<table style="width:100%;border-collapse:collapse;font-size:12px;">`;
-    d._raw.summary.slice(0, 10).forEach((row, i) => {
-      html += `<tr style="background:${i%2?'#faf8f2':'#fff'}"><td style="padding:3px 6px;border:1px solid #e5e7eb;color:#888;min-width:20px;">${i}</td>`;
-      row.slice(0, 8).forEach(cell => {
-        html += `<td style="padding:3px 8px;border:1px solid #e5e7eb;white-space:nowrap;">${cell !== '' ? cell : '-'}</td>`;
-      });
-      html += `</tr>`;
-    });
-    html += `</table></div>`;
-  }
-
-  html += `</div>`;
+  html += `</tbody></table></div>`;
   panel.innerHTML = html;
 }
 
@@ -1152,18 +1158,14 @@ function renderEnergyBar(d) {
   const proj = d.sales.y69;
   const minVal = 250, maxVal = 500;
   const range = maxVal - minVal;
-  const redEnd  = 313, amberEnd = 407;
-  
+  const redEnd = 313, amberEnd = 407;
   const pctRed   = (redEnd - minVal) / range * 100;
   const pctAmber = (amberEnd - redEnd) / range * 100;
   const pctGreen = (maxVal - amberEnd) / range * 100;
-  
   document.getElementById('seg-red').style.width   = pctRed + '%';
   document.getElementById('seg-amber').style.width = pctAmber + '%';
   document.getElementById('seg-green').style.width = pctGreen + '%';
-  
   const markerPct = Math.min(Math.max((proj - minVal) / range * 100, 2), 98);
-  const track = document.getElementById('ebarTrack');
   const marker = document.getElementById('ebarMarker');
   marker.innerHTML = `<div class="ebar-marker" style="left:${markerPct}%;position:absolute;top:-28px;">${proj.toFixed(1)}M คาดการณ์ ▼</div>`;
 }
@@ -1171,9 +1173,7 @@ function renderEnergyBar(d) {
 // ── P&L Table Page 1 ──
 function renderPLTable(d) {
   const tbody = document.getElementById('plTableBody');
-  const fmt = v => (v/1).toFixed(1);
   const pct = (n,d) => (n/d*100).toFixed(1)+'%';
-  
   tbody.innerHTML = `
     <tr><td>ยอดขาย</td><td>${d.sales.y66.toFixed(1)}</td><td>${d.sales.y67.toFixed(1)}</td><td>${d.sales.y68.toFixed(1)}</td><td class="proj-col">${d.sales.y69.toFixed(1)}</td></tr>
     <tr><td>ต้นทุนสินค้า<span class="pct-sub">% ของยอดขาย</span></td>
@@ -1210,102 +1210,89 @@ function renderExpTable(d) {
     'คชจ':'#a855f7','ไฟ':'#eab308','น้ำ':'#38bdf8','พรบ':'#94a3b8',
     'รักษาพยาบาล':'#10b981','ค่าใช้จ่ายทั้งหมด':'#111',
   };
-
-  // ถ้ามีข้อมูลจาก Sheets (expenseItems มี bcPct)
   const expenses = (d.expenseItems && d.expenseItems.length > 0) ? d.expenseItems : [
-    { name:'ค่าใช้จ่ายทั้งหมด',                          v66:83.44, v67:94.24, v68:91.19, v69:95.37, bcPct:0.046, total:true },
-    { name:'เงินเดือนพนักงาน',                            v66:33.66, v67:36.80, v68:37.62, v69:38.37, bcPct:0.02 },
-    { name:'น้ำมันรถ',                                    v66:8.21,  v67:8.49,  v68:9.02,  v69:11.47, bcPct:0.272 },
-    { name:'ค่าเสื่อมราคา-ยานพาหนะ',                     v66:1.93,  v67:8.22,  v68:8.64,  v69:8.64,  bcPct:0 },
-    { name:'ค่าเช่าที่',                                   v66:6.96,  v67:7.02,  v68:7.64,  v69:8.33,  bcPct:0.09 },
-    { name:'เงินเดือนเจ้าของ',                             v66:3.34,  v67:4.87,  v68:4.87,  v69:4.87,  bcPct:0 },
-    { name:'พิเศษพนักงาน/Commission',                     v66:6.39,  v67:6.26,  v68:4.85,  v69:4.85,  bcPct:0 },
-    { name:'โทรศัพท์, อินเตอร์เน็ต',                     v66:1.00,  v67:2.86,  v68:3.90,  v69:3.90,  bcPct:0 },
-    { name:'อะไหล่, ซ่อมรถ',                              v66:2.69,  v67:4.15,  v68:3.25,  v69:3.25,  bcPct:0 },
-    { name:'ค่าโฆษณา, ส่งเสริมการขาย',                   v66:1.20,  v67:1.50,  v68:1.80,  v69:2.00,  bcPct:0.11 },
-    { name:'ซื้อสินทรัพย์, อุปกรณ์สำนักงาน',             v66:0.80,  v67:1.20,  v68:1.50,  v69:1.60,  bcPct:0.07 },
-    { name:'ค่ารักษาพยาบาล, สวัสดิการ',                  v66:0.90,  v67:1.10,  v68:1.30,  v69:1.40,  bcPct:0.08 },
-    { name:'ค่าตรวจสอบบัญชี',                             v66:1.61,  v67:1.09,  v68:1.11,  v69:1.11,  bcPct:0 },
-    { name:'ค่าก่อสร้าง, ซ่อมแซมสำนักงาน',               v66:0.50,  v67:0.80,  v68:1.00,  v69:1.10,  bcPct:0.10 },
-    { name:'ภาษีที่ดินและสิ่งปลูกสร้าง',                  v66:2.08,  v67:3.45,  v68:0.96,  v69:0.96,  bcPct:0 },
-    { name:'จิปาถะ',                                       v66:0.50,  v67:0.60,  v68:0.70,  v69:0.80,  bcPct:0.14 },
-    { name:'ค่าอาหาร, เครื่องดื่ม',                       v66:0.40,  v67:0.50,  v68:0.60,  v69:0.70,  bcPct:0.17 },
-    { name:'คชจ.เพื่อความสะดวกทางราชการ',                v66:0.30,  v67:0.35,  v68:0.40,  v69:0.50,  bcPct:0.25 },
-    { name:'ไฟ',                                           v66:0.25,  v67:0.28,  v68:0.32,  v69:0.38,  bcPct:0.19 },
-    { name:'น้ำ',                                          v66:0.10,  v67:0.12,  v68:0.14,  v69:0.16,  bcPct:0.14 },
-    { name:'พรบ ประกันรถ',                                 v66:0.15,  v67:0.15,  v68:0.15,  v69:0.15,  bcPct:0 },
-    { name:'หนี้สงสัยจะสูญ',                               v66:7.09,  v67:2.03,  v68:1.12,  v69:1.12,  bcPct:0 },
+    { name:'ค่าใช้จ่ายทั้งหมด', v66:83.44, v67:94.24, v68:91.19, v69:95.37, bcPct:0.046, total:true },
+    { name:'เงินเดือนพนักงาน',  v66:33.66, v67:36.80, v68:37.62, v69:38.37, bcPct:0.02 },
+    { name:'น้ำมันรถ',           v66:8.21,  v67:8.49,  v68:9.02,  v69:11.47, bcPct:0.272 },
+    { name:'ค่าเสื่อมราคา-ยานพาหนะ', v66:1.93, v67:8.22, v68:8.64, v69:8.64, bcPct:0 },
+    { name:'ค่าเช่าที่',          v66:6.96,  v67:7.02,  v68:7.64,  v69:8.33,  bcPct:0.09 },
+    { name:'เงินเดือนเจ้าของ',    v66:3.34,  v67:4.87,  v68:4.87,  v69:4.87,  bcPct:0 },
+    { name:'พิเศษพนักงาน/Commission', v66:6.39, v67:6.26, v68:4.85, v69:4.85, bcPct:0 },
+    { name:'โทรศัพท์, อินเตอร์เน็ต', v66:1.00, v67:2.86, v68:3.90, v69:3.90, bcPct:0 },
+    { name:'อะไหล่, ซ่อมรถ',     v66:2.69,  v67:4.15,  v68:3.25,  v69:3.25,  bcPct:0 },
+    { name:'ค่าโฆษณา, ส่งเสริมการขาย', v66:1.20, v67:1.50, v68:1.80, v69:2.00, bcPct:0.11 },
+    { name:'ซื้อสินทรัพย์, อุปกรณ์สำนักงาน', v66:0.80, v67:1.20, v68:1.50, v69:1.60, bcPct:0.07 },
+    { name:'ค่ารักษาพยาบาล, สวัสดิการ', v66:0.90, v67:1.10, v68:1.30, v69:1.40, bcPct:0.08 },
+    { name:'ค่าตรวจสอบบัญชี',    v66:1.61,  v67:1.09,  v68:1.11,  v69:1.11,  bcPct:0 },
+    { name:'ค่าก่อสร้าง, ซ่อมแซมสำนักงาน', v66:0.50, v67:0.80, v68:1.00, v69:1.10, bcPct:0.10 },
+    { name:'ภาษีที่ดินและสิ่งปลูกสร้าง', v66:2.08, v67:3.45, v68:0.96, v69:0.96, bcPct:0 },
+    { name:'จิปาถะ',              v66:0.50,  v67:0.60,  v68:0.70,  v69:0.80,  bcPct:0.14 },
+    { name:'ค่าอาหาร, เครื่องดื่ม', v66:0.40, v67:0.50, v68:0.60, v69:0.70, bcPct:0.17 },
+    { name:'คชจ.เพื่อความสะดวกทางราชการ', v66:0.30, v67:0.35, v68:0.40, v69:0.50, bcPct:0.25 },
+    { name:'ไฟ',                   v66:0.25,  v67:0.28,  v68:0.32,  v69:0.38,  bcPct:0.19 },
+    { name:'น้ำ',                   v66:0.10,  v67:0.12,  v68:0.14,  v69:0.16,  bcPct:0.14 },
+    { name:'พรบ ประกันรถ',         v66:0.15,  v67:0.15,  v68:0.15,  v69:0.15,  bcPct:0 },
+    { name:'หนี้สงสัยจะสูญ',       v66:7.09,  v67:2.03,  v68:1.12,  v69:1.12,  bcPct:0 },
   ];
 
   const nonTotal = expenses.filter(e => !e.total).sort((a,b) => b.v69 - a.v69);
   const totalRow = expenses.find(e => e.total);
   const sorted = totalRow ? [totalRow, ...nonTotal] : nonTotal;
-
   const tbody = document.getElementById('expTableBody');
   sorted.forEach(e => {
-    // ใช้ bcPct จาก Google Sheets โดยตรง
     const bcPct = e.bcPct !== undefined ? e.bcPct : (e.v68 !== 0 ? (e.v69 - e.v68) / e.v68 : 0);
     const pctDisplay = (bcPct * 100).toFixed(1);
     const chgClass = bcPct > 0.001 ? 'chg-pos' : bcPct < -0.001 ? 'chg-neg' : '';
     const chgSign = bcPct > 0.001 ? '+' : '';
-
     const color = Object.entries(colorMap).find(([k]) => e.name.includes(k))?.[1] || '#94a3b8';
     const dot = e.total ? '' : `<span class="dot-ind" style="background:${color}"></span>`;
     const rowClass = e.total ? ' class="row-total"' : '';
-
     tbody.innerHTML += `<tr${rowClass}>
       <td>${dot}${e.name}</td>
-      <td>${(e.v66||0).toFixed(1)}</td>
-      <td>${(e.v67||0).toFixed(1)}</td>
-      <td>${(e.v68||0).toFixed(1)}</td>
-      <td class="proj-col">${(e.v69||0).toFixed(1)}</td>
+      <td>${(e.v66||0).toFixed(1)}</td><td>${(e.v67||0).toFixed(1)}</td>
+      <td>${(e.v68||0).toFixed(1)}</td><td class="proj-col">${(e.v69||0).toFixed(1)}</td>
       <td class="${chgClass}" title="จาก Google Sheets คอลัมน์ BC">${chgSign}${pctDisplay}%</td>
     </tr>`;
   });
 }
 
-// ── Pie Chart ค่าใช้จ่าย ──
+// ── Pie Chart ──
 function renderPieChart(d) {
   const FALLBACK_EXP = [
-    { name:'เงินเดือนพนักงาน',                            v69:38.37 },
-    { name:'น้ำมันรถ',                                    v69:11.47 },
-    { name:'ค่าเสื่อมราคา-ยานพาหนะ',                     v69:8.64  },
-    { name:'ค่าเช่าที่',                                   v69:8.33  },
-    { name:'เงินเดือนเจ้าของ',                             v69:4.87  },
-    { name:'พิเศษพนักงาน/Commission',                     v69:4.85  },
-    { name:'โทรศัพท์, อินเตอร์เน็ต',                     v69:3.90  },
-    { name:'อะไหล่, ซ่อมรถ',                              v69:3.25  },
-    { name:'ค่าโฆษณา, ส่งเสริมการขาย',                   v69:2.00  },
-    { name:'ซื้อสินทรัพย์, อุปกรณ์สำนักงาน',             v69:1.60  },
-    { name:'ค่ารักษาพยาบาล, สวัสดิการ',                  v69:1.40  },
-    { name:'ค่าตรวจสอบบัญชี',                             v69:1.11  },
-    { name:'ค่าก่อสร้าง, ซ่อมแซมสำนักงาน',               v69:1.10  },
-    { name:'ภาษีที่ดินและสิ่งปลูกสร้าง',                  v69:0.96  },
-    { name:'หนี้สงสัยจะสูญ',                               v69:1.12  },
-    { name:'จิปาถะ',                                       v69:0.80  },
-    { name:'ค่าอาหาร, เครื่องดื่ม',                       v69:0.70  },
-    { name:'คชจ.เพื่อความสะดวกทางราชการ',                v69:0.50  },
-    { name:'ไฟ',                                           v69:0.38  },
-    { name:'น้ำ',                                          v69:0.16  },
-    { name:'พรบ ประกันรถ',                                 v69:0.15  },
+    { name:'เงินเดือนพนักงาน', v69:38.37 },
+    { name:'น้ำมันรถ', v69:11.47 },
+    { name:'ค่าเสื่อมราคา-ยานพาหนะ', v69:8.64 },
+    { name:'ค่าเช่าที่', v69:8.33 },
+    { name:'เงินเดือนเจ้าของ', v69:4.87 },
+    { name:'พิเศษพนักงาน/Commission', v69:4.85 },
+    { name:'โทรศัพท์, อินเตอร์เน็ต', v69:3.90 },
+    { name:'อะไหล่, ซ่อมรถ', v69:3.25 },
+    { name:'ค่าโฆษณา, ส่งเสริมการขาย', v69:2.00 },
+    { name:'ซื้อสินทรัพย์, อุปกรณ์สำนักงาน', v69:1.60 },
+    { name:'ค่ารักษาพยาบาล, สวัสดิการ', v69:1.40 },
+    { name:'ค่าตรวจสอบบัญชี', v69:1.11 },
+    { name:'ค่าก่อสร้าง, ซ่อมแซมสำนักงาน', v69:1.10 },
+    { name:'ภาษีที่ดินและสิ่งปลูกสร้าง', v69:0.96 },
+    { name:'หนี้สงสัยจะสูญ', v69:1.12 },
+    { name:'จิปาถะ', v69:0.80 },
+    { name:'ค่าอาหาร, เครื่องดื่ม', v69:0.70 },
+    { name:'คชจ.เพื่อความสะดวกทางราชการ', v69:0.50 },
+    { name:'ไฟ', v69:0.38 },
+    { name:'น้ำ', v69:0.16 },
+    { name:'พรบ ประกันรถ', v69:0.15 },
   ];
   const rawExpenses = (d.expenseItems && d.expenseItems.length > 0) ? d.expenseItems : FALLBACK_EXP;
   const items = rawExpenses.filter(e => !e.total && e.v69 > 0).sort((a,b) => b.v69 - a.v69);
-
   if (items.length === 0) return;
-
   const total = items.reduce((s,e) => s + e.v69, 0);
-
   const COLORS = [
     '#2563eb','#0d9488','#7c3aed','#f59e0b','#16a34a',
     '#dc2626','#f97316','#8b5cf6','#06b6d4','#64748b',
     '#ec4899','#84cc16','#6366f1','#14b8a6',
   ];
-
   const labels = items.map(e => e.name);
   const values = items.map(e => e.v69);
   const colors = items.map((_, i) => COLORS[i % COLORS.length]);
-
   const ctx = document.getElementById('pieChart').getContext('2d');
   new Chart(ctx, {
     type: 'doughnut',
@@ -1320,19 +1307,12 @@ function renderPieChart(d) {
         tooltip: {
           backgroundColor: '#fff', borderColor: '#e5e7eb', borderWidth: 1,
           titleColor: '#111', bodyColor: '#555', padding: 10,
-          callbacks: {
-            label: c => {
-              const pct = (c.parsed / total * 100).toFixed(1);
-              return ` ${c.parsed.toFixed(1)}M (${pct}%)`;
-            }
-          }
+          callbacks: { label: c => { const pct = (c.parsed / total * 100).toFixed(1); return ` ${c.parsed.toFixed(1)}M (${pct}%)`; } }
         }
       },
       cutout: '55%',
     }
   });
-
-  // Legend
   const leg = document.getElementById('pieLegend');
   items.forEach((e, i) => {
     const pct = (e.v69 / total * 100).toFixed(1);
@@ -1346,36 +1326,45 @@ function renderPieChart(d) {
   });
 }
 
-// ── Monthly target table ──
+// ── Monthly target table (อัปเดต: 5 เดือนจริง, 7 เดือนเป้า) ──
 function renderMonthlyTable(d) {
   const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
   const { green, amber, red } = d.monthly;
-  
-  const totalGreen = green.reduce((s,v)=>s+v,0);
-  const totalAmber = amber.reduce((s,v)=>s+v,0);
-  const totalRed   = red.reduce((s,v)=>s+v,0);
 
-  const fmtCell = (val, idx, cls) => {
-    const isActual = idx < 4;
-    return `<td class="${isActual ? 'actual-col' : cls}">${val.toFixed(2)}</td>`;
+  // ฟอร์แมตตัวเลขเป็น บาท ทศนิยม 2 ตำแหน่ง (comma-separated)
+  const fmtBaht = (val) => {
+    return val.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  const totalGreen = green.reduce((s,v) => s+v, 0);
+  const totalAmber = amber.reduce((s,v) => s+v, 0);
+  const totalRed   = red.reduce((s,v) => s+v, 0);
+
+  // ฟอร์แมตยอดรวม (ล้าน)
+  const fmtTotal = (val) => (val / 1e6).toFixed(2) + 'M';
+
+  const fmtCell = (val, idx, colorCls) => {
+    const isActual = idx < ACTUAL_MONTHS;
+    const dividerCls = idx === ACTUAL_MONTHS ? ' class="actual-col divider-col"' : isActual ? ' class="actual-col"' : ` class="${colorCls}"`;
+    return `<td${dividerCls}>${fmtBaht(val)}</td>`;
   };
 
   const tbody = document.getElementById('monthlyTableBody');
-  
+
   // Green row
   let rowG = `<tr class="row-green"><td>✦ อยู่สบาย (407M)</td>`;
-  green.forEach((v,i) => rowG += fmtCell(v, i, 'green-val'));
-  rowG += `<td class="green-val" style="font-weight:600">${totalGreen.toFixed(1)}M</td></tr>`;
-  
+  green.forEach((v, i) => rowG += fmtCell(v, i, 'green-val'));
+  rowG += `<td class="green-val" style="font-weight:600">${fmtTotal(totalGreen)}</td></tr>`;
+
   // Amber row
   let rowA = `<tr class="row-amber"><td>⚡ อยู่ได้ (350M)</td>`;
-  amber.forEach((v,i) => rowA += fmtCell(v, i, 'amber-val'));
-  rowA += `<td class="amber-val" style="font-weight:600">${totalAmber.toFixed(1)}M</td></tr>`;
-  
+  amber.forEach((v, i) => rowA += fmtCell(v, i, 'amber-val'));
+  rowA += `<td class="amber-val" style="font-weight:600">${fmtTotal(totalAmber)}</td></tr>`;
+
   // Red row
   let rowR = `<tr class="row-red"><td>✕ ติดลบ (313M)</td>`;
-  red.forEach((v,i) => rowR += fmtCell(v, i, 'red-val'));
-  rowR += `<td class="red-val" style="font-weight:600">${totalRed.toFixed(1)}M</td></tr>`;
+  red.forEach((v, i) => rowR += fmtCell(v, i, 'red-val'));
+  rowR += `<td class="red-val" style="font-weight:600">${fmtTotal(totalRed)}</td></tr>`;
 
   tbody.innerHTML = rowG + rowA + rowR;
 }
@@ -1396,7 +1385,6 @@ function renderFullPLTable(d) {
     { label:'ค่าใช้จ่ายรวม',  y66:83.44, y67:94.24, y68:91.19, y69:95.37, sc:{g:95.37, a:95.37, r:95.37}, bold:true, total:true },
     { label:'กำไรสุทธิ',      y66:30.4,  y67:29.2,  y68:11.1,  y69:6.9,   sc:{g:28.9,  a:11.5,  r:0.2},   bold:true, total:true },
   ];
-
   const tbody = document.getElementById('fullPlTableBody');
   rows.forEach(r => {
     const cls = (r.total ? ' class="row-total"' : r.bold ? ' style="font-weight:600"' : '');
