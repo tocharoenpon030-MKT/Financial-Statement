@@ -863,6 +863,8 @@ async function loadFromSheets() {
     // Apps Script ส่งมาเป็น { สรุป: [...], ยอดขาย: [...] }
     const summaryRows = json['สรุป'] || [];
     const salesRows   = json['ยอดขาย'] || [];
+    console.log('summaryRows type:', Array.isArray(summaryRows), summaryRows);
+console.log('salesRows type:', Array.isArray(salesRows), salesRows);
 
     // ── Parse ข้อมูลจาก Sheet สรุป ──
     const salesData    = extractByLabelFromObjects(summaryRows, 'ยอดขาย');
