@@ -828,7 +828,11 @@ function numVal(v) {
 }
 
 function findRowInObjects(arr, keyword) {
-  // arr = array of objects from Apps Script JSON
+  if (!Array.isArray(arr)) {
+    console.error('findRowInObjects expected Array but got:', arr);
+    return null;
+  }
+
   return arr.find(obj => {
     const first = Object.values(obj)[0];
     return first && String(first).includes(keyword);
