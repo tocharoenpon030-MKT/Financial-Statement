@@ -428,7 +428,15 @@ tbody td:first-child {
   white-space: nowrap;
   letter-spacing: .04em;
 }
-.monthly-table thead th:first-child { text-align: left; min-width: 80px; }
+.monthly-table thead th:first-child {
+  text-align: left;
+  min-width: 130px;
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: #faf8f2;
+  box-shadow: 2px 0 4px -2px rgba(0,0,0,0.15);
+}
 .monthly-table thead th.actual-hdr { color: #888; font-style: italic; }
 .monthly-table thead th.target-hdr { color: #2563eb; }
 .monthly-table tbody td {
@@ -446,6 +454,10 @@ tbody td:first-child {
   font-size: 15px;
   font-weight: 500;
   color: #555;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  box-shadow: 2px 0 4px -2px rgba(0,0,0,0.15);
 }
 .monthly-table .row-green td { background: #f0fdf4; }
 .monthly-table .row-amber td { background: #fffbeb; }
@@ -542,7 +554,7 @@ footer {
 
 <!-- Google Sheet note -->
 <div class="gs-note">
-  📊 <strong>เชื่อมต่อ Google Sheets แล้ว:</strong> ข้อมูลโหลดจาก Sheet <code>สรุป</code> และ <code>ยอดขาย</code> โดยอัตโนมัติ · แก้ไขข้อมูลใน Google Sheets แล้วรีเฟรชหน้าเพื่ออัปเดตแดชบอร์ด
+  📊 <strong>เชื่อมต่อ Google Sheets แล้ว:</strong> ข้อมูลโหลดจากแท็บ <code>สรุป</code> โดยตรง (รวมยอดขายรายปี ค่าใช้จ่าย Scenario และยอดขายรายเดือน) · แก้ไขข้อมูลใน Google Sheets แล้ว<strong>รีเฟรชหน้านี้</strong>เพื่ออัปเดตแดชบอร์ดทั้งหมด
 </div>
 
 <!-- Data Viewer Panel -->
@@ -558,27 +570,7 @@ footer {
 <div id="page-p1" class="page active">
 
 <!-- KPI -->
-<div class="kpi-grid">
-  <div class="kpi blue fade-in">
-    <div class="kpi-label">ยอดขาย 2566 (ดีที่สุด)</div>
-    <div class="kpi-val" style="color:#2563eb">364.6 <small>ล้าน</small></div>
-  </div>
-  <div class="kpi blue fade-in">
-    <div class="kpi-label">ยอดขาย 2567</div>
-    <div class="kpi-val" style="color:#2563eb">343.6 <small>ล้าน</small></div>
-    <div class="kpi-change up">▼ 5.8% จากปีก่อน</div>
-  </div>
-  <div class="kpi blue fade-in">
-    <div class="kpi-label">ยอดขาย 2568</div>
-    <div class="kpi-val" style="color:#2563eb">332.0 <small>ล้าน</small></div>
-    <div class="kpi-change up">▼ 3.4% จากปีก่อน</div>
-  </div>
-  <div class="kpi blue fade-in">
-    <div class="kpi-label">ยอดขาย 2569 คาดการณ์</div>
-    <div class="kpi-val" style="color:#2563eb">334.1 <small>ล้าน</small></div>
-    <div class="kpi-change dn">▲ 0.6% จากปีก่อน</div>
-  </div>
-</div>
+<div class="kpi-grid" id="kpiGrid"></div>
 
 <!-- Bar Chart -->
 <div class="section-title">แนวโน้มรายปี</div>
@@ -593,26 +585,7 @@ footer {
 
 <!-- Scenarios -->
 <div class="section-title">เกณฑ์ยอดขายปี 2569 · 3 แบบ </div>
-<div class="scenario-grid">
-  <div class="sc-card green">
-    <div class="sc-badge">✦ TARGET — อยู่สบาย</div>
-    <div class="sc-num">407ล้าน</div>
-    <div class="sc-title">อยู่สบาย ค่าคอม โบนัสดี</div>
-    <div class="sc-desc">ยอดขายต้องถึง <strong>407 ล้านบาท</strong>  · ค่าคอม โบนัสกระฉูด · ต้องเพิ่มยอดขาย +22% จากคาดการณ์ปัจจุบัน</div>
-  </div>
-  <div class="sc-card amber">
-    <div class="sc-badge">⚡ SUSTAIN — อยู่ได้</div>
-    <div class="sc-num">350ล้าน</div>
-    <div class="sc-title">อยู่ได้ แต่กำไรไม่เพิ่มขึ้น</div>
-    <div class="sc-desc">ยอดขายต้องถึง <strong>350 ล้านบาท</strong> · บริษัทดำเนินต่อได้ แต่ไม่มีการเติบโต · ต้องเพิ่มยอดขาย +5% จากคาดการณ์</div>
-  </div>
-  <div class="sc-card red">
-    <div class="sc-badge">✕ DANGER — เสี่ยงขาดทุน</div>
-    <div class="sc-num">313ล้าน</div>
-    <div class="sc-title">เริ่มติดลบ บริษัทขาดทุน</div>
-    <div class="sc-desc">ถ้ายอดขายต่ำกว่า <strong>313 ล้านบาท</strong> · กำไรสุทธิเหลือน้อยมาก  · เสี่ยงขาดทุนถ้าเกิดค่าใช้จ่ายพิเศษ</div>
-  </div>
-</div>
+<div class="scenario-grid" id="scenarioGrid"></div>
 
 <!-- Energy Bar -->
 <div class="energy-bar-wrap">
@@ -738,32 +711,7 @@ footer {
 <div class="section-title">งบกำไรขาดทุน · รายละเอียด</div>
 
 <!-- Scenario cards on page 2 -->
-<div class="p2-scenario-grid" style="margin-bottom:24px;">
-  <div class="p2-sc green">
-    <div class="p2-sc-label">✦ อยู่สบาย ค่าคอม โบนัสดี</div>
-    <div class="p2-sc-title">ยอดขายต้องถึง 407M/ปี</div>
-    <div class="p2-sc-row"><span class="p2-sc-rowlabel">ยอดขาย</span><span class="p2-sc-val">407.0M</span></div>
-    <div class="p2-sc-row"><span class="p2-sc-rowlabel">กำไรขั้นต้น</span><span class="p2-sc-val">124.3M</span></div>
-    <div class="p2-sc-row"><span class="p2-sc-rowlabel">ค่าใช้จ่ายรวม</span><span class="p2-sc-val">95.4M</span></div>
-    <div class="p2-sc-row"><span class="p2-sc-rowlabel">กำไรสุทธิ</span><span class="p2-sc-val">28.9M</span></div>
-  </div>
-  <div class="p2-sc amber">
-    <div class="p2-sc-label">⚡ อยู่ได้แต่กำไรไม่เพิ่มขึ้น</div>
-    <div class="p2-sc-title">ยอดขายต้องถึง 350M/ปี</div>
-    <div class="p2-sc-row"><span class="p2-sc-rowlabel">ยอดขาย</span><span class="p2-sc-val">350.0M</span></div>
-    <div class="p2-sc-row"><span class="p2-sc-rowlabel">กำไรขั้นต้น</span><span class="p2-sc-val">106.9M</span></div>
-    <div class="p2-sc-row"><span class="p2-sc-rowlabel">ค่าใช้จ่ายรวม</span><span class="p2-sc-val">95.4M</span></div>
-    <div class="p2-sc-row"><span class="p2-sc-rowlabel">กำไรสุทธิ</span><span class="p2-sc-val">11.5M</span></div>
-  </div>
-  <div class="p2-sc red">
-    <div class="p2-sc-label">✕ เริ่มติดลบ บริษัทขาดทุน</div>
-    <div class="p2-sc-title">ยอดขายต่ำกว่า 313M/ปี</div>
-    <div class="p2-sc-row"><span class="p2-sc-rowlabel">ยอดขาย</span><span class="p2-sc-val">313.0M</span></div>
-    <div class="p2-sc-row"><span class="p2-sc-rowlabel">กำไรขั้นต้น</span><span class="p2-sc-val">95.6M</span></div>
-    <div class="p2-sc-row"><span class="p2-sc-rowlabel">ค่าใช้จ่ายรวม</span><span class="p2-sc-val">95.4M</span></div>
-    <div class="p2-sc-row"><span class="p2-sc-rowlabel">กำไรสุทธิ</span><span class="p2-sc-val">0.2M</span></div>
-  </div>
-</div>
+<div class="p2-scenario-grid" id="p2ScenarioGrid" style="margin-bottom:24px;"></div>
 
 <!-- Full P&L Table page 2 -->
 <div class="table-card" style="margin-bottom:28px;">
@@ -791,7 +739,7 @@ footer {
 
 <footer>
   <div class="footer-text">
-    <span class="pulse"></span>อัปเดตล่าสุด: พฤษภาคม 2569 · ข้อมูล 5 เดือนจริง · เดือน 6–12 = เป้าหมาย
+    <span class="pulse"></span>อัปเดตล่าสุด: <span id="footerUpdateMonth">พฤษภาคม 2569</span> · ข้อมูล <span id="footerActualMonths">5</span> เดือนจริง · เดือนถัดไป = เป้าหมาย
   </div>
   <div class="footer-text" style="text-align:right;"></div>
 </footer>
@@ -803,10 +751,12 @@ footer {
 // CONFIG
 // ══════════════════════════════════════════════
 const CONFIG = {
-  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwUC_00qvWdHaKZk6mpbgwTC3zYtX9HdRO7gghGo4Z8m8-1GbkFjegfQvVMT68Bkhxp/exec',
+  SHEET_ID: '1rTHWxxQ-pTw7jvSDiTAQwGqiNENlV4dWG0xyb1wu4K4',
+  SHEET_GID: '1464307538', // แท็บ "สรุป"
   USE_SHEETS: true,
   REFRESH_MS: 5 * 60 * 1000
 };
+CONFIG.CSV_URL = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/export?format=csv&gid=${CONFIG.SHEET_GID}`;
 
 // ── Static data ──
 const STATIC = {
@@ -872,8 +822,8 @@ const STATIC = {
   }
 };
 
-// จำนวนเดือนที่เป็นข้อมูลจริง (1-based index)
-const ACTUAL_MONTHS = 5;
+// จำนวนเดือนที่เป็นข้อมูลจริง — คำนวณอัตโนมัติจาก Sheet ทุกครั้งที่โหลด (ดูฟังก์ชัน countActualMonths)
+let ACTUAL_MONTHS = 5; // ค่าเริ่มต้น/fallback ถ้าโหลดจาก Sheet ไม่สำเร็จ
 
 // ── Tab switching ──
 function switchTab(id) {
@@ -883,91 +833,163 @@ function switchTab(id) {
   event.target.classList.add('active');
 }
 
-// ── Google Sheets loader ──
+// ── CSV parser (รองรับ comma ในเครื่องหมายคำพูด) ──
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i], next = text[i+1];
+    if (inQuotes) {
+      if (c === '"' && next === '"') { field += '"'; i++; }
+      else if (c === '"') { inQuotes = false; }
+      else { field += c; }
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\r') { /* skip */ }
+      else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+      else { field += c; }
+    }
+  }
+  if (field.length > 0 || row.length > 0) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+// ── Helpers ──
 function numVal(v) {
-  const n = parseFloat(String(v).replace(/,/g, ''));
+  if (v === undefined || v === null) return 0;
+  const cleaned = String(v).replace(/,/g, '').replace(/^-\s+/, '-').trim();
+  const n = parseFloat(cleaned);
   return isNaN(n) ? 0 : n;
 }
-
-function findRowInObjects(arr, keyword) {
-  return arr.find(obj => {
-    const first = Object.values(obj)[0];
-    return first && String(first).includes(keyword);
-  });
+function cellEmpty(v) {
+  return v === undefined || v === null || String(v).trim() === '' || String(v).trim() === '-';
 }
 
-function extractByLabelFromObjects(arr, label) {
-  const row = findRowInObjects(arr, label);
+function findRowIndex(grid, keyword) {
+  return grid.findIndex(r => r[0] && String(r[0]).includes(keyword));
+}
+
+// คอลัมน์ "69" (ปีปัจจุบัน) ของแต่ละเดือน ม.ค.→ธ.ค. : E, I, M, Q, U, Y, AC, AG, AK, AO, AS, AW (0-indexed)
+const MONTH69_COLS = [4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48];
+// คอลัมน์สรุปปี: AX=ปี66, AY=ปี67, AZ=ปี68, BB=ปี69คาดการณ์, BD/BE/BF=scenario เขียว/เหลือง/แดง
+const COL = { y66: 49, y67: 50, y68: 51, y69proj: 53, scGreen: 55, scAmber: 56, scRed: 57 };
+// คอลัมน์ตารางรายเดือน scenario: BJ/BK/BL อยู่แถวเดียวกับแถวยอดขาย (แถว index 2 = แถว 3 ในชีต) ถึงแถว 13 (แถว14ในชีต) = เดือน1-12
+const MONTHLY_COLS = { green: 61, amber: 62, red: 63 };
+
+function getRowByLabel(grid, label) {
+  const idx = findRowIndex(grid, label);
+  return idx === -1 ? null : grid[idx];
+}
+
+function extractYearSeries(row) {
   if (!row) return { y66: 0, y67: 0, y68: 0, y69: 0 };
-  const vals = Object.values(row).slice(1).map(numVal);
-  while (vals.length < 4) vals.push(0);
-  return { y66: vals[0], y67: vals[1], y68: vals[2], y69: vals[3] };
+  return {
+    y66: numVal(row[COL.y66]) / 1e6, y67: numVal(row[COL.y67]) / 1e6,
+    y68: numVal(row[COL.y68]) / 1e6, y69: numVal(row[COL.y69proj]) / 1e6,
+  };
 }
+
+function extractScenario(row) {
+  if (!row) return { green: 0, amber: 0, red: 0 };
+  return { green: numVal(row[COL.scGreen]) / 1e6, amber: numVal(row[COL.scAmber]) / 1e6, red: numVal(row[COL.scRed]) / 1e6 };
+}
+
+// นับจำนวนเดือนที่มีข้อมูลจริงในปีปัจจุบัน (เช็คจากแถว "ยอดขายสินค้า" คอลัมน์ 69 ของแต่ละเดือน)
+function countActualMonths(salesRow) {
+  if (!salesRow) return ACTUAL_MONTHS;
+  let count = 0;
+  for (const colIdx of MONTH69_COLS) {
+    if (!cellEmpty(salesRow[colIdx]) && numVal(salesRow[colIdx]) !== 0) count++;
+    else break; // หยุดที่เดือนแรกที่ว่าง (สมมติข้อมูลมาเรียงต่อเนื่อง)
+  }
+  return count || ACTUAL_MONTHS;
+}
+
+const EXPENSE_LABELS = [
+  'เงินเดือนพนักงาน','น้ำมันรถ','ค่าเช่าที่','พิเศษพนักงาน','ค่าเสื่อมราคา',
+  'เงินเดือนเจ้าของ','อะไหล่, ซ่อมรถ','โทรศัพท์, อินเตอร์เน็ต','ภาษีที่ดิน',
+  'ค่าตรวจสอบบัญชี','ค่าใช้จ่ายทั้งหมด','ค่าอาหาร, เครื่องดื่ม','น้ำ','ไฟ',
+  'พรบ ประกันรถ','ค่าโฆษณา','ค่าก่อสร้าง','จิปาถะ','ซื้อสินทรัพย์',
+  'คชจ.เพื่อความสะดวก','ค่ารักษาพยาบาล','หนี้สงสัยจะสูญ','รายจ่ายในการขาย'
+];
 
 async function loadFromSheets() {
-  if (!CONFIG.USE_SHEETS || !CONFIG.APPS_SCRIPT_URL) return null;
+  if (!CONFIG.USE_SHEETS || !CONFIG.CSV_URL) return null;
   try {
-    const res = await fetch(CONFIG.APPS_SCRIPT_URL);
+    const res = await fetch(CONFIG.CSV_URL);
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const json = await res.json();
-    if (json.error) throw new Error(json.error);
+    const text = await res.text();
+    const grid = parseCSV(text);
+    if (!grid || grid.length < 5) throw new Error('ข้อมูลจาก Sheet ว่างหรือไม่ครบ');
 
-    const summaryRows = json['สรุป'] || [];
-    const salesRows   = json['ยอดขาย'] || [];
+    const salesRow    = getRowByLabel(grid, 'ยอดขายสินค้า');
+    const cogsRow      = getRowByLabel(grid, 'ต้นทุนสินค้า');
+    const grossRow     = getRowByLabel(grid, 'กำไรขั้นต้น');
+    const expensesRow  = getRowByLabel(grid, 'ค่าใช้จ่ายทั้งหมด');
+    const netRow       = getRowByLabel(grid, 'กำไรสุทธิ');
 
-    const salesData    = extractByLabelFromObjects(summaryRows, 'ยอดขาย');
-    const cogsData     = extractByLabelFromObjects(summaryRows, 'ต้นทุน');
-    const grossData    = extractByLabelFromObjects(summaryRows, 'กำไรขั้นต้น');
-    const expensesData = extractByLabelFromObjects(summaryRows, 'ค่าใช้จ่าย');
-    const netData      = extractByLabelFromObjects(summaryRows, 'กำไรสุทธิ');
+    const salesData    = extractYearSeries(salesRow);
+    const cogsData      = extractYearSeries(cogsRow);
+    const grossData     = extractYearSeries(grossRow);
+    const expensesData  = extractYearSeries(expensesRow);
+    const netData        = extractYearSeries(netRow);
 
-    const bcMap = {};
-    summaryRows.forEach(obj => {
-      const keys = Object.keys(obj);
-      const nameKey = keys[0];
-      const bcKey = keys.find(k => String(k).includes('ขึ้นมากี่') || String(k).toLowerCase().includes('bc') || k === 'ขึ้นมากี่%');
-      if (nameKey && bcKey) {
-        const name = String(obj[nameKey]).trim();
-        const val = parseFloat(obj[bcKey]);
-        if (!isNaN(val)) bcMap[name] = val;
+    // Scenario การ์ด 3 แบบ — ดึงจากคอลัมน์ BD/BE/BF ของแต่ละแถว
+    const sc = {
+      sales:  extractScenario(salesRow),
+      gross:  extractScenario(grossRow),
+      net:    extractScenario(netRow),
+      cogs:   extractScenario(cogsRow),
+      opex:   extractScenario(expensesRow),
+    };
+
+    // จำนวนเดือนจริง (auto-detect)
+    ACTUAL_MONTHS = countActualMonths(salesRow);
+
+    // ตารางยอดขายรายเดือน 3 scenario — คอลัมน์ BJ/BK/BL แถว "ยอดขายสินค้า" ถึง 12 แถวถัดไป (เดือน1-12)
+    const salesRowIdx = findRowIndex(grid, 'ยอดขายสินค้า');
+    const monthly = { green: [], amber: [], red: [] };
+    if (salesRowIdx !== -1) {
+      for (let i = 0; i < 12; i++) {
+        const r = grid[salesRowIdx + i];
+        if (!r) break;
+        monthly.green.push(numVal(r[MONTHLY_COLS.green]));
+        monthly.amber.push(numVal(r[MONTHLY_COLS.amber]));
+        monthly.red.push(numVal(r[MONTHLY_COLS.red]));
       }
-    });
+    }
+    const monthlyOk = monthly.green.length === 12 && monthly.amber.length === 12 && monthly.red.length === 12;
 
-    const expenseKeywords = [
-      'เงินเดือนพนักงาน','น้ำมันรถ','ค่าเช่าที่','พิเศษ','Commission',
-      'หนี้สงสัยจะสูญ','ค่าเสื่อมราคา','เงินเดือนเจ้าของ','อะไหล่',
-      'โทรศัพท์','ภาษีที่ดิน','ค่าตรวจสอบ','ค่าใช้จ่ายทั้งหมด',
-      'ค่าอาหาร','น้ำ','ไฟ','พรบ','โฆษณา','ก่อสร้าง','จิปาถะ','สินทรัพย์'
-    ];
+    // รายการค่าใช้จ่ายย่อย (สำหรับตาราง/พาย/หน้า 2) — รวม scenario ต่อแถวด้วย
     const expenseItems = [];
-    expenseKeywords.forEach(kw => {
-      const row = findRowInObjects(salesRows, kw) || findRowInObjects(summaryRows, kw);
-      if (row) {
-        const vals = Object.values(row).slice(1).map(numVal);
-        while (vals.length < 4) vals.push(0);
-        const name = String(Object.values(row)[0]).trim();
-        let bcPct = 0;
-        const matchKey = Object.keys(bcMap).find(k => k.includes(kw) || name.includes(kw) || kw.includes(k.substring(0,4)));
-        if (matchKey) bcPct = bcMap[matchKey];
-        if (bcPct === 0 && vals[2] !== 0) bcPct = (vals[3] - vals[2]) / vals[2];
-        expenseItems.push({
-          name, v66: vals[0], v67: vals[1], v68: vals[2], v69: vals[3],
-          bcPct,
-          total: name.includes('ทั้งหมด') || name.includes('รวม')
-        });
-      }
+    EXPENSE_LABELS.forEach(label => {
+      const row = getRowByLabel(grid, label);
+      if (!row) return;
+      const ys = extractYearSeries(row);
+      const scRow = extractScenario(row);
+      const name = String(row[0]).trim();
+      const bcPctRaw = row[COL.scGreen - 1]; // คอลัมน์ BC = ขึ้นมากี่%
+      let bcPct = numVal(bcPctRaw);
+      if (String(bcPctRaw || '').includes('%')) bcPct = bcPct / 100;
+      if (bcPct === 0 && ys.y68 !== 0) bcPct = (ys.y69 - ys.y68) / ys.y68;
+      expenseItems.push({
+        name, v66: ys.y66, v67: ys.y67, v68: ys.y68, v69: ys.y69,
+        bcPct, sc: scRow,
+        total: name.includes('ทั้งหมด') || name.includes('รวม')
+      });
     });
 
     return {
       sales: salesData, gross: grossData, expenses: expensesData,
       net: netData, cogs: cogsData,
-      sc: STATIC.sc,
-      monthly: STATIC.monthly, // ใช้ monthly จาก STATIC เสมอ (อัปเดตแล้ว)
+      sc,
+      monthly: monthlyOk ? monthly : STATIC.monthly,
       expenseItems,
-      _raw: { summary: summaryRows, sales: salesRows }
+      _raw: { grid }
     };
   } catch(e) {
-    console.warn('Apps Script load failed, using static data:', e.message);
+    console.warn('Google Sheets CSV load failed, using static data:', e.message);
     return null;
   }
 }
@@ -977,21 +999,27 @@ async function init() {
   showStatus('loading');
   const data = (await loadFromSheets()) || STATIC;
   window._DATA = data;
+  renderKPI(data);
   renderChart(data);
+  renderScenarioCards(data);
   renderEnergyBar(data);
   renderPLTable(data);
   renderExpTable(data);
   renderPieChart(data);
   renderMonthlyTable(data);
   renderFullPLTable(data);
+  renderP2ScenarioCards(data);
   renderVerdict(data);
+  renderFooterInfo();
   showStatus('ok');
 
   if (CONFIG.USE_SHEETS) {
     setTimeout(async () => {
       const fresh = (await loadFromSheets()) || STATIC;
       window._DATA = fresh;
+      renderKPI(fresh);
       renderChart(fresh);
+      renderScenarioCards(fresh);
       renderEnergyBar(fresh);
       renderPLTable(fresh);
       document.getElementById('expTableBody').innerHTML = '';
@@ -1003,7 +1031,9 @@ async function init() {
       renderMonthlyTable(fresh);
       document.getElementById('fullPlTableBody').innerHTML = '';
       renderFullPLTable(fresh);
+      renderP2ScenarioCards(fresh);
       renderVerdict(fresh);
+      renderFooterInfo();
       showStatus('ok');
     }, CONFIG.REFRESH_MS);
   }
@@ -1156,18 +1186,27 @@ function renderChart(d) {
 // ── Energy Bar ──
 function renderEnergyBar(d) {
   const proj = d.sales.y69;
-  const minVal = 250, maxVal = 500;
+  const sc = d.sc.sales;
+  const redEnd = sc.amber, amberEnd = sc.green; // โซนแดงจบที่เกณฑ์ "อยู่ได้", โซนเหลืองจบที่เกณฑ์ "อยู่สบาย"
+  const minVal = Math.max(0, Math.min(redEnd, proj) - 50);
+  const maxVal = Math.max(amberEnd, proj) + 50;
   const range = maxVal - minVal;
-  const redEnd = 313, amberEnd = 407;
   const pctRed   = (redEnd - minVal) / range * 100;
   const pctAmber = (amberEnd - redEnd) / range * 100;
   const pctGreen = (maxVal - amberEnd) / range * 100;
   document.getElementById('seg-red').style.width   = pctRed + '%';
   document.getElementById('seg-amber').style.width = pctAmber + '%';
   document.getElementById('seg-green').style.width = pctGreen + '%';
+  document.getElementById('seg-red').innerHTML   = `ขาดทุน<br>&lt;${sc.red.toFixed(0)}ล้าน`;
+  document.getElementById('seg-amber').innerHTML = `อยู่ได้<br>${sc.red.toFixed(0)}–${sc.amber.toFixed(0)}ล้าน`;
+  document.getElementById('seg-green').innerHTML = `อยู่สบาย<br>&gt;${sc.green.toFixed(0)}ล้าน`;
   const markerPct = Math.min(Math.max((proj - minVal) / range * 100, 2), 98);
   const marker = document.getElementById('ebarMarker');
   marker.innerHTML = `<div class="ebar-marker" style="left:${markerPct}%;position:absolute;top:-28px;">${proj.toFixed(1)}M คาดการณ์ ▼</div>`;
+  const subEl = document.querySelector('.energy-bar-sub');
+  if (subEl) subEl.textContent = `ยอดขายคาดการณ์ ${proj.toFixed(1)}ล้าน · เปรียบเทียบกับเกณฑ์ 3 ระดับ`;
+  const labelsEl = document.querySelector('.ebar-labels');
+  if (labelsEl) labelsEl.innerHTML = `<span>${minVal.toFixed(0)}M</span><span>${sc.red.toFixed(0)}M (ติดลบ)</span><span>${sc.amber.toFixed(0)}M (อยู่ได้)</span><span>${sc.green.toFixed(0)}M (สบาย)</span><span>${maxVal.toFixed(0)}M+</span>`;
 }
 
 // ── P&L Table Page 1 ──
@@ -1371,21 +1410,43 @@ function renderMonthlyTable(d) {
 
 // ── Full P&L Table page 2 ──
 function renderFullPLTable(d) {
+  const findExp = (label) => (d.expenseItems || []).find(e => e.name.includes(label));
+  const mkRow = (label, ys, scObj, opts) => ({
+    label,
+    y66: ys.y66 || 0, y67: ys.y67 || 0, y68: ys.y68 || 0, y69: ys.y69 || 0,
+    sc: { g: (scObj && scObj.green) || 0, a: (scObj && scObj.amber) || 0, r: (scObj && scObj.red) || 0 },
+    ...opts
+  });
+  const expRow = (label) => {
+    const row = findExp(label);
+    if (!row) return { ys: {y66:0,y67:0,y68:0,y69:0}, sc: {green:0,amber:0,red:0} };
+    return { ys: { y66: row.v66, y67: row.v67, y68: row.v68, y69: row.v69 }, sc: row.sc || {green:0,amber:0,red:0} };
+  };
+
+  const rent  = expRow('ค่าเช่าที่');
+  const owner = expRow('เงินเดือนเจ้าของ');
+  const fuel  = expRow('น้ำมันรถ');
+  const staff = expRow('เงินเดือนพนักงาน');
+  const comm  = expRow('พิเศษพนักงาน') || expRow('Commission');
+  const depr  = expRow('ค่าเสื่อมราคา');
+  const bad   = expRow('หนี้สงสัยจะสูญ');
+
   const rows = [
-    { label:'ยอดขายสินค้า', y66:364.6, y67:343.6, y68:332.0, y69:334.1, sc:{g:407.0, a:350.0, r:313.0}, bold:false },
-    { label:'ต้นทุนสินค้า',  y66:250.8, y67:237.0, y68:229.6, y69:232.1, sc:{g:282.7, a:243.1, r:217.4}, bold:false },
-    { label:'กำไรขั้นต้น',   y66:113.8, y67:123.5, y68:102.3, y69:102.3, sc:{g:124.3, a:106.9, r:95.6},  bold:true  },
-    { label:'ค่าเช่าที่',     y66:6.96,  y67:7.02,  y68:7.64,  y69:8.33,  sc:{g:8.33,  a:8.33,  r:8.33},  bold:false },
-    { label:'เงินเดือนเจ้าของ', y66:3.34, y67:4.87, y68:4.87, y69:4.87, sc:{g:4.87, a:4.87, r:4.87}, bold:false },
-    { label:'น้ำมันรถ',       y66:8.21,  y67:8.49,  y68:9.02,  y69:11.47, sc:{g:11.47, a:11.47, r:11.47}, bold:false },
-    { label:'เงินเดือนพนักงาน', y66:33.66, y67:36.80, y68:37.62, y69:38.37, sc:{g:38.37, a:38.37, r:38.37}, bold:false },
-    { label:'พิเศษ/Commission', y66:6.39, y67:6.26, y68:4.85, y69:4.85, sc:{g:4.85, a:4.85, r:4.85}, bold:false },
-    { label:'ค่าเสื่อมราคา',  y66:1.93,  y67:8.22,  y68:8.64,  y69:8.64,  sc:{g:8.64,  a:8.64,  r:8.64},  bold:false },
-    { label:'หนี้สงสัยจะสูญ', y66:7.09,  y67:2.03,  y68:1.12,  y69:1.12,  sc:{g:1.12,  a:1.12,  r:1.12},  bold:false },
-    { label:'ค่าใช้จ่ายรวม',  y66:83.44, y67:94.24, y68:91.19, y69:95.37, sc:{g:95.37, a:95.37, r:95.37}, bold:true, total:true },
-    { label:'กำไรสุทธิ',      y66:30.4,  y67:29.2,  y68:11.1,  y69:6.9,   sc:{g:28.9,  a:11.5,  r:0.2},   bold:true, total:true },
+    mkRow('ยอดขายสินค้า', d.sales,    d.sc.sales, {bold:false}),
+    mkRow('ต้นทุนสินค้า',  d.cogs,     d.sc.cogs,  {bold:false}),
+    mkRow('กำไรขั้นต้น',   d.gross,    d.sc.gross, {bold:true}),
+    mkRow('ค่าเช่าที่',     rent.ys,    rent.sc,    {bold:false}),
+    mkRow('เงินเดือนเจ้าของ', owner.ys, owner.sc,  {bold:false}),
+    mkRow('น้ำมันรถ',       fuel.ys,    fuel.sc,    {bold:false}),
+    mkRow('เงินเดือนพนักงาน', staff.ys, staff.sc,  {bold:false}),
+    mkRow('พิเศษ/Commission', comm.ys,  comm.sc,   {bold:false}),
+    mkRow('ค่าเสื่อมราคา',  depr.ys,    depr.sc,    {bold:false}),
+    mkRow('หนี้สงสัยจะสูญ', bad.ys,     bad.sc,     {bold:false}),
+    mkRow('ค่าใช้จ่ายรวม',  d.expenses, d.sc.opex,  {bold:true, total:true}),
+    mkRow('กำไรสุทธิ',      d.net,      d.sc.net,   {bold:true, total:true}),
   ];
   const tbody = document.getElementById('fullPlTableBody');
+  tbody.innerHTML = '';
   rows.forEach(r => {
     const cls = (r.total ? ' class="row-total"' : r.bold ? ' style="font-weight:600"' : '');
     tbody.innerHTML += `<tr${cls}>
@@ -1397,6 +1458,112 @@ function renderFullPLTable(d) {
       <td style="color:#dc2626;font-weight:${r.bold?600:400}">${r.sc.r.toFixed(1)}</td>
     </tr>`;
   });
+}
+
+// ── KPI Cards (หน้า 1) ──
+function renderKPI(d) {
+  const el = document.getElementById('kpiGrid');
+  if (!el) return;
+  const s = d.sales;
+  const pctChg = (curr, prev) => prev ? ((curr - prev) / prev * 100) : 0;
+  const chg67 = pctChg(s.y67, s.y66);
+  const chg68 = pctChg(s.y68, s.y67);
+  const chg69 = pctChg(s.y69, s.y68);
+  const arrow = (v) => v >= 0 ? '▲' : '▼';
+  const cls = (v) => v >= 0 ? 'dn' : 'up'; // ในธีมนี้ ยอดขายเพิ่มขึ้น = สีเขียว(dn class), ลดลง = สีแดง(up class)
+  el.innerHTML = `
+    <div class="kpi blue fade-in">
+      <div class="kpi-label">ยอดขาย 2566</div>
+      <div class="kpi-val" style="color:#2563eb">${s.y66.toFixed(1)} <small>ล้าน</small></div>
+    </div>
+    <div class="kpi blue fade-in">
+      <div class="kpi-label">ยอดขาย 2567</div>
+      <div class="kpi-val" style="color:#2563eb">${s.y67.toFixed(1)} <small>ล้าน</small></div>
+      <div class="kpi-change ${cls(chg67)}">${arrow(chg67)} ${Math.abs(chg67).toFixed(1)}% จากปีก่อน</div>
+    </div>
+    <div class="kpi blue fade-in">
+      <div class="kpi-label">ยอดขาย 2568</div>
+      <div class="kpi-val" style="color:#2563eb">${s.y68.toFixed(1)} <small>ล้าน</small></div>
+      <div class="kpi-change ${cls(chg68)}">${arrow(chg68)} ${Math.abs(chg68).toFixed(1)}% จากปีก่อน</div>
+    </div>
+    <div class="kpi blue fade-in">
+      <div class="kpi-label">ยอดขาย 2569 คาดการณ์</div>
+      <div class="kpi-val" style="color:#2563eb">${s.y69.toFixed(1)} <small>ล้าน</small></div>
+      <div class="kpi-change ${cls(chg69)}">${arrow(chg69)} ${Math.abs(chg69).toFixed(1)}% จากปีก่อน</div>
+    </div>`;
+}
+
+// ── Scenario cards (หน้า 1) ──
+function renderScenarioCards(d) {
+  const el = document.getElementById('scenarioGrid');
+  if (!el) return;
+  const sc = d.sc.sales;
+  const proj = d.sales.y69;
+  const pctMore = (target) => proj > 0 ? (((target - proj) / proj) * 100) : 0;
+  const fmtM = (v) => v.toFixed(0);
+  el.innerHTML = `
+    <div class="sc-card green">
+      <div class="sc-badge">✦ TARGET — อยู่สบาย</div>
+      <div class="sc-num">${fmtM(sc.green)}ล้าน</div>
+      <div class="sc-title">อยู่สบาย ค่าคอม โบนัสดี</div>
+      <div class="sc-desc">ยอดขายต้องถึง <strong>${fmtM(sc.green)} ล้านบาท</strong> · ค่าคอม โบนัสกระฉูด · ต้องเพิ่มยอดขาย +${pctMore(sc.green).toFixed(0)}% จากคาดการณ์ปัจจุบัน</div>
+    </div>
+    <div class="sc-card amber">
+      <div class="sc-badge">⚡ SUSTAIN — อยู่ได้</div>
+      <div class="sc-num">${fmtM(sc.amber)}ล้าน</div>
+      <div class="sc-title">อยู่ได้ แต่กำไรไม่เพิ่มขึ้น</div>
+      <div class="sc-desc">ยอดขายต้องถึง <strong>${fmtM(sc.amber)} ล้านบาท</strong> · บริษัทดำเนินต่อได้ แต่ไม่มีการเติบโต · ต้องเพิ่มยอดขาย +${pctMore(sc.amber).toFixed(0)}% จากคาดการณ์</div>
+    </div>
+    <div class="sc-card red">
+      <div class="sc-badge">✕ DANGER — เสี่ยงขาดทุน</div>
+      <div class="sc-num">${fmtM(sc.red)}ล้าน</div>
+      <div class="sc-title">เริ่มติดลบ บริษัทขาดทุน</div>
+      <div class="sc-desc">ถ้ายอดขายต่ำกว่า <strong>${fmtM(sc.red)} ล้านบาท</strong> · กำไรสุทธิเหลือน้อยมาก · เสี่ยงขาดทุนถ้าเกิดค่าใช้จ่ายพิเศษ</div>
+    </div>`;
+}
+
+// ── Scenario cards (หน้า 2) ──
+function renderP2ScenarioCards(d) {
+  const el = document.getElementById('p2ScenarioGrid');
+  if (!el) return;
+  const toM = (v) => (v || 0).toFixed(1);
+  const sc = d.sc;
+  el.innerHTML = `
+    <div class="p2-sc green">
+      <div class="p2-sc-label">✦ อยู่สบาย ค่าคอม โบนัสดี</div>
+      <div class="p2-sc-title">ยอดขายต้องถึง ${sc.sales.green.toFixed(0)}M/ปี</div>
+      <div class="p2-sc-row"><span class="p2-sc-rowlabel">ยอดขาย</span><span class="p2-sc-val">${toM(sc.sales.green)}M</span></div>
+      <div class="p2-sc-row"><span class="p2-sc-rowlabel">กำไรขั้นต้น</span><span class="p2-sc-val">${toM(sc.gross.green)}M</span></div>
+      <div class="p2-sc-row"><span class="p2-sc-rowlabel">ค่าใช้จ่ายรวม</span><span class="p2-sc-val">${toM(sc.opex.green)}M</span></div>
+      <div class="p2-sc-row"><span class="p2-sc-rowlabel">กำไรสุทธิ</span><span class="p2-sc-val">${toM(sc.net.green)}M</span></div>
+    </div>
+    <div class="p2-sc amber">
+      <div class="p2-sc-label">⚡ อยู่ได้แต่กำไรไม่เพิ่มขึ้น</div>
+      <div class="p2-sc-title">ยอดขายต้องถึง ${sc.sales.amber.toFixed(0)}M/ปี</div>
+      <div class="p2-sc-row"><span class="p2-sc-rowlabel">ยอดขาย</span><span class="p2-sc-val">${toM(sc.sales.amber)}M</span></div>
+      <div class="p2-sc-row"><span class="p2-sc-rowlabel">กำไรขั้นต้น</span><span class="p2-sc-val">${toM(sc.gross.amber)}M</span></div>
+      <div class="p2-sc-row"><span class="p2-sc-rowlabel">ค่าใช้จ่ายรวม</span><span class="p2-sc-val">${toM(sc.opex.amber)}M</span></div>
+      <div class="p2-sc-row"><span class="p2-sc-rowlabel">กำไรสุทธิ</span><span class="p2-sc-val">${toM(sc.net.amber)}M</span></div>
+    </div>
+    <div class="p2-sc red">
+      <div class="p2-sc-label">✕ เริ่มติดลบ บริษัทขาดทุน</div>
+      <div class="p2-sc-title">ยอดขายต่ำกว่า ${sc.sales.red.toFixed(0)}M/ปี</div>
+      <div class="p2-sc-row"><span class="p2-sc-rowlabel">ยอดขาย</span><span class="p2-sc-val">${toM(sc.sales.red)}M</span></div>
+      <div class="p2-sc-row"><span class="p2-sc-rowlabel">กำไรขั้นต้น</span><span class="p2-sc-val">${toM(sc.gross.red)}M</span></div>
+      <div class="p2-sc-row"><span class="p2-sc-rowlabel">ค่าใช้จ่ายรวม</span><span class="p2-sc-val">${toM(sc.opex.red)}M</span></div>
+      <div class="p2-sc-row"><span class="p2-sc-rowlabel">กำไรสุทธิ</span><span class="p2-sc-val">${toM(sc.net.red)}M</span></div>
+    </div>`;
+}
+
+// ── Footer actual-month text ──
+function renderFooterInfo() {
+  const elMonths = document.getElementById('footerActualMonths');
+  if (elMonths) elMonths.textContent = ACTUAL_MONTHS;
+  const monthNames = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  const elMonth = document.getElementById('footerUpdateMonth');
+  if (elMonth && ACTUAL_MONTHS >= 1 && ACTUAL_MONTHS <= 12) {
+    elMonth.textContent = monthNames[ACTUAL_MONTHS - 1] + ' 2569';
+  }
 }
 
 init();
