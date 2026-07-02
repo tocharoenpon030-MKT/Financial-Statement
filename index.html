@@ -1711,13 +1711,21 @@ function parseOtherSheet(rows) {
   const TOTAL_MONTHS = 24; // 12เดือน×2ปี (2568+2569)
   const dataRows = rows.slice(1).filter(r => r[1] || r[2]); // skip header, keep rows with name or group
 
-  // รวบรวมกลุ่มทั้งหมด
+  // รวบรวมกลุ่มทั้งหมด (แถวที่ไม่มี "กลุ่มใหญ่" จะถูกจับรวมไว้ในกลุ่ม "ไม่ระบุกลุ่ม" แทนที่จะถูกทิ้งไป
+  // เพื่อให้ผลรวมทุกกลุ่มเท่ากับผลรวมทั้งคอลัมน์เสมอ ไม่ว่าจะกรอกข้อมูลในชีทครบหรือไม่ก็ตาม)
+  const UNGROUPED_LABEL = 'ไม่ระบุกลุ่ม';
   const allGroups = [];
   const groupSet = new Set();
+  let hasUngrouped = false;
   for (const r of dataRows) {
     const grp = String(r[2]||'').trim();
-    if (grp && !groupSet.has(grp)) { groupSet.add(grp); allGroups.push(grp); }
+    if (grp) {
+      if (!groupSet.has(grp)) { groupSet.add(grp); allGroups.push(grp); }
+    } else {
+      hasUngrouped = true;
+    }
   }
+  if (hasUngrouped) allGroups.push(UNGROUPED_LABEL);
 
   // นับเดือนที่มีข้อมูล (กำไรรวม col I = offset 4)
   // เดือน m (0-based): colIdx = 4 + m*7 + 4 = 8 + m*7
@@ -1747,8 +1755,9 @@ function parseOtherSheet(rows) {
   }
 
   for (const r of dataRows) {
-    const grp = String(r[2]||'').trim();
-    if (!grp || !groupData[grp]) continue;
+    let grp = String(r[2]||'').trim();
+    if (!grp) grp = UNGROUPED_LABEL; // อย่าทิ้งแถว ให้จับรวมกลุ่ม "ไม่ระบุกลุ่ม" แทน
+    if (!groupData[grp]) continue;
     for (let m = 0; m < TOTAL_MONTHS; m++) {
       const baseCol = 4 + m * 7;
       const profit  = n(r[baseCol + 4]) || 0;
