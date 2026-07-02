@@ -549,6 +549,7 @@ footer {
 
   /* แถวรายการแจ้งเตือน — เพิ่มขนาดตัวหนังสือให้อ่านง่ายขึ้นบนมือถือ */
   .alert-name .nm { font-size: .92rem; }
+  .alert-name .nm .sku { font-size: .82rem; }
   .alert-name .grp, .alert-name .sug { font-size: .78rem; }
   .alert-pct { min-width: 56px; }
   .alert-pct .v { font-size: .86rem; }
@@ -776,6 +777,7 @@ footer {
 .alert-row { display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--border); border-radius:8px; margin-bottom:6px; background:var(--bg); flex-wrap:wrap }
 .alert-name { flex:1; min-width:180px }
 .alert-name .nm { font-size:.83rem; font-weight:600 }
+.alert-name .nm .sku { font-family:var(--mono); font-weight:600; color:var(--accent); font-size:.78rem }
 .alert-name .grp { font-size:.68rem; color:var(--muted) }
 .alert-name .sug { font-size:.68rem; color:#92400e; margin-top:3px; line-height:1.5 }
 .alert-pct { text-align:right; min-width:64px }
@@ -2475,7 +2477,7 @@ function pctChange(cur, prev) {
 
 // months: { [mon 1-12]: {cost68,cost69,price68,price69,qty68,qty69,profit68,profit69,sale68,sale69} }
 // ใช้ร่วมกันทั้งสินค้าหลัก (parseMainDetail) และสินค้าอื่น (parseOtherDetail)
-function computeAlertItem(grp, desc, months) {
+function computeAlertItem(grp, sku, desc, months) {
   let lastMon = 0;
   for (let m=1; m<=12; m++) { if (months[m] && (months[m].qty69||0) > 0) lastMon = m; }
   if (!lastMon) return null;
@@ -2510,7 +2512,7 @@ function computeAlertItem(grp, desc, months) {
   };
 
   return {
-    grp, desc, lastMon,
+    grp, sku, desc, lastMon,
     cost69: cur.cost69, price69: cur.price69, gpu: curGpu, profit: cur.profit69, qty: cur.qty69, sale: cur.sale69,
     cost68: cur.cost68, price68: cur.price68, gpu68: yoyGpu, profit68: cur.profit68, qty68: cur.qty68, sale68: cur.sale68,
     mom, yoy
@@ -2523,7 +2525,7 @@ function parseAlertItems(rows) {
   for (const grp in grouped) {
     for (const key in grouped[grp]) {
       const it = grouped[grp][key];
-      const alertItem = computeAlertItem(grp, it.desc, it.months);
+      const alertItem = computeAlertItem(grp, it.sku, it.desc, it.months);
       if (alertItem) out.push(alertItem);
     }
   }
@@ -2536,7 +2538,7 @@ function parseAlertItemsOther(rows) {
   for (const grp in grouped) {
     for (const key in grouped[grp]) {
       const it = grouped[grp][key];
-      const alertItem = computeAlertItem(grp, it.desc, it.months);
+      const alertItem = computeAlertItem(grp, it.sku, it.desc, it.months);
       if (alertItem) out.push(alertItem);
     }
   }
@@ -2597,7 +2599,7 @@ function renderAlertPage(bkkMainRows, pttMainRows, bkkOtherRows, pttOtherRows, c
     if (c.badge==='danger') badgeHtml += `<span class="alert-badge ab-warn">ขึ้นราคา ลูกค้าหาย</span><span class="alert-badge ab-danger">ไม่ยั่งยืน</span>`;
     return `<div class="alert-row">
       <div class="alert-name">
-        <div class="nm">${item.desc}${badgeHtml}</div>
+        <div class="nm">${item.sku ? `<span class="sku">[${item.sku}]</span> ` : ''}${item.desc}${badgeHtml}</div>
         <div class="grp">${item.grp} · เดือน ${MONTHS_TH[item.lastMon-1]}/2569</div>
         <div class="sug">💡 ${c.main}</div>
       </div>
@@ -2652,13 +2654,13 @@ function renderAlertPage(bkkMainRows, pttMainRows, bkkOtherRows, pttOtherRows, c
   }
 
   function exportXlsx() {
-    const rows = [['กลุ่มสินค้า','รายการ','ระดับ',
+    const rows = [['รหัสสินค้า','กลุ่มสินค้า','รายการ','ระดับ',
       'ต้นทุนปีที่แล้ว','ราคาขายเฉลี่ยปีที่แล้ว','กำไร/หน่วยปีที่แล้ว','กำไรรวมปีที่แล้ว','จำนวนขายปีที่แล้ว','ยอดขายเซลปีที่แล้ว',
       'ต้นทุนปีนี้','ราคาขายเฉลี่ยปีนี้','กำไร/หน่วยปีนี้','กำไรรวมปีนี้','จำนวนขายปีนี้','ยอดขายเซลปีนี้',
       'ข้อเสนอแนะ']];
     lastClassified.forEach(({item,c})=>{
       rows.push([
-        item.grp, item.desc, c.label,
+        item.sku||'', item.grp, item.desc, c.label,
         item.cost68, item.price68, item.gpu68, item.profit68, item.qty68, item.sale68,
         item.cost69, item.price69, item.gpu, item.profit, item.qty, item.sale,
         c.main
