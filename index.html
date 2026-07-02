@@ -808,12 +808,23 @@ footer {
 </header>
 
 <div class="page-tabs top-tabs" id="topTabs">
-  <button class="tab-btn active" data-top="summary">สรุปการเงิน</button>
+  <button class="tab-btn active" data-top="summary">🔒 สรุปการเงิน</button>
   <button class="tab-btn" data-top="finreport">🔒 รายงานทางการเงิน</button>
   <button class="tab-btn" data-top="profit">สรุปกำไรขาย</button>
 </div>
 
 <div id="toppage-summary" class="page active">
+  <div id="summaryLockScreen">
+    <div class="chart-card pw-card">
+      <div class="pw-icon">🔒</div>
+      <div class="chart-title" style="margin-bottom:2px;">หน้านี้ต้องใส่รหัสผ่าน</div>
+      <div class="chart-sub">กรอกรหัสผ่านเพื่อดูสรุปการเงิน</div>
+      <input type="password" id="summaryPwInput" class="pw-input" placeholder="รหัสผ่าน" autocomplete="off">
+      <div class="pw-error" id="summaryPwError"></div>
+      <button class="pw-btn" id="summaryPwSubmit">ปลดล็อก</button>
+    </div>
+  </div>
+  <div id="summaryContent" style="display:none;">
       <div class="section-title">เปรียบเทียบกำไรขาย ปี 2568 กับ 2569 (สินค้าหลัก + สินค้าอื่น กรุงเทพ + พัทยา)</div>
       <div class="kpi-grid" id="sumKpiGrid">
         <div class="loading-mini" style="grid-column:1/-1;text-align:center;color:var(--muted);padding:20px 0;">กำลังโหลดข้อมูล…</div>
@@ -853,6 +864,7 @@ footer {
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px;" id="sumVarianceRow"></div>
       <div class="footer-text" id="sumDataNote" style="margin-bottom:32px;"></div>
 
+  </div>
 </div>
 
 <div id="toppage-finreport" class="page">
@@ -1166,10 +1178,11 @@ footer {
 <script>
 (function(){
   // ══════════════════════════════════════════════
-  //  รหัสผ่านหน้า "รายงานทางการเงิน"
+  //  รหัสผ่านหน้า "รายงานทางการเงิน" และ "สรุปการเงิน"
   //  ← แก้เลขตรงนี้บรรทัดเดียวเพื่อเปลี่ยนรหัสผ่าน
   // ══════════════════════════════════════════════
   const FIN_REPORT_PASSWORD = '1294';
+  const SUMMARY_PASSWORD = '1294';
 
   const topTabs = document.querySelectorAll('#topTabs .tab-btn');
   const topPages = {
@@ -1212,6 +1225,34 @@ footer {
   document.getElementById('finPwSubmit').addEventListener('click', tryPassword);
   document.getElementById('finPwInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') tryPassword();
+  });
+
+  let summaryStarted = false;
+  function unlockSummary() {
+    document.getElementById('summaryLockScreen').style.display = 'none';
+    document.getElementById('summaryContent').style.display = '';
+    if (!summaryStarted && typeof window.__startSummaryPage === 'function') {
+      summaryStarted = true;
+      window.__startSummaryPage();
+    }
+  }
+
+  function trySummaryPassword() {
+    const input = document.getElementById('summaryPwInput');
+    const err = document.getElementById('summaryPwError');
+    if (input.value === SUMMARY_PASSWORD) {
+      err.textContent = '';
+      unlockSummary();
+    } else {
+      err.textContent = 'รหัสผ่านไม่ถูกต้อง';
+      input.value = '';
+      input.focus();
+    }
+  }
+
+  document.getElementById('summaryPwSubmit').addEventListener('click', trySummaryPassword);
+  document.getElementById('summaryPwInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') trySummaryPassword();
   });
 })();
 
@@ -1527,7 +1568,6 @@ footer {
   }
 
   window.__startSummaryPage = init;
-  init();
 })();
 
 </script>
