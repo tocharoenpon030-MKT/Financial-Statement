@@ -1225,8 +1225,8 @@ footer {
 
   const PROFIT_SHEET_ID = '15b_m7yDpWC0lUnt-_4sfAoayg3ysvDiE62WagXEKDiU';
   const PROFIT_GIDS = {
-    bkkDetail: '2098854142',
-    pttDetail: '795156374',
+    bkk:       '71451120',
+    ptt:       '2027844530',
     bkkOther:  '1143914332',
     pttOther:  '346308306',
   };
@@ -1288,20 +1288,43 @@ footer {
     return (curr - prev) / Math.abs(prev) * 100;
   }
 
-  // ── รวมยอดกำไรขายรายเดือน จาก 4 ชีตรายละเอียด (สินค้าหลัก+อื่น, กทม.+พัทยา) ──
-  // Main detail: แถวยาว (1 แถว = 1 กลุ่ม+เดือน+สินค้า) คอลัมน์ B=เดือน, K=กำไร68, L=กำไร69, I=จำนวน69
-  function sumMainDetail(rows, acc) {
+  // ── รวมยอดกำไรขายรายเดือน จาก "ชีตภาพรวม" (Overview) เดียวกับที่หน้า "สรุปกำไรขาย" ใช้ ──
+  // (เดิมใช้ชีต "รายละเอียด" คนละชีตกับหน้าสรุปกำไรขาย ทำให้ตัวเลขไม่ตรงกัน — แก้ให้อ่านชีตเดียวกัน
+  //  ด้วยตรรกะหาคอลัมน์แบบเดียวกับ parseSummarySheet ในหน้าสรุปกำไรขายเป๊ะ ๆ)
+  // โครงสร้าง: แถวหัว "กำไรรวม" + col1 มีคำว่า "เดือน" → แถวถัดไปคือรายกลุ่มสินค้า, คอลัมน์ เดือนN/2568, เดือนN/2569
+  function sumMainOverview(rows, acc) {
     if (!rows || rows.length < 2) return;
-    const dataRows = rows.slice(1).filter(r => r[0] && r[3]);
-    for (const r of dataRows) {
-      const mon = numVal(r[1]);
-      if (mon < 1 || mon > 12) continue;
-      acc.profit68[mon-1] += numVal(r[10]);
-      acc.profit69[mon-1] += numVal(r[11]);
-      acc.qty69[mon-1]    += numVal(r[8]);
+    let pHdr = null, pStart = -1;
+    for (let i = 0; i < rows.length; i++) {
+      const c0 = String(rows[i][0]||'').trim();
+      const c1 = String(rows[i][1]||'').trim();
+      if (c0 === 'กำไรรวม' && c1.includes('เดือน') && !pHdr) { pHdr = rows[i]; pStart = i + 1; }
+    }
+    const c68 = [], c69 = [];
+    for (let m = 0; m < 12; m++) { c68.push(1 + m*2); c69.push(2 + m*2); }
+    if (pHdr) {
+      for (let i = 1; i < pHdr.length; i++) {
+        const h = String(pHdr[i]||'').trim();
+        for (let m = 1; m <= 12; m++) {
+          if (h === `เดือน${m}/2568`) c68[m-1] = i;
+          if (h === `เดือน${m}/2569`) c69[m-1] = i;
+        }
+      }
+    }
+    const SKIP = new Set(['รวมทุกกลุ่ม','เปลี่ยนแปลง(%)','เปลี่ยนแปลง(บาท)','']);
+    if (pStart > 0) {
+      for (let i = pStart; i < rows.length; i++) {
+        const c0 = String(rows[i][0]||'').trim();
+        if (c0 === 'สัดส่วนขายออก') break;
+        if (!c0 || SKIP.has(c0)) continue;
+        for (let m = 0; m < 12; m++) {
+          acc.profit68[m] += numVal(rows[i][c68[m]]);
+          acc.profit69[m] += numVal(rows[i][c69[m]]);
+        }
+      }
     }
   }
-  // Other detail: แถวกว้าง (1 แถว = 1 สินค้า, 12 เดือน x 2 ปี) baseCol68=4+(m-1)*7, baseCol69=88+(m-1)*7, offset+4=กำไรรวม, +2=จำนวน
+  // Other detail: แถวกว้าง (1 แถว = 1 สินค้า, 12 เดือน x 2 ปี) baseCol68=4+(m-1)*7, baseCol69=88+(m-1)*7, offset+4=กำไรรวม
   function sumOtherDetail(rows, acc) {
     if (!rows || rows.length < 2) return;
     const dataRows = rows.slice(1).filter(r => r[1] || r[2]);
@@ -1313,7 +1336,6 @@ footer {
       for (let m = 1; m <= 12; m++) {
         const base69 = 4 + 12*7 + (m-1)*7;
         acc.profit69[m-1] += numVal(r[base69+4]);
-        acc.qty69[m-1]    += numVal(r[base69+2]);
       }
     }
   }
@@ -1327,22 +1349,22 @@ footer {
     try {
       const [finGrid, bkkMain, pttMain, bkkOther, pttOther] = await Promise.all([
         fetchCSV(FIN_CSV_URL),
-        fetchCSV(`https://docs.google.com/spreadsheets/d/${PROFIT_SHEET_ID}/export?format=csv&gid=${PROFIT_GIDS.bkkDetail}`),
-        fetchCSV(`https://docs.google.com/spreadsheets/d/${PROFIT_SHEET_ID}/export?format=csv&gid=${PROFIT_GIDS.pttDetail}`),
+        fetchCSV(`https://docs.google.com/spreadsheets/d/${PROFIT_SHEET_ID}/export?format=csv&gid=${PROFIT_GIDS.bkk}`),
+        fetchCSV(`https://docs.google.com/spreadsheets/d/${PROFIT_SHEET_ID}/export?format=csv&gid=${PROFIT_GIDS.ptt}`),
         fetchCSV(`https://docs.google.com/spreadsheets/d/${PROFIT_SHEET_ID}/export?format=csv&gid=${PROFIT_GIDS.bkkOther}`),
         fetchCSV(`https://docs.google.com/spreadsheets/d/${PROFIT_SHEET_ID}/export?format=csv&gid=${PROFIT_GIDS.pttOther}`),
       ]);
 
-      // 1) กำไรขายรวมรายเดือน (สินค้าหลัก+อื่น กทม.+พัทยา)
-      const acc = { profit68: Array(12).fill(0), profit69: Array(12).fill(0), qty69: Array(12).fill(0) };
-      sumMainDetail(bkkMain, acc);
-      sumMainDetail(pttMain, acc);
+      // 1) กำไรขายรวมรายเดือน (สินค้าหลัก+อื่น กทม.+พัทยา) — อ่านจากชีตเดียวกับหน้าสรุปกำไรขายทุกตัว
+      const acc = { profit68: Array(12).fill(0), profit69: Array(12).fill(0) };
+      sumMainOverview(bkkMain, acc);
+      sumMainOverview(pttMain, acc);
       sumOtherDetail(bkkOther, acc);
       sumOtherDetail(pttOther, acc);
 
       let profitActualMonths = 0;
       for (let i = 0; i < 12; i++) {
-        if (acc.qty69[i] > 0) profitActualMonths++;
+        if (acc.profit69[i] !== 0) profitActualMonths++;
         else break;
       }
       if (profitActualMonths === 0) profitActualMonths = 12;
@@ -1379,6 +1401,7 @@ footer {
     const el = document.getElementById('sumKpiGrid');
     if (!el) return;
     const p68 = acc.profit68.slice(0, months).reduce((a,b)=>a+b,0) / 1e6;
+    const p68full = acc.profit68.reduce((a,b)=>a+b,0) / 1e6;
     const p69 = acc.profit69.slice(0, months).reduce((a,b)=>a+b,0) / 1e6;
     const chg = pctChange(p69, p68);
     const cls = chg >= 0 ? 'dn' : 'up';
@@ -1388,6 +1411,7 @@ footer {
       <div class="kpi blue fade-in">
         <div class="kpi-label">กำไรขาย 2568 (${label})</div>
         <div class="kpi-val" style="color:#2563eb">${fmt(p68)} <small>ล้าน</small></div>
+        <div class="kpi-change flat">เต็มปี 2568: ${fmt(p68full)} ล้าน</div>
       </div>
       <div class="kpi orange fade-in">
         <div class="kpi-label">กำไรขาย 2569 (${label})</div>
@@ -1431,6 +1455,9 @@ footer {
     if (!body) return;
     let rows = '';
     let sumProfit68 = 0, sumProfit69 = 0, sumExp68 = 0, sumExp69 = 0, sumNet68 = 0, sumNet69 = 0;
+    // ผลรวม "เฉพาะเดือนที่มีข้อมูลจริงทั้ง 2 ปี" (เทียบเดือนต่อเดือนแบบ apples-to-apples) — คำนวณอัตโนมัติจากจำนวนเดือนจริง
+    const commonMonths = Math.min(profitMonths, budgetMonths);
+    let ytdProfit68 = 0, ytdExp68 = 0, ytdNet68 = 0, ytdProfit69 = 0, ytdExp69 = 0, ytdNet69 = 0;
     for (let m = 1; m <= 12; m++) {
       const i = m - 1;
       const pr68 = acc.profit68[i] / 1e6;
@@ -1444,6 +1471,11 @@ footer {
       if (i < profitMonths) sumProfit69 += pr69;
       if (i < budgetMonths) { sumExp69 += ex69; if (nt69 !== null) sumNet69 += nt69; }
 
+      if (i < commonMonths) {
+        ytdProfit68 += pr68; ytdExp68 += ex68; ytdNet68 += nt68;
+        ytdProfit69 += pr69; ytdExp69 += ex69; if (nt69 !== null) ytdNet69 += nt69;
+      }
+
       rows += `<tr>
         <td class="L">${MONTH_NAMES[i]}</td>
         <td style="color:#1d4ed8">${fmt(pr68,2)}</td><td style="color:#1d4ed8">${fmt(ex68,2)}</td><td style="color:#1d4ed8">${fmt(nt68,2)}</td>
@@ -1452,8 +1484,14 @@ footer {
         <td style="color:#c2410c">${nt69===null?'—':fmt(nt69,2)}</td>
       </tr>`;
     }
+    const commonLabel = commonMonths >= 1 ? `ม.ค.–${MONTH_NAMES[commonMonths-1]}` : '—';
+    rows += `<tr style="background:#eef7ff;font-weight:700;border-top:2px solid #93c5fd">
+      <td class="L">รวมเฉพาะเดือนที่มีข้อมูล (${commonLabel})</td>
+      <td style="color:#1d4ed8">${fmt(ytdProfit68,2)}</td><td style="color:#1d4ed8">${fmt(ytdExp68,2)}</td><td style="color:#1d4ed8">${fmt(ytdNet68,2)}</td>
+      <td style="color:#c2410c">${fmt(ytdProfit69,2)}</td><td style="color:#c2410c">${fmt(ytdExp69,2)}</td><td style="color:#c2410c">${fmt(ytdNet69,2)}</td>
+    </tr>`;
     rows += `<tr style="background:#fdf8ec;font-weight:700;border-top:2px solid #2563eb">
-      <td class="L">รวม / YTD</td>
+      <td class="L">รวมเต็มปี 68 / YTD 69</td>
       <td style="color:#1d4ed8">${fmt(sumProfit68,2)}</td><td style="color:#1d4ed8">${fmt(sumExp68,2)}</td><td style="color:#1d4ed8">${fmt(sumNet68,2)}</td>
       <td style="color:#c2410c">${fmt(sumProfit69,2)}</td><td style="color:#c2410c">${fmt(sumExp69,2)}</td><td style="color:#c2410c">${fmt(sumNet69,2)}</td>
     </tr>`;
