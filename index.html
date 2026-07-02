@@ -1447,10 +1447,20 @@ footer {
       const row34 = salesMethodGrid ? salesMethodGrid[33] : null;
       const sales68 = row25 ? Array.from({length:12}, (_,i) => numVal(row25[2+i])) : Array(12).fill(0);
       const sales69 = row34 ? Array.from({length:12}, (_,i) => numVal(row34[2+i])) : Array(12).fill(0);
+      // จำนวนเดือนที่มีข้อมูลจริงของยอดขาย 2569 — เช็คจากแถว 34 เอง ไม่ผูกกับ budgetActualMonths ของแท็บ "สรุป"
+      // (สองแท็บอาจอัปเดตไม่พร้อมกัน เช่น "วิธีคิดยอดขาย" ใส่ข้อมูลเดือน มิ.ย. แล้ว แต่ "สรุป" ยังไม่ใส่)
+      let salesActualMonths69 = 0;
+      if (row34) {
+        for (let c = 2; c <= 13; c++) {
+          if (!cellEmpty(row34[c]) && numVal(row34[c]) !== 0) salesActualMonths69++;
+          else break;
+        }
+      }
+      if (salesActualMonths69 === 0) salesActualMonths69 = budgetActualMonths;
 
       renderKPI(acc, profitActualMonths);
       renderChart(acc, profitActualMonths);
-      renderRecon(acc, expense68, expense69, profitActualMonths, budgetActualMonths, netBudget68, netBudget69ytd, netBudget68Monthly, sales68, sales69);
+      renderRecon(acc, expense68, expense69, profitActualMonths, budgetActualMonths, netBudget68, netBudget69ytd, netBudget68Monthly, sales68, sales69, salesActualMonths69);
     } catch (err) {
       console.error(err);
       showError(err.message || String(err));
@@ -1510,7 +1520,7 @@ footer {
     });
   }
 
-  function renderRecon(acc, expense68, expense69, profitMonths, budgetMonths, netBudget68, netBudget69ytd, netBudget68Monthly, sales68, sales69) {
+  function renderRecon(acc, expense68, expense69, profitMonths, budgetMonths, netBudget68, netBudget69ytd, netBudget68Monthly, sales68, sales69, salesMonths69) {
     const body = document.getElementById('sumReconBody');
     if (!body) return;
     let rows = '';
@@ -1523,7 +1533,7 @@ footer {
     for (let m = 1; m <= 12; m++) {
       const i = m - 1;
       const sl68 = (sales68 && sales68[i] || 0) / 1e6;
-      const sl69ok = i < budgetMonths;
+      const sl69ok = i < (salesMonths69 || budgetMonths);
       const sl69 = sl69ok ? (sales69 && sales69[i] || 0) / 1e6 : null;
       const pr68 = acc.profit68[i] / 1e6;
       const pr69 = i < profitMonths ? acc.profit69[i] / 1e6 : null;
@@ -1538,7 +1548,7 @@ footer {
       if (i < budgetMonths) { sumExp69 += ex69; if (nt69 !== null) sumNet69 += nt69; }
 
       if (i < commonMonths) {
-        ytdSales68 += sl68; ytdSales69 += sl69;
+        ytdSales68 += sl68; if (sl69 !== null) ytdSales69 += sl69;
         ytdProfit68 += pr68; ytdExp68 += ex68; ytdNet68 += nt68;
         ytdProfit69 += pr69; ytdExp69 += ex69; if (nt69 !== null) ytdNet69 += nt69;
       }
