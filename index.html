@@ -1512,7 +1512,7 @@ footer {
           <strong>กำไรสุทธิตามงบ 2568 (เต็มปี):</strong> ${fmt(netBudget68,2)} ล้าน ·
           คำนวณจากกำไรขาย−ค่าใช้จ่ายได้ ${fmt(sumNet68,2)} ล้าน · ส่วนต่าง ${sign(diff68)}${fmt(diff68,2)} ล้าน
         </div>
-        <div class="gs-note" style="margin:0">
+        <div class="gs-note" style="margin:0;background:#fff7ed;border:1px solid #fed7aa;border-left:3px solid #ea580c;color:#c2410c">
           <strong>กำไรสุทธิตามงบ 2569 (ถึงเดือน ${budgetMonths}):</strong> ${fmt(netBudget69ytd,2)} ล้าน ·
           คำนวณได้ ${fmt(sumNet69,2)} ล้าน · ส่วนต่าง ${sign(diff69)}${fmt(diff69,2)} ล้าน
         </div>`;
@@ -1557,20 +1557,28 @@ function go(idx) {
 }
 
 // ── CSV helpers ──
+// แก้บั๊ก: เดิมตัดบรรทัดด้วย text.split(/\r?\n/) ก่อนเช็คเครื่องหมายคำพูด ถ้าเซลล์ไหนในชีตมีการ
+// ขึ้นบรรทัดใหม่ในเซลล์เดียว (Alt+Enter) จะทำให้ 1 แถวถูกฉีกเป็นหลายแถวและคอลัมน์เลื่อนสลับกัน
+// (เช่น ตัวเลขเดือนหลุดไปแสดงเป็นชื่อกลุ่มสินค้า) — เปลี่ยนมาอ่านทั้งไฟล์ทีละตัวอักษรแบบเดียวกับ
+// parseCSV ตัวอื่นในไฟล์นี้ ซึ่งรองรับทั้ง comma และ newline ที่อยู่ในเครื่องหมายคำพูดได้ถูกต้อง
 function parseCSV(text) {
   const rows = [];
-  for (const line of text.split(/\r?\n/)) {
-    if (!line.trim()) continue;
-    const cols = []; let cur='', inQ=false;
-    for (let i=0;i<line.length;i++) {
-      const ch=line[i];
-      if (ch==='"') { if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ; }
-      else if (ch===','&&!inQ) { cols.push(cur); cur=''; }
-      else cur+=ch;
+  let row = [], field = '', inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i], next = text[i+1];
+    if (inQuotes) {
+      if (c === '"' && next === '"') { field += '"'; i++; }
+      else if (c === '"') { inQuotes = false; }
+      else { field += c; }
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\r') { /* skip */ }
+      else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+      else { field += c; }
     }
-    cols.push(cur);
-    rows.push(cols);
   }
+  if (field.length > 0 || row.length > 0) { row.push(field); rows.push(row); }
   return rows;
 }
 
