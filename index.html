@@ -536,6 +536,10 @@ footer {
   header { flex-direction: column; align-items: flex-start; }
   .header-meta { text-align: left; }
 
+  /* แท็บหน้า 2-7 ของ "สรุปกำไรขาย" เบียดกันบนมือถือ — เปลี่ยนเป็นเมนูดรอปดาวน์แทน */
+  .nav-tabs-r2, .nav-tabs-r3 { display: none; }
+  .nav-mobile-select { display: block; }
+
   /* กล่องตั้งค่าเกณฑ์แจ้งเตือน (%) — จัดเรียงแนวตั้ง ขยายปุ่มกดให้กดง่ายบนมือถือ */
   .alert-controls { flex-direction: column; align-items: stretch; gap: 12px; }
   .alert-field { flex-direction: row; justify-content: space-between; align-items: center; gap: 10px; }
@@ -577,6 +581,19 @@ footer {
 .nav-row2 { display:flex; flex-direction:column; width:100%; padding:0 8px 5px }
 .nav-tabs { display:flex; width:100%; flex-wrap:wrap }
 .nav-tabs-r1 .nav-tab { flex:0 0 220px }
+.nav-mobile-select {
+  display: none;
+  width: 100%;
+  margin: 4px 3px;
+  padding: 10px 12px;
+  font-size: .92rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: #1f2937;
+  background: #fff;
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 6px;
+}
 .nav-tab { color:rgba(255,255,255,.88); padding:9px 6px; cursor:pointer; border:1px solid rgba(255,255,255,.28); border-radius:6px; white-space:nowrap; font-size:.86rem; font-weight:600; transition:all .15s; user-select:none; flex:1; text-align:center; margin:4px 3px; min-width:80px }
 .nav-tab:hover { color:#fff; background:rgba(255,255,255,.16); border-color:rgba(255,255,255,.45) }
 .nav-tab.active { color:#fff; background:var(--accent); border-color:#fff; font-weight:700; box-shadow:0 0 0 1px rgba(255,255,255,.4) }
@@ -1135,6 +1152,14 @@ footer {
       <div class="nav-tab" id="tab5" onclick="go(5)">หน้า 6 · สินค้าอื่น พัทยา</div>
       <div class="nav-tab" id="tab6" onclick="go(6)">หน้า 7 · รายสินค้า พัทยา</div>
     </div>
+    <select class="nav-mobile-select" id="navMobileSelect" onchange="go(parseInt(this.value))">
+      <option value="1">หน้า 2 · สินค้าหลัก กรุงเทพ</option>
+      <option value="2">หน้า 3 · สินค้าอื่น กรุงเทพ</option>
+      <option value="3">หน้า 4 · รายสินค้า กรุงเทพ</option>
+      <option value="4">หน้า 5 · สินค้าหลัก พัทยา</option>
+      <option value="5">หน้า 6 · สินค้าอื่น พัทยา</option>
+      <option value="6">หน้า 7 · รายสินค้า พัทยา</option>
+    </select>
   </div>
 </div>
 
@@ -1657,6 +1682,8 @@ function go(idx) {
   if (!scope) return;
   scope.querySelectorAll('.page').forEach((p,i)=>p.classList.toggle('active',i===idx));
   scope.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  const sel = document.getElementById('navMobileSelect');
+  if (sel && idx >= 1 && idx <= 6) sel.value = String(idx);
 }
 
 // ── CSV helpers ──
