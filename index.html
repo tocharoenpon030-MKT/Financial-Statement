@@ -1584,8 +1584,11 @@ async function fetchSheet(gid) {
 function n(s) {
   if (s===null||s===undefined||s==='') return null;
   let str = String(s).trim();
+  // รองรับเลขติดลบที่มีช่องว่างคั่นระหว่างเครื่องหมาย - กับตัวเลข เช่น "- 108,639.21"
+  // (รูปแบบที่ Google Sheets export CSV ออกมาแบบนี้ ซึ่ง parseFloat อ่านไม่ออกและคืนค่า NaN)
+  str = str.replace(/^-\s+/, '-');
+  // รองรับตัวเลขติดลบแบบวงเล็บบัญชี เช่น (108,639.21)
   let neg = false;
-  // รองรับตัวเลขติดลบแบบวงเล็บบัญชี เช่น (108,639.21) ที่ Google Sheets export ออกมาเป็น CSV
   if (/^\(.*\)$/.test(str)) { neg = true; str = str.slice(1, -1); }
   const v = parseFloat(str.replace(/,/g,''));
   if (isNaN(v)) return null;
@@ -2153,8 +2156,8 @@ function parseOtherDetail(rows) {
   const dataRows = rows.slice(1).filter(r => r[1] || r[2]);
   const grouped = {};
   for (const r of dataRows) {
-    const grp = String(r[2]||'').trim();
-    if (!grp) continue;
+    let grp = String(r[2]||'').trim();
+    if (!grp) grp = 'ไม่ระบุกลุ่ม'; // อย่าทิ้งแถว ให้จับรวมกลุ่ม "ไม่ระบุกลุ่ม" แทน (ตรงกับ parseOtherSheet)
     if (!grouped[grp]) grouped[grp] = {};
     const sku = String(r[0]||'').trim();
     const desc = String(r[1]||'').trim();
