@@ -1,12 +1,15 @@
+<!DOCTYPE html>
 <html lang="th">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>รายงานการเงิน 2566–2569</title>
+<title>แดชบอร์ดธุรกิจ · สรุปการเงิน + รายงานทางการเงิน + สรุปกำไรขาย</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
+
 :root {
   --bg: #fffdf5;
   --surface: #ffffff;
@@ -531,10 +534,331 @@ footer {
 .fade-in:nth-child(3){animation-delay:.15s}
 .fade-in:nth-child(4){animation-delay:.20s}
 .fade-in:nth-child(5){animation-delay:.25s}
+
+
+#toppage-profit {
+  --bg:#fffdf5; --surface:#ffffff; --surface2:#fdf8ec; --border:#e8e0cc;
+  --accent:#2563eb; --green:#16a34a; --red:#dc2626; --yellow:#b45309;
+  --text:#1a1a1a; --muted:#7a7060; --muted2:#a8a08c;
+  --font:'Sarabun',sans-serif; --mono:'IBM Plex Mono',monospace;
+  --r:10px; --c68:#a8a08c; --c69:#2563eb;
+  font-family:var(--font); background:var(--bg); color:var(--text); font-size:14px;
+}
+
+/* NAV */
+.nav { background:#111827; display:flex; flex-direction:column; position:sticky; top:0; z-index:9999; box-shadow:0 2px 12px rgba(0,0,0,.4) }
+.nav-row1 { display:flex; align-items:center; width:100%; border-bottom:1px solid rgba(255,255,255,.08) }
+.nav-brand { color:var(--accent); font-size:.9rem; font-weight:700; padding:12px 18px; border-right:1px solid rgba(255,255,255,.1); white-space:nowrap; flex-shrink:0 }
+.nav-row2 { display:flex; flex-direction:column; width:100%; padding:0 8px 5px }
+.nav-tabs { display:flex; width:100%; flex-wrap:wrap }
+.nav-tabs-r1 .nav-tab { flex:0 0 220px }
+.nav-tab { color:rgba(255,255,255,.7); padding:7px 4px; cursor:pointer; border:1px solid rgba(255,255,255,.2); border-radius:6px; white-space:nowrap; font-size:.75rem; font-weight:500; transition:all .15s; user-select:none; flex:1; text-align:center; margin:4px 3px; min-width:80px }
+.nav-tab:hover { color:#fff; background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.35) }
+.nav-tab.active { color:#fff; background:rgba(224,123,30,.3); border-color:var(--accent); font-weight:700 }
+.nav-right { padding:0 14px; display:flex; gap:8px; align-items:center; margin-left:auto; flex-shrink:0 }
+.btn-sheet { display:flex; align-items:center; gap:6px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); color:rgba(255,255,255,.8); font-family:var(--font); font-size:.75rem; padding:6px 12px; border-radius:6px; cursor:pointer; text-decoration:none; transition:all .15s; white-space:nowrap }
+.btn-sheet:hover { background:rgba(255,255,255,.16); color:#fff }
+.btn-refresh { background:rgba(224,123,30,.15); border:1px solid rgba(224,123,30,.3); color:var(--accent); font-family:var(--font); font-size:.75rem; padding:6px 10px; border-radius:6px; cursor:pointer; transition:all .15s }
+.btn-refresh:hover { background:rgba(224,123,30,.25) }
+
+/* PAGE */
+#toppage-profit .page { display:none; padding:22px 18px; max-width:1320px; margin:0 auto }
+#toppage-profit .page.active { display:block }
+.page-title { font-size:1.2rem; font-weight:700; margin-bottom:3px }
+.page-sub { font-size:.78rem; color:var(--muted); margin-bottom:16px }
+.sec-title { font-size:.84rem; font-weight:700; margin:20px 0 10px; padding-left:10px; border-left:3px solid var(--accent); display:flex; align-items:center; gap:8px }
+
+/* LOADING */
+.loading-wrap { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:80px 20px; color:var(--muted) }
+.spinner { width:36px; height:36px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite }
+@keyframes spin { to { transform:rotate(360deg) } }
+.err-box { background:#fef2f2; border:1px solid #fecaca; border-radius:var(--r); padding:16px 20px; color:#b91c1c; font-size:.83rem; line-height:1.6 }
+
+/* CARDS */
+.cards { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:18px }
+.card { background:var(--bg); border:1px solid var(--border); border-radius:var(--r); padding:14px 16px }
+.card-label { font-size:.68rem; color:var(--muted); margin-bottom:6px; font-weight:600; text-transform:uppercase; letter-spacing:.03em; line-height:1.4 }
+.card-value { font-family:var(--mono); font-size:1.05rem; font-weight:600; line-height:1.2 }
+.card-sub { font-size:.67rem; color:var(--muted2); margin-top:4px }
+.c-green { color:var(--green) } .c-red { color:var(--red) } .c-acc { color:var(--accent) }
+.c-68 { color:var(--c68) } .c-69 { color:var(--c69) }
+
+/* BOX / TABLE */
+.box { background:var(--bg); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; margin-bottom:18px }
+.box-head { padding:10px 16px; border-bottom:1px solid var(--border); font-weight:700; font-size:.82rem; background:var(--surface); display:flex; align-items:center; gap:8px }
+#toppage-profit table { width:100%; border-collapse:collapse; font-size:.78rem }
+#toppage-profit th { background:var(--surface2); color:var(--muted); padding:8px 11px; text-align:right; font-weight:600; font-size:.67rem; text-transform:uppercase; letter-spacing:.04em; border-bottom:1px solid var(--border); white-space:nowrap }
+#toppage-profit th.L { text-align:left }
+#toppage-profit td { padding:7px 11px; border-bottom:1px solid var(--border); text-align:right; font-family:var(--mono); white-space:nowrap }
+#toppage-profit td.L { font-family:var(--font); font-weight:500; text-align:left; white-space:normal }
+#toppage-profit tr:last-child td { border-bottom:none }
+#toppage-profit tr:hover td { background:rgba(0,0,0,.018) }
+#toppage-profit tr.tot td { background:#eff6ff; font-weight:700; border-top:2px solid var(--accent); border-bottom:none }
+#toppage-profit tr.tot td.L { font-family:var(--font) }
+
+/* BADGES */
+.badge { display:inline-block; padding:2px 8px; border-radius:20px; font-size:.67rem; font-weight:600; font-family:var(--mono) }
+.bu { background:#dcfce7; color:var(--green) }
+.bd { background:#fee2e2; color:var(--red) }
+.bn { background:var(--surface2); color:var(--muted) }
+
+/* BAR VIZ */
+.bw { display:flex; align-items:center; gap:5px; justify-content:flex-end }
+.bb { width:54px; height:5px; background:var(--surface2); border-radius:3px; overflow:hidden; flex-shrink:0 }
+.f68 { height:100%; background:var(--c68); border-radius:3px }
+.f69 { height:100%; background:var(--c69); border-radius:3px }
+.bv { font-family:var(--mono); font-size:.68rem; min-width:44px; text-align:right }
+
+/* LEGEND */
+.leg { display:flex; gap:16px; font-size:.72rem; color:var(--muted); margin-bottom:10px; align-items:center; flex-wrap:wrap }
+.ld { width:10px; height:10px; border-radius:2px; display:inline-block; flex-shrink:0 }
+
+/* NOTE */
+.note { font-size:.73rem; color:#92400e; background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:10px 14px; margin-bottom:14px; line-height:1.6 }
+
+/* MONTHLY BAR CHART */
+.chart-wrap { padding:16px; overflow-x:auto }
+.chart { display:flex; gap:6px; align-items:flex-end; min-height:140px; min-width:600px }
+.chart-col { display:flex; flex-direction:column; align-items:center; gap:3px; flex:1; min-width:36px }
+.chart-bars { display:flex; gap:2px; align-items:flex-end; width:100% }
+.bar { border-radius:3px 3px 0 0; flex:1; min-height:2px; transition:opacity .15s }
+.bar:hover { opacity:.75 }
+.chart-label { font-size:.63rem; color:var(--muted); font-family:var(--mono); white-space:nowrap }
+.m-blank { color:var(--muted2) }
+.tbl-month th, .tbl-month td { padding:6px 9px; font-size:.74rem }
+
+/* CROSS TABLE */
+.tbl-cross { font-size:.72rem }
+.tbl-cross th { padding:6px 8px; font-size:.63rem }
+.tbl-cross td { padding:5px 8px; font-size:.72rem }
+.tbl-cross td.grp { font-family:var(--font); font-weight:600; text-align:left; white-space:nowrap; min-width:90px }
+.tbl-cross tr.tot-row td { background:#fff7ed; font-weight:700; border-top:2px solid var(--accent) }
+
+/* CROSS TABLE STICKY SCROLL */
+.cross-scroll-wrap {
+  position: relative;
+  overflow: hidden;
+}
+.cross-scroll-top {
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 16px;
+  margin-bottom: 0;
+}
+.cross-scroll-top-inner {
+  height: 1px;
+}
+.cross-scroll-body {
+  overflow-x: auto;
+  overflow-y: visible;
+}
+.cross-scroll-body table.tbl-cross {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+/* sticky header row 1 (ปี-เดือน) */
+.cross-scroll-body table.tbl-cross thead tr:first-child th {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+/* sticky header row 2 (2568/2569) */
+.cross-scroll-body table.tbl-cross thead tr:nth-child(2) th {
+  position: sticky;
+  top: 33px; /* approx height of first header row (padding 6+6 + font ~21) */
+  z-index: 30;
+}
+/* sticky first column (กลุ่มสินค้า) — th */
+.cross-scroll-body table.tbl-cross thead tr:first-child th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 40;
+  background: var(--surface2);
+  box-shadow: 2px 0 4px rgba(0,0,0,.08);
+}
+/* sticky first column — td.grp */
+.cross-scroll-body table.tbl-cross tbody td.grp {
+  position: sticky;
+  left: 0;
+  z-index: 20;
+  background: var(--bg);
+  box-shadow: 2px 0 4px rgba(0,0,0,.06);
+}
+.cross-scroll-body table.tbl-cross tr.tot-row td.grp {
+  background: #fff7ed;
+}
+
+/* GROUP FILTER BUTTONS */
+.grp-filter { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:16px }
+.grp-btn { padding:5px 12px; border-radius:20px; border:1px solid var(--border); background:var(--bg); color:var(--muted); font-family:var(--font); font-size:.75rem; cursor:pointer; transition:all .15s; font-weight:500 }
+.grp-btn:hover { border-color:var(--accent); color:var(--accent) }
+.grp-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600 }
+
+/* SECTION TOGGLE (สินค้าหลัก / สินค้าอื่น) */
+.sec-toggle { display:flex; gap:0; margin-bottom:16px; border:1px solid var(--border); border-radius:8px; overflow:hidden; width:fit-content }
+.sec-toggle-btn { padding:8px 22px; font-family:var(--font); font-size:.82rem; font-weight:600; cursor:pointer; border:none; background:var(--bg); color:var(--muted); transition:all .15s }
+.sec-toggle-btn.active { background:var(--accent); color:#fff }
+.sec-toggle-btn:first-child { border-right:1px solid var(--border) }
+
+/* DETAIL TABLE */
+.tbl-detail { font-size:.75rem }
+.tbl-detail th { padding:7px 9px; font-size:.64rem }
+.tbl-detail td { padding:6px 9px }
+.tbl-detail td.L { font-size:.74rem }
+.cell-2row { line-height:1.3 }
+.cell-2row .row1 { font-family:var(--mono); }
+.cell-2row .row2 { font-size:.67rem; color:var(--muted); font-family:var(--mono); }
+
+/* PIE CHART */
+.pie-wrap { display:flex; gap:32px; padding:20px 24px; flex-wrap:wrap; align-items:flex-start; justify-content:center }
+.pie-block { display:flex; flex-direction:column; align-items:center; gap:12px }
+.pie-title { font-size:.8rem; font-weight:700; color:var(--muted); text-align:center }
+.pie-legend { display:flex; flex-direction:column; gap:5px; min-width:140px }
+.pie-leg-item { display:flex; align-items:center; gap:7px; font-size:.72rem }
+.pie-leg-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0 }
+.pie-leg-name { flex:1; color:var(--text) }
+.pie-leg-val { font-family:var(--mono); font-size:.7rem; color:var(--muted); font-weight:600 }
+
+/* ALERT PAGE */
+.alert-controls { display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end; padding:14px 16px; background:var(--bg); border:1px solid var(--border); border-radius:var(--r); margin-bottom:16px }
+.alert-field { display:flex; flex-direction:column; gap:4px }
+.alert-field label { font-size:.68rem; color:var(--muted); font-weight:600 }
+.alert-field input { width:64px; padding:5px 7px; border:1px solid var(--border); border-radius:6px; font-family:var(--mono); font-size:.78rem }
+.alert-leg { margin-left:auto; display:flex; gap:14px; font-size:.7rem; color:var(--muted); align-items:center }
+.alert-sec-title { font-size:.84rem; font-weight:700; margin:18px 0 8px; padding-left:10px; border-left:3px solid var(--accent); display:flex; align-items:center; gap:8px }
+.alert-sec-toggle { font-size:.84rem; font-weight:700; margin:18px 0 8px; padding:8px 10px; border-left:3px solid var(--accent); background:var(--surface); border-radius:6px; display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none }
+.alert-sec-toggle:hover { background:var(--surface2) }
+.alert-sec-toggle .arrow { font-size:.7rem; color:var(--muted) }
+.alert-sec-body { display:none }
+.alert-sec-body.open { display:block }
+.alert-row { display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--border); border-radius:8px; margin-bottom:6px; background:var(--bg); flex-wrap:wrap }
+.alert-name { flex:1; min-width:180px }
+.alert-name .nm { font-size:.83rem; font-weight:600 }
+.alert-name .grp { font-size:.68rem; color:var(--muted) }
+.alert-name .sug { font-size:.68rem; color:#92400e; margin-top:3px; line-height:1.5 }
+.alert-pct { text-align:right; min-width:64px }
+.alert-pct .v { font-family:var(--mono); font-size:.78rem; font-weight:600 }
+.alert-pct .lbl { font-size:.62rem; color:var(--muted2) }
+.alert-badge { font-size:.62rem; padding:2px 7px; border-radius:20px; font-weight:600; margin-left:5px; white-space:nowrap }
+.ab-warn { background:#fef3c7; color:#92400e }
+.ab-danger { background:#fee2e2; color:var(--red) }
+.alert-empty { font-size:.75rem; color:var(--muted); padding:8px 0 }
+
+@media(max-width:900px) { #toppage-profit .cards { grid-template-columns:repeat(3,1fr) } }
+@media(max-width:640px) {
+  #toppage-profit .cards { grid-template-columns:1fr 1fr }
+  #toppage-profit td, #toppage-profit th { padding:5px 7px; font-size:.7rem }
+  #toppage-profit .bb { width:36px }
+  #toppage-profit .page { padding:12px 10px }
+  #toppage-profit .chart { min-width:460px }
+  #toppage-profit .nav-tab { font-size:.68rem; padding:6px 3px }
+}
+
+
+/* ── overrides: match cream/blue theme of รายงานทางการเงิน ── */
+#toppage-profit .nav { background:var(--surface2); box-shadow:none; border-bottom:2px solid var(--border) }
+#toppage-profit .nav-row1 { border-bottom-color:var(--border) }
+#toppage-profit .nav-brand { color:var(--accent); border-right-color:var(--border) }
+#toppage-profit .nav-tab { color:var(--muted); border-color:var(--border) }
+#toppage-profit .nav-tab:hover { color:var(--text); background:var(--surface); border-color:#c9bd98 }
+#toppage-profit .nav-tab.active { color:var(--accent); background:#eff6ff; border-color:var(--accent) }
+#toppage-profit .btn-sheet { background:var(--surface); border-color:var(--border); color:var(--muted) }
+#toppage-profit .btn-sheet:hover { background:var(--surface2); color:var(--text) }
+#toppage-profit .btn-refresh { background:#eff6ff; border-color:#bfdbfe; color:var(--accent) }
+#toppage-profit .btn-refresh:hover { background:#dbeafe }
+#toppage-profit tr.tot td { background:#eff6ff; border-top-color:var(--accent) }
+
+
+/* ── Shell: top-level nav ล็อกหน้า ── */
+.pw-card { max-width: 380px; margin: 60px auto; text-align: center; }
+.pw-icon { font-size: 34px; margin-bottom: 10px; }
+.pw-input {
+  width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 8px;
+  font-family: var(--mono); font-size: 16px; margin: 14px 0 8px; text-align: center;
+  background: #fff; color: var(--text);
+}
+.pw-input:focus { outline: none; border-color: var(--accent); }
+.pw-error { color: var(--red); font-size: 14px; min-height: 20px; margin-bottom: 8px; }
+.pw-btn {
+  width: 100%; padding: 11px; background: var(--accent); color: #fff; border: none;
+  border-radius: 8px; font-family: var(--sans); font-size: 16px; font-weight: 500; cursor: pointer;
+  transition: background .15s;
+}
+.pw-btn:hover { background: #1d4ed8; }
+.top-tabs .tab-btn { font-size: 18px; }
+
 </style>
 </head>
 <body>
 <div class="wrap">
+
+<header>
+  <div>
+    <div class="eyebrow">BUSINESS DASHBOARD</div>
+    <h1>แดชบอร์ด<span>ธุรกิจ</span></h1>
+  </div>
+</header>
+
+<div class="page-tabs top-tabs" id="topTabs">
+  <button class="tab-btn active" data-top="summary">สรุปการเงิน</button>
+  <button class="tab-btn" data-top="finreport">🔒 รายงานทางการเงิน</button>
+  <button class="tab-btn" data-top="profit">สรุปกำไรขาย</button>
+</div>
+
+<div id="toppage-summary" class="page active">
+      <div class="section-title">เปรียบเทียบกำไรขาย ปี 2568 กับ 2569 (สินค้าหลัก + สินค้าอื่น กรุงเทพ + พัทยา)</div>
+      <div class="kpi-grid" id="sumKpiGrid">
+        <div class="loading-mini" style="grid-column:1/-1;text-align:center;color:var(--muted);padding:20px 0;">กำลังโหลดข้อมูล…</div>
+      </div>
+
+      <div class="section-title">กำไรขายรายเดือน 12 เดือน · 2568 เทียบ 2569</div>
+      <div class="chart-card">
+        <div class="chart-title">กำไรขายรวมรายเดือน</div>
+        <div class="chart-sub">หน่วย: ล้านบาท · เดือนที่ยังไม่มีข้อมูลปี 2569 จะไม่แสดงแท่ง</div>
+        <div class="chart-wrap" style="height:320px;">
+          <canvas id="profitCompareChart"></canvas>
+        </div>
+      </div>
+
+      <div class="section-title">กระทบยอดกำไรสุทธิ (กำไรขาย − ค่าใช้จ่าย) เทียบกับกำไรตามงบจริง</div>
+      <div class="table-card" style="margin-bottom:16px;">
+        <div class="table-header">
+          <div class="chart-title" style="margin-bottom:2px;">รายละเอียดรายเดือน</div>
+          <div class="chart-sub" style="margin-bottom:0;">หน่วย: ล้านบาท</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="L">เดือน</th>
+                <th>กำไรขาย 68</th><th>ค่าใช้จ่าย 68</th><th>กำไรสุทธิ 68</th>
+                <th>กำไรขาย 69</th><th>ค่าใช้จ่าย 69</th><th>กำไรสุทธิ 69</th>
+              </tr>
+            </thead>
+            <tbody id="sumReconBody">
+              <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px 0;">กำลังโหลดข้อมูล…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px;" id="sumVarianceRow"></div>
+      <div class="footer-text" id="sumDataNote" style="margin-bottom:32px;"></div>
+
+</div>
+
+<div id="toppage-finreport" class="page">
+  <div id="finLockScreen">
+    <div class="chart-card pw-card">
+      <div class="pw-icon">🔒</div>
+      <div class="chart-title" style="margin-bottom:2px;">หน้านี้ต้องใส่รหัสผ่าน</div>
+      <div class="chart-sub">กรอกรหัสผ่านเพื่อดูรายงานทางการเงิน</div>
+      <input type="password" id="finPwInput" class="pw-input" placeholder="รหัสผ่าน" autocomplete="off">
+      <div class="pw-error" id="finPwError"></div>
+      <button class="pw-btn" id="finPwSubmit">ปลดล็อก</button>
+    </div>
+  </div>
+  <div id="finContent" style="display:none;">
 
 <header>
   <div>
@@ -744,9 +1068,1491 @@ footer {
   <div class="footer-text" style="text-align:right;"></div>
 </footer>
 
+
+  </div>
+</div>
+
+<div id="toppage-profit" class="page">
+
+
+<div class="nav">
+  <div class="nav-row1">
+    <div class="nav-brand">📊 สรุปกำไรขาย</div>
+    <div class="nav-right">
+      <button class="btn-refresh" onclick="loadData(true)" id="btn-refresh">↺ รีเฟรช</button>
+      <a class="btn-sheet" href="https://docs.google.com/spreadsheets/d/15b_m7yDpWC0lUnt-_4sfAoayg3ysvDiE62WagXEKDiU/edit" target="_blank">📋 DATA</a>
+    </div>
+  </div>
+  <div class="nav-row2">
+    <div class="nav-tabs nav-tabs-r1">
+      <div class="nav-tab active" id="tab0" onclick="go(0)">หน้า 1 · 🔔 แจ้งเตือน</div>
+    </div>
+    <div class="nav-tabs nav-tabs-r2">
+      <div class="nav-tab" id="tab1" onclick="go(1)">หน้า 2 · สินค้าหลัก กรุงเทพ</div>
+      <div class="nav-tab" id="tab2" onclick="go(2)">หน้า 3 · สินค้าอื่น กรุงเทพ</div>
+      <div class="nav-tab" id="tab3" onclick="go(3)">หน้า 4 · รายสินค้า กรุงเทพ</div>
+    </div>
+    <div class="nav-tabs nav-tabs-r3">
+      <div class="nav-tab" id="tab4" onclick="go(4)">หน้า 5 · สินค้าหลัก พัทยา</div>
+      <div class="nav-tab" id="tab5" onclick="go(5)">หน้า 6 · สินค้าอื่น พัทยา</div>
+      <div class="nav-tab" id="tab6" onclick="go(6)">หน้า 7 · รายสินค้า พัทยา</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 1 · แจ้งเตือน -->
+<div class="page active" id="p0">
+  <div class="page-title">แจ้งเตือนรายการที่กำไร/ยอดขายลดลง</div>
+  <div class="page-sub">เทียบเดือนล่าสุดกับเดือนเดียวกันของปีก่อน (YoY) · สินค้าหลัก + สินค้าอื่น</div>
+  <div id="alert-content"><div class="loading-wrap"><div class="spinner"></div><span>กำลังดึงข้อมูล...</span></div></div>
+</div>
+
+<!-- PAGE 2 · สินค้าหลัก กรุงเทพ -->
+<div class="page" id="p1">
+  <div class="page-title">ภาพรวมกำไร — กรุงเทพ</div>
+  <div class="page-sub" id="bkk-sub">กำลังโหลดข้อมูล...</div>
+  <div id="bkk-content"><div class="loading-wrap"><div class="spinner"></div><span>กำลังดึงข้อมูลจาก Google Sheets...</span></div></div>
+</div>
+
+<!-- PAGE 3 · สินค้าอื่น กรุงเทพ -->
+<div class="page" id="p2">
+  <div class="page-title">ภาพรวมสินค้าอื่น — กรุงเทพ</div>
+  <div class="page-sub" id="bkk-other-sub">กำลังโหลดข้อมูล...</div>
+  <div id="bkk-other-content"><div class="loading-wrap"><div class="spinner"></div><span>กำลังดึงข้อมูล...</span></div></div>
+</div>
+
+<!-- PAGE 4 · รายสินค้า กรุงเทพ -->
+<div class="page" id="p3">
+  <div class="page-title">รายสินค้า — กรุงเทพ</div>
+  <div class="page-sub">รายละเอียดรายสินค้าแยกตามกลุ่ม · หน่วย: บาท</div>
+  <div id="bkk-detail-content"><div class="loading-wrap"><div class="spinner"></div><span>กำลังดึงข้อมูล...</span></div></div>
+</div>
+
+<!-- PAGE 5 · สินค้าหลัก พัทยา -->
+<div class="page" id="p4">
+  <div class="page-title">ภาพรวมกำไร — พัทยา</div>
+  <div class="page-sub" id="ptt-sub">กำลังโหลดข้อมูล...</div>
+  <div id="ptt-content"><div class="loading-wrap"><div class="spinner"></div><span>กำลังดึงข้อมูลจาก Google Sheets...</span></div></div>
+</div>
+
+<!-- PAGE 6 · สินค้าอื่น พัทยา -->
+<div class="page" id="p5">
+  <div class="page-title">ภาพรวมสินค้าอื่น — พัทยา</div>
+  <div class="page-sub" id="ptt-other-sub">กำลังโหลดข้อมูล...</div>
+  <div id="ptt-other-content"><div class="loading-wrap"><div class="spinner"></div><span>กำลังดึงข้อมูล...</span></div></div>
+</div>
+
+<!-- PAGE 7 · รายสินค้า พัทยา -->
+<div class="page" id="p6">
+  <div class="page-title">รายสินค้า — พัทยา</div>
+  <div class="page-sub">รายละเอียดรายสินค้าแยกตามกลุ่ม · หน่วย: บาท</div>
+  <div id="ptt-detail-content"><div class="loading-wrap"><div class="spinner"></div><span>กำลังดึงข้อมูล...</span></div></div>
+</div>
+
+
+</div>
+
 </div><!-- .wrap -->
 
+
 <script>
+(function(){
+  // ══════════════════════════════════════════════
+  //  รหัสผ่านหน้า "รายงานทางการเงิน"
+  //  ← แก้เลขตรงนี้บรรทัดเดียวเพื่อเปลี่ยนรหัสผ่าน
+  // ══════════════════════════════════════════════
+  const FIN_REPORT_PASSWORD = '1294';
+
+  const topTabs = document.querySelectorAll('#topTabs .tab-btn');
+  const topPages = {
+    summary: document.getElementById('toppage-summary'),
+    finreport: document.getElementById('toppage-finreport'),
+    profit: document.getElementById('toppage-profit'),
+  };
+
+  topTabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.top;
+      topTabs.forEach(b => b.classList.toggle('active', b === btn));
+      Object.entries(topPages).forEach(([k, el]) => { if (el) el.classList.toggle('active', k === key); });
+    });
+  });
+
+  let finReportStarted = false;
+  function unlockFinReport() {
+    document.getElementById('finLockScreen').style.display = 'none';
+    document.getElementById('finContent').style.display = '';
+    if (!finReportStarted && typeof window.__startFinReport === 'function') {
+      finReportStarted = true;
+      window.__startFinReport();
+    }
+  }
+
+  function tryPassword() {
+    const input = document.getElementById('finPwInput');
+    const err = document.getElementById('finPwError');
+    if (input.value === FIN_REPORT_PASSWORD) {
+      err.textContent = '';
+      unlockFinReport();
+    } else {
+      err.textContent = 'รหัสผ่านไม่ถูกต้อง';
+      input.value = '';
+      input.focus();
+    }
+  }
+
+  document.getElementById('finPwSubmit').addEventListener('click', tryPassword);
+  document.getElementById('finPwInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') tryPassword();
+  });
+})();
+
+</script>
+<script>
+(function(){
+  // ── CONFIG: ลิงก์ตรงกับ Google Sheets เดิมทั้ง 2 ไฟล์ ──
+  const FIN_SHEET_ID = '1rTHWxxQ-pTw7jvSDiTAQwGqiNENlV4dWG0xyb1wu4K4';
+  const FIN_GID = '1464307538'; // แท็บ "สรุป"
+  const FIN_CSV_URL = `https://docs.google.com/spreadsheets/d/${FIN_SHEET_ID}/export?format=csv&gid=${FIN_GID}`;
+
+  const PROFIT_SHEET_ID = '15b_m7yDpWC0lUnt-_4sfAoayg3ysvDiE62WagXEKDiU';
+  const PROFIT_GIDS = {
+    bkkDetail: '2098854142',
+    pttDetail: '795156374',
+    bkkOther:  '1143914332',
+    pttOther:  '346308306',
+  };
+
+  const MONTH_NAMES = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  // คอลัมน์รายเดือนของแถวในแท็บ "สรุป" (0-indexed): 69=E,I,M,...  68=D,H,L,...
+  const MONTH69_COLS = [4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48];
+  const MONTH68_COLS = MONTH69_COLS.map(c => c - 1);
+  const COL = { y68: 51, y69ytd: 52 }; // AZ = กำไรตามงบ ปี2568(เต็มปี), BA = ปี2569(YTD)
+
+  // ── CSV helpers (คัดลอกรูปแบบเดียวกับสคริปต์เดิม) ──
+  function parseCSV(text) {
+    const rows = [];
+    let row = [], field = '', inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i], next = text[i+1];
+      if (inQuotes) {
+        if (c === '"' && next === '"') { field += '"'; i++; }
+        else if (c === '"') { inQuotes = false; }
+        else { field += c; }
+      } else {
+        if (c === '"') inQuotes = true;
+        else if (c === ',') { row.push(field); field = ''; }
+        else if (c === '\r') { /* skip */ }
+        else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+        else { field += c; }
+      }
+    }
+    if (field.length > 0 || row.length > 0) { row.push(field); rows.push(row); }
+    return rows;
+  }
+  function numVal(v) {
+    if (v === undefined || v === null) return 0;
+    const cleaned = String(v).replace(/,/g, '').replace(/^-\s+/, '-').trim();
+    const n = parseFloat(cleaned);
+    return isNaN(n) ? 0 : n;
+  }
+  function cellEmpty(v) {
+    return v === undefined || v === null || String(v).trim() === '' || String(v).trim() === '-';
+  }
+  function findRowIndex(grid, keyword) {
+    return grid.findIndex(r => r[0] && String(r[0]).includes(keyword));
+  }
+  function getRowByLabel(grid, label) {
+    const idx = findRowIndex(grid, label);
+    return idx === -1 ? null : grid[idx];
+  }
+  async function fetchCSV(url) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return parseCSV(await res.text());
+  }
+  function fmt(v, d = 1) {
+    if (v === null || v === undefined || isNaN(v)) return '—';
+    return v.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
+  function pctChange(curr, prev) {
+    if (!prev) return 0;
+    return (curr - prev) / Math.abs(prev) * 100;
+  }
+
+  // ── รวมยอดกำไรขายรายเดือน จาก 4 ชีตรายละเอียด (สินค้าหลัก+อื่น, กทม.+พัทยา) ──
+  // Main detail: แถวยาว (1 แถว = 1 กลุ่ม+เดือน+สินค้า) คอลัมน์ B=เดือน, K=กำไร68, L=กำไร69, I=จำนวน69
+  function sumMainDetail(rows, acc) {
+    if (!rows || rows.length < 2) return;
+    const dataRows = rows.slice(1).filter(r => r[0] && r[3]);
+    for (const r of dataRows) {
+      const mon = numVal(r[1]);
+      if (mon < 1 || mon > 12) continue;
+      acc.profit68[mon-1] += numVal(r[10]);
+      acc.profit69[mon-1] += numVal(r[11]);
+      acc.qty69[mon-1]    += numVal(r[8]);
+    }
+  }
+  // Other detail: แถวกว้าง (1 แถว = 1 สินค้า, 12 เดือน x 2 ปี) baseCol68=4+(m-1)*7, baseCol69=88+(m-1)*7, offset+4=กำไรรวม, +2=จำนวน
+  function sumOtherDetail(rows, acc) {
+    if (!rows || rows.length < 2) return;
+    const dataRows = rows.slice(1).filter(r => r[1] || r[2]);
+    for (const r of dataRows) {
+      for (let m = 1; m <= 12; m++) {
+        const base68 = 4 + (m-1)*7;
+        acc.profit68[m-1] += numVal(r[base68+4]);
+      }
+      for (let m = 1; m <= 12; m++) {
+        const base69 = 4 + 12*7 + (m-1)*7;
+        acc.profit69[m-1] += numVal(r[base69+4]);
+        acc.qty69[m-1]    += numVal(r[base69+2]);
+      }
+    }
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('sumKpiGrid');
+    if (el) el.innerHTML = `<div class="err-box" style="grid-column:1/-1">โหลดข้อมูลไม่สำเร็จ: ${msg}</div>`;
+  }
+
+  async function init() {
+    try {
+      const [finGrid, bkkMain, pttMain, bkkOther, pttOther] = await Promise.all([
+        fetchCSV(FIN_CSV_URL),
+        fetchCSV(`https://docs.google.com/spreadsheets/d/${PROFIT_SHEET_ID}/export?format=csv&gid=${PROFIT_GIDS.bkkDetail}`),
+        fetchCSV(`https://docs.google.com/spreadsheets/d/${PROFIT_SHEET_ID}/export?format=csv&gid=${PROFIT_GIDS.pttDetail}`),
+        fetchCSV(`https://docs.google.com/spreadsheets/d/${PROFIT_SHEET_ID}/export?format=csv&gid=${PROFIT_GIDS.bkkOther}`),
+        fetchCSV(`https://docs.google.com/spreadsheets/d/${PROFIT_SHEET_ID}/export?format=csv&gid=${PROFIT_GIDS.pttOther}`),
+      ]);
+
+      // 1) กำไรขายรวมรายเดือน (สินค้าหลัก+อื่น กทม.+พัทยา)
+      const acc = { profit68: Array(12).fill(0), profit69: Array(12).fill(0), qty69: Array(12).fill(0) };
+      sumMainDetail(bkkMain, acc);
+      sumMainDetail(pttMain, acc);
+      sumOtherDetail(bkkOther, acc);
+      sumOtherDetail(pttOther, acc);
+
+      let profitActualMonths = 0;
+      for (let i = 0; i < 12; i++) {
+        if (acc.qty69[i] > 0) profitActualMonths++;
+        else break;
+      }
+      if (profitActualMonths === 0) profitActualMonths = 12;
+
+      // 2) ค่าใช้จ่าย + กำไรตามงบ จากไฟล์รายงานการเงิน (แท็บ "สรุป")
+      const expensesRow = getRowByLabel(finGrid, 'ค่าใช้จ่ายทั้งหมด');
+      const salesRow    = getRowByLabel(finGrid, 'ยอดขายสินค้า');
+      const netRow      = getRowByLabel(finGrid, 'กำไรสุทธิ');
+
+      let budgetActualMonths = 0;
+      if (salesRow) {
+        for (const colIdx of MONTH69_COLS) {
+          if (!cellEmpty(salesRow[colIdx]) && numVal(salesRow[colIdx]) !== 0) budgetActualMonths++;
+          else break;
+        }
+      }
+      if (budgetActualMonths === 0) budgetActualMonths = 12;
+
+      const expense68 = MONTH68_COLS.map(c => expensesRow ? numVal(expensesRow[c]) : 0);
+      const expense69 = MONTH69_COLS.map(c => expensesRow ? numVal(expensesRow[c]) : 0);
+      const netBudget68    = netRow ? numVal(netRow[COL.y68]) / 1e6 : 0;
+      const netBudget69ytd = netRow ? numVal(netRow[COL.y69ytd]) / 1e6 : 0;
+
+      renderKPI(acc, profitActualMonths);
+      renderChart(acc, profitActualMonths);
+      renderRecon(acc, expense68, expense69, profitActualMonths, budgetActualMonths, netBudget68, netBudget69ytd);
+    } catch (err) {
+      console.error(err);
+      showError(err.message || String(err));
+    }
+  }
+
+  function renderKPI(acc, months) {
+    const el = document.getElementById('sumKpiGrid');
+    if (!el) return;
+    const p68 = acc.profit68.slice(0, months).reduce((a,b)=>a+b,0) / 1e6;
+    const p69 = acc.profit69.slice(0, months).reduce((a,b)=>a+b,0) / 1e6;
+    const chg = pctChange(p69, p68);
+    const cls = chg >= 0 ? 'dn' : 'up';
+    const arrow = chg >= 0 ? '▲' : '▼';
+    const label = months >= 1 ? `ม.ค.–${MONTH_NAMES[months-1]}` : '';
+    el.innerHTML = `
+      <div class="kpi blue fade-in">
+        <div class="kpi-label">กำไรขาย 2568 (${label})</div>
+        <div class="kpi-val" style="color:#7a7060">${fmt(p68)} <small>ล้าน</small></div>
+      </div>
+      <div class="kpi blue fade-in">
+        <div class="kpi-label">กำไรขาย 2569 (${label})</div>
+        <div class="kpi-val" style="color:#2563eb">${fmt(p69)} <small>ล้าน</small></div>
+        <div class="kpi-change ${cls}">${arrow} ${Math.abs(chg).toFixed(1)}% จากช่วงเดียวกันปีก่อน</div>
+      </div>`;
+  }
+
+  let chartInstance = null;
+  function renderChart(acc, months) {
+    const canvas = document.getElementById('profitCompareChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+    const p68 = acc.profit68.map(v => +(v/1e6).toFixed(2));
+    const p69 = acc.profit69.map((v,i) => i < months ? +(v/1e6).toFixed(2) : null);
+    if (chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(canvas.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: MONTH_NAMES,
+        datasets: [
+          { label: 'กำไรขาย 2568', data: p68, backgroundColor: 'rgba(122,112,96,0.55)', borderColor: '#7a7060', borderWidth: 1, borderRadius: 3 },
+          { label: 'กำไรขาย 2569', data: p69, backgroundColor: 'rgba(37,99,235,0.82)', borderColor: '#2563eb', borderWidth: 1, borderRadius: 3 },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', labels: { font: { family: "'Sarabun',sans-serif", size: 13 }, color: '#7a7060' } },
+          tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y === null ? 'ไม่มีข้อมูล' : ctx.parsed.y.toFixed(2) + ' ล้าน'}` } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { family: "'IBM Plex Mono',monospace", size: 12 }, color: '#7a7060' } },
+          y: { ticks: { font: { family: "'IBM Plex Mono',monospace", size: 12 }, color: '#7a7060' }, grid: { color: 'rgba(0,0,0,.06)' } }
+        }
+      }
+    });
+  }
+
+  function renderRecon(acc, expense68, expense69, profitMonths, budgetMonths, netBudget68, netBudget69ytd) {
+    const body = document.getElementById('sumReconBody');
+    if (!body) return;
+    let rows = '';
+    let sumProfit68 = 0, sumProfit69 = 0, sumExp68 = 0, sumExp69 = 0, sumNet68 = 0, sumNet69 = 0;
+    for (let m = 1; m <= 12; m++) {
+      const i = m - 1;
+      const pr68 = acc.profit68[i] / 1e6;
+      const pr69 = i < profitMonths ? acc.profit69[i] / 1e6 : null;
+      const ex68 = expense68[i] / 1e6;
+      const ex69 = i < budgetMonths ? expense69[i] / 1e6 : null;
+      const nt68 = pr68 - ex68;
+      const nt69 = (pr69 !== null && ex69 !== null) ? (pr69 - ex69) : null;
+
+      sumProfit68 += pr68; sumExp68 += ex68; sumNet68 += nt68;
+      if (i < profitMonths) sumProfit69 += pr69;
+      if (i < budgetMonths) { sumExp69 += ex69; if (nt69 !== null) sumNet69 += nt69; }
+
+      rows += `<tr>
+        <td class="L">${MONTH_NAMES[i]}</td>
+        <td>${fmt(pr68,2)}</td><td>${fmt(ex68,2)}</td><td>${fmt(nt68,2)}</td>
+        <td>${pr69===null?'—':fmt(pr69,2)}</td>
+        <td>${ex69===null?'—':fmt(ex69,2)}</td>
+        <td>${nt69===null?'—':fmt(nt69,2)}</td>
+      </tr>`;
+    }
+    rows += `<tr style="background:#fdf8ec;font-weight:600;border-top:2px solid #2563eb">
+      <td class="L">รวม / YTD</td>
+      <td>${fmt(sumProfit68,2)}</td><td>${fmt(sumExp68,2)}</td><td>${fmt(sumNet68,2)}</td>
+      <td>${fmt(sumProfit69,2)}</td><td>${fmt(sumExp69,2)}</td><td>${fmt(sumNet69,2)}</td>
+    </tr>`;
+    body.innerHTML = rows;
+
+    const diff68 = sumNet68 - netBudget68;
+    const diff69 = sumNet69 - netBudget69ytd;
+    const sign = v => v >= 0 ? '+' : '';
+    const box = document.getElementById('sumVarianceRow');
+    if (box) {
+      box.innerHTML = `
+        <div class="gs-note" style="margin:0">
+          <strong>กำไรสุทธิตามงบ 2568 (เต็มปี):</strong> ${fmt(netBudget68,2)} ล้าน ·
+          คำนวณจากกำไรขาย−ค่าใช้จ่ายได้ ${fmt(sumNet68,2)} ล้าน · ส่วนต่าง ${sign(diff68)}${fmt(diff68,2)} ล้าน
+        </div>
+        <div class="gs-note" style="margin:0">
+          <strong>กำไรสุทธิตามงบ 2569 (ถึงเดือน ${budgetMonths}):</strong> ${fmt(netBudget69ytd,2)} ล้าน ·
+          คำนวณได้ ${fmt(sumNet69,2)} ล้าน · ส่วนต่าง ${sign(diff69)}${fmt(diff69,2)} ล้าน
+        </div>`;
+    }
+
+    const foot = document.getElementById('sumDataNote');
+    if (foot) {
+      foot.textContent = profitMonths === budgetMonths
+        ? `ข้อมูลอัปเดตถึงเดือน ${budgetMonths}`
+        : `ข้อมูลกำไรขาย (จากไฟล์สรุปกำไรขาย) อัปเดตถึงเดือน ${profitMonths} · ข้อมูลค่าใช้จ่ายและกำไรตามงบ (จากรายงานการเงิน) อัปเดตถึงเดือน ${budgetMonths} — เดือนที่ยังไม่มีข้อมูลงบจะเว้นว่างไว้`;
+    }
+  }
+
+  window.__startSummaryPage = init;
+  init();
+})();
+
+</script>
+<script>
+(function(){
+
+// ══════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════
+const SHEET_ID = '15b_m7yDpWC0lUnt-_4sfAoayg3ysvDiE62WagXEKDiU';
+const GIDS = {
+  bkk:          '71451120',
+  ptt:          '2027844530',
+  bkkDetail:    '2098854142',
+  pttDetail:    '795156374',
+  bkkOther:     '1143914332',
+  pttOther:     '346308306',
+};
+const MONTHS_TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+// ── Navigation ──
+function go(idx) {
+  document.querySelectorAll('.page').forEach((p,i)=>p.classList.toggle('active',i===idx));
+  document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
+}
+
+// ── CSV helpers ──
+function parseCSV(text) {
+  const rows = [];
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    const cols = []; let cur='', inQ=false;
+    for (let i=0;i<line.length;i++) {
+      const ch=line[i];
+      if (ch==='"') { if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ; }
+      else if (ch===','&&!inQ) { cols.push(cur); cur=''; }
+      else cur+=ch;
+    }
+    cols.push(cur);
+    rows.push(cols);
+  }
+  return rows;
+}
+
+async function fetchSheet(gid) {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status} (gid=${gid})`);
+  return parseCSV(await res.text());
+}
+
+function n(s) {
+  if (s===null||s===undefined||s==='') return null;
+  const v = parseFloat(String(s).replace(/,/g,''));
+  return isNaN(v) ? null : v;
+}
+function fmt(v) {
+  if (v===null||v===undefined) return '—';
+  return new Intl.NumberFormat('th-TH',{maximumFractionDigits:0}).format(v);
+}
+function fmt2(v) {
+  if (v===null||v===undefined) return '—';
+  return new Intl.NumberFormat('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}).format(v);
+}
+function safe(v) { return (typeof v==='number'&&!isNaN(v))?v:0; }
+function pctBadge(pct) {
+  if (pct===null||isNaN(pct)) return '<span class="badge bn">—</span>';
+  const cls = pct>=0?'bu':'bd';
+  return `<span class="badge ${cls}">${pct>=0?'+':''}${pct.toFixed(1)}%</span>`;
+}
+function barWidth(val,max) { return (!max)?0:Math.min(100,Math.round(Math.abs(val)/max*100)); }
+
+// ══════════════════════════════════════════════
+//  PARSE SUMMARY SHEET (หน้า 1/3)
+// ══════════════════════════════════════════════
+function parseSummarySheet(rows) {
+  let pHdr=null, rHdr=null, pStart=-1, rStart=-1;
+  for (let i=0;i<rows.length;i++) {
+    const c0=String(rows[i][0]||'').trim();
+    const c1=String(rows[i][1]||'').trim();
+    if (c0==='กำไรรวม'       && c1.includes('เดือน') && !pHdr) { pHdr=rows[i]; pStart=i+1; }
+    if (c0==='สัดส่วนขายออก' && c1.includes('เดือน') && !rHdr) { rHdr=rows[i]; rStart=i+1; }
+  }
+
+  function buildIdx(hdr) {
+    const c68=[], c69=[];
+    for (let m=0;m<12;m++) { c68.push(1+m*2); c69.push(2+m*2); }
+    if (hdr) {
+      for (let i=1;i<hdr.length;i++) {
+        const h=String(hdr[i]||'').trim();
+        for (let m=1;m<=12;m++) {
+          if (h===`เดือน${m}/2568`) c68[m-1]=i;
+          if (h===`เดือน${m}/2569`) c69[m-1]=i;
+        }
+      }
+    }
+    return {c68,c69};
+  }
+
+  const {c68,c69}           = buildIdx(pHdr);
+  const {c68:r68c,c69:r69c} = buildIdx(rHdr);
+
+  const SKIP=new Set(['รวมทุกกลุ่ม','เปลี่ยนแปลง(%)','เปลี่ยนแปลง(บาท)','']);
+  const products=[], ratios=[];
+
+  if (pStart>0) {
+    for (let i=pStart;i<rows.length;i++) {
+      const c0=String(rows[i][0]||'').trim();
+      if (c0==='สัดส่วนขายออก') break;
+      if (!c0||SKIP.has(c0)) continue;
+      products.push({name:c0, v68:c68.map(c=>n(rows[i][c])), v69:c69.map(c=>n(rows[i][c]))});
+    }
+  }
+  if (rStart>0) {
+    for (let i=rStart;i<rows.length;i++) {
+      const c0=String(rows[i][0]||'').trim();
+      if (!c0||SKIP.has(c0)) continue;
+      ratios.push({name:c0, r68:r68c.map(c=>n(rows[i][c])), r69:r69c.map(c=>n(rows[i][c]))});
+    }
+  }
+
+  let nM=0;
+  for (let m=0;m<12;m++) {
+    if (products.reduce((s,p)=>s+safe(p.v69[m]),0)>0) nM=m+1; else break;
+  }
+  nM=nM||1;
+
+  for (const p of products) {
+    p.sum68_full=p.v68.reduce((s,v)=>s+safe(v),0);
+    p.sum68_nm  =p.v68.slice(0,nM).reduce((s,v)=>s+safe(v),0);
+    p.sum69_nm  =p.v69.slice(0,nM).reduce((s,v)=>s+safe(v),0);
+    p.diff_bath =p.sum69_nm-p.sum68_nm;
+    p.diff_pct  =p.sum68_nm?(p.diff_bath/p.sum68_nm*100):null;
+  }
+  for (const r of ratios) {
+    // average สัดส่วน ไม่ใช่ผลรวม
+    const vals68 = r.r68.filter(v=>v!=null&&v!==0);
+    const vals69 = r.r69.slice(0,nM).filter(v=>v!=null&&v!==0);
+    r.rsum68_full = vals68.length ? vals68.reduce((s,v)=>s+v,0)/vals68.length : 0;
+    r.rsum69_nm   = vals69.length ? vals69.reduce((s,v)=>s+v,0)/vals69.length : 0;
+  }
+
+  const total68_full=products.reduce((s,p)=>s+p.sum68_full,0);
+  const total68_nm  =products.reduce((s,p)=>s+p.sum68_nm,0);
+  const total69_nm  =products.reduce((s,p)=>s+p.sum69_nm,0);
+  const diff_bath   =total69_nm-total68_nm;
+  const diff_pct    =total68_nm?(diff_bath/total68_nm*100):0;
+
+  const monthly=[];
+  for (let m=0;m<12;m++) {
+    monthly.push({m,
+      s68:products.reduce((s,p)=>s+safe(p.v68[m]),0),
+      s69:products.reduce((s,p)=>s+safe(p.v69[m]),0),
+    });
+  }
+
+  return {products,ratios,total68_full,total68_nm,total69_nm,diff_bath,diff_pct,monthly,nM};
+}
+
+// ══════════════════════════════════════════════
+//  PARSE OTHER SHEET (หน้า 2/4)
+//  โครงสร้าง: A=รหัส, B=ชื่อ, C=กลุ่ม, D=ไม่สน
+//  เดือน 1/2568: E=ต้นทุน, F=ราคาขาย, G=จำนวน, H=กำไร/ชิ้น, I=กำไรรวม, J=สัดส่วน
+//  เดือน 2/2568: K..P, ... ทุก 6 คอลัมน์ x 24 เดือน
+// ══════════════════════════════════════════════
+function parseOtherSheet(rows) {
+  if (!rows || rows.length < 2) return null;
+
+  // header row[0]: detect column mapping
+  // แต่ละเดือนมี 7 คอลัมน์ เริ่มที่ col index 4 (E=0-based)
+  // เดือนที่ m (0-based): startCol = 4 + m*7
+  // offset: 0=ต้นทุน, 1=ราคาขาย, 2=จำนวน, 3=กำไร/ชิ้น, 4=กำไรรวม, 5=สัดส่วน, 6=ยอดขายเซล
+
+  const TOTAL_MONTHS = 24; // 12เดือน×2ปี (2568+2569)
+  const dataRows = rows.slice(1).filter(r => r[1] || r[2]); // skip header, keep rows with name or group
+
+  // รวบรวมกลุ่มทั้งหมด
+  const allGroups = [];
+  const groupSet = new Set();
+  for (const r of dataRows) {
+    const grp = String(r[2]||'').trim();
+    if (grp && !groupSet.has(grp)) { groupSet.add(grp); allGroups.push(grp); }
+  }
+
+  // นับเดือนที่มีข้อมูล (กำไรรวม col I = offset 4)
+  // เดือน m (0-based): colIdx = 4 + m*7 + 4 = 8 + m*7
+  let nM = 0;
+  for (let m = 0; m < TOTAL_MONTHS; m++) {
+    const profitCol = 4 + m*7 + 4;
+    const hasData = dataRows.some(r => {
+      const v = n(r[profitCol]);
+      return v !== null && v !== 0;
+    });
+    if (hasData) nM = m + 1;
+    else if (m >= 12) break; // หยุดหลังปีแรกถ้าไม่มีข้อมูล
+  }
+  nM = nM || 1;
+
+  // สร้าง products แยกตามกลุ่ม (รวมกำไรรวม + สัดส่วน ต่อเดือน)
+  // products = [{name:กลุ่ม, v68:[12], v69:[12], ratio68:[12], ratio69:[12]}]
+  const groupData = {};
+  for (const grp of allGroups) {
+    groupData[grp] = {
+      name: grp,
+      v68: Array(12).fill(0),
+      v69: Array(12).fill(0),
+      ratio68: Array(12).fill(0),
+      ratio69: Array(12).fill(0),
+    };
+  }
+
+  for (const r of dataRows) {
+    const grp = String(r[2]||'').trim();
+    if (!grp || !groupData[grp]) continue;
+    for (let m = 0; m < TOTAL_MONTHS; m++) {
+      const baseCol = 4 + m * 7;
+      const profit  = n(r[baseCol + 4]) || 0;
+      const ratio   = n(r[baseCol + 5]) || 0;
+      if (m < 12) {
+        // ปี 2568 (เดือน 0–11)
+        groupData[grp].v68[m]    += profit;
+        groupData[grp].ratio68[m]+= ratio;
+      } else {
+        // ปี 2569 (เดือน 12–23 → index 0–11)
+        groupData[grp].v69[m-12]    += profit;
+        groupData[grp].ratio69[m-12]+= ratio;
+      }
+    }
+  }
+
+  const products = allGroups.map(g => groupData[g]);
+  // nM คือเดือนของปี 2569 ที่มีข้อมูล (1-based)
+  // nM > 12 หมายความว่า nM-12 เดือนของปี 2569
+  const nM69 = nM > 12 ? nM - 12 : 0;
+  const nMDisplay = nM69 || 0;
+
+  for (const p of products) {
+    p.sum68_full = p.v68.reduce((s,v)=>s+safe(v),0);
+    p.sum68_nm   = p.v68.slice(0, nMDisplay||12).reduce((s,v)=>s+safe(v),0);
+    p.sum69_nm   = p.v69.slice(0, nMDisplay).reduce((s,v)=>s+safe(v),0);
+    p.diff_bath  = p.sum69_nm - p.sum68_nm;
+    p.diff_pct   = p.sum68_nm ? (p.diff_bath/p.sum68_nm*100) : null;
+    // average สัดส่วน
+    const vals68 = p.ratio68.filter(v=>v!=null&&v!==0);
+    const vals69 = p.ratio69.slice(0,nMDisplay).filter(v=>v!=null&&v!==0);
+    p.rsum68_full = vals68.length ? vals68.reduce((s,v)=>s+v,0)/vals68.length : 0;
+    p.rsum69_nm   = vals69.length ? vals69.reduce((s,v)=>s+v,0)/vals69.length : 0;
+  }
+
+  const total68_full= products.reduce((s,p)=>s+p.sum68_full,0);
+  const total68_nm  = products.reduce((s,p)=>s+p.sum68_nm,0);
+  const total69_nm  = products.reduce((s,p)=>s+p.sum69_nm,0);
+  const diff_bath   = total69_nm - total68_nm;
+  const diff_pct    = total68_nm ? (diff_bath/total68_nm*100) : 0;
+
+  const monthly = [];
+  for (let m = 0; m < 12; m++) {
+    monthly.push({m,
+      s68: products.reduce((s,p)=>s+safe(p.v68[m]),0),
+      s69: products.reduce((s,p)=>s+safe(p.v69[m]),0),
+    });
+  }
+
+  // สร้าง ratios ให้เหมือน format ของ parseSummarySheet
+  const ratios = products.map(p => ({
+    name: p.name,
+    r68: p.ratio68,
+    r69: p.ratio69,
+    rsum68_full: p.rsum68_full,
+    rsum69_nm: p.rsum69_nm,
+  }));
+
+  return {products, ratios, total68_full, total68_nm, total69_nm, diff_bath, diff_pct, monthly, nM: nMDisplay};
+}
+
+// ══════════════════════════════════════════════
+//  RENDER PAGE 1/2/3/4 (Overview)
+// ══════════════════════════════════════════════
+function renderOverview(data, contentId, subId, city, remainingLabel) {
+  remainingLabel = remainingLabel || 'สินค้าหลัก';
+  if (!data || !data.products || data.products.length === 0) {
+    document.getElementById(contentId).innerHTML = '<div class="err-box">ไม่พบข้อมูลในรูปแบบที่คาดไว้ กรุณาตรวจสอบโครงสร้าง Sheet</div>';
+    return;
+  }
+  const {products,ratios,total68_full,total68_nm,total69_nm,diff_bath,diff_pct,monthly,nM}=data;
+  const mEnd = nM > 0 ? MONTHS_TH[nM-1] : '—';
+
+  document.getElementById(subId).textContent=
+    `ปี 2568 = เต็มปี (ม.ค.–ธ.ค.) · ปี 2569 = ม.ค.–${mEnd} เท่านั้น · หน่วย: บาท · โหลดล่าสุด ${new Date().toLocaleTimeString('th-TH')}`;
+
+  const diffClass=diff_pct>=0?'c-green':'c-red';
+
+  const cards=`
+  <div class="sec-title">📦 สรุปภาพรวม</div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-label">กำไรรวม 2568<br>เต็มปี (ม.ค.–ธ.ค.)</div>
+      <div class="card-value c-68">${fmt(total68_full)}</div>
+      <div class="card-sub">12 เดือน</div>
+    </div>
+    <div class="card">
+      <div class="card-label">กำไรรวม 2568<br>(${nM} เดือน ม.ค.–${mEnd})</div>
+      <div class="card-value c-68">${fmt(total68_nm)}</div>
+      <div class="card-sub">ม.ค.–${mEnd} 2568</div>
+    </div>
+    <div class="card">
+      <div class="card-label">กำไรรวม 2569<br>(${nM} เดือน ม.ค.–${mEnd})</div>
+      <div class="card-value c-69">${fmt(total69_nm)}</div>
+      <div class="card-sub">ม.ค.–${mEnd} 2569</div>
+    </div>
+    <div class="card">
+      <div class="card-label">±บาท 2569 vs 2568<br>(${nM} เดือน)</div>
+      <div class="card-value ${diffClass}">${diff_bath>=0?'+':''}${fmt(diff_bath)}</div>
+      <div class="card-sub">เปลี่ยนแปลงสุทธิ</div>
+    </div>
+    <div class="card">
+      <div class="card-label">±% 2569 vs 2568<br>(${nM} เดือน)</div>
+      <div class="card-value ${diffClass}">${diff_pct>=0?'+':''}${diff_pct.toFixed(2)}%</div>
+      <div class="card-sub">อัตราการเติบโต</div>
+    </div>
+  </div>`;
+
+  // TABLE: รายกลุ่ม
+  const maxRatio=Math.max(...ratios.map(r=>Math.max(r.rsum68_full,r.rsum69_nm)),1);
+  let tRows='';
+  for (const p of products) {
+    const r=ratios.find(x=>x.name===p.name)||{rsum68_full:0,rsum69_nm:0,r68:Array(12).fill(0)};
+    const rs68nm=r.r68.slice(0,nM).reduce((s,v)=>s+(v||0),0);
+    tRows+=`<tr>
+      <td class="L">${p.name}</td>
+      <td>${fmt(p.sum68_nm)}</td>
+      <td><div class="bw"><div class="bb"><div class="f68" style="width:${barWidth(rs68nm,maxRatio)}%"></div></div><span class="bv">${rs68nm.toFixed(2)}%</span></div></td>
+      <td>${fmt(p.sum69_nm)}</td>
+      <td><div class="bw"><div class="bb"><div class="f69" style="width:${barWidth(r.rsum69_nm,maxRatio)}%"></div></div><span class="bv">${r.rsum69_nm.toFixed(2)}%</span></div></td>
+      <td>${pctBadge(p.diff_pct)}</td>
+    </tr>`;
+  }
+
+  // CROSS TABLE
+  let th1=`<th class="L" rowspan="2" style="min-width:90px;vertical-align:middle">กลุ่มสินค้า</th>`;
+  for (let m=0;m<12;m++) th1+=`<th colspan="2" style="text-align:center;background:var(--surface2)">${MONTHS_TH[m]}</th>`;
+  th1+=`<th colspan="2" style="text-align:center;background:var(--surface2)">รวม</th>`;
+
+  let th2='';
+  for (let i=0;i<13;i++) {
+    th2+=`<th style="color:var(--c68);background:#eff6ff;border-top:2px solid var(--c68);font-size:.62rem;white-space:nowrap">2568</th>`;
+    th2+=`<th style="color:var(--c69);background:#fff7ed;border-top:2px solid var(--c69);font-size:.62rem;white-space:nowrap">2569</th>`;
+  }
+
+  function cellP(val,ratio,yr) {
+    const bg =yr===68?'#eff6ff':'#fff7ed';
+    const col=yr===68?'var(--c68)':'var(--c69)';
+    const rc =yr===68?'#1e40af':'#92400e';
+    if (val===null||val===undefined||(val===0&&ratio===null))
+      return `<td style="background:${bg};color:#bbb;text-align:center;font-size:.7rem">—</td>`;
+    const rs=ratio!=null?`<br><span style="font-size:.6rem;color:${rc}">${ratio.toFixed(2)}%</span>`:'';
+    return `<td style="background:${bg};color:${col};text-align:right;font-family:var(--mono);font-size:.72rem;line-height:1.5">${fmt(val)}${rs}</td>`;
+  }
+
+  let t3rows='';
+  for (const p of products) {
+    const r=ratios.find(x=>x.name===p.name)||{r68:Array(12).fill(null),r69:Array(12).fill(null),rsum68_full:0,rsum69_nm:0};
+    let cells='';
+    for (let m=0;m<12;m++) {
+      cells+=cellP(p.v68[m], r.r68[m], 68);
+      cells+=m<nM ? cellP(p.v69[m], r.r69[m], 69)
+                  : `<td style="background:#eff6ff;color:#bbb;text-align:center;font-size:.7rem">—</td>`;
+    }
+    const db=p.sum69_nm-p.sum68_nm; const dp=p.sum68_nm?(db/p.sum68_nm*100):null;
+    const updn69=db!==null?`<br><span style="font-size:.6rem;color:${db>=0?'#059669':'#dc2626'}">${db>=0?'▲+':'▼'}${fmt(db)}</span><br><span style="font-size:.6rem;color:${db>=0?'#059669':'#dc2626'}">${dp!=null?(dp>=0?'▲+':'▼')+dp.toFixed(1)+'%':''}</span>`:'';
+    cells+=`<td style="background:#eff6ff;color:var(--c68);text-align:right;font-family:var(--mono);font-size:.72rem;line-height:1.5">${fmt(p.sum68_full)}<br><span style="font-size:.6rem;color:#1e40af">${r.rsum68_full.toFixed(2)}%</span></td>`;
+    cells+=`<td style="background:#fff7ed;color:var(--c69);text-align:right;font-family:var(--mono);font-size:.72rem;line-height:1.5">${fmt(p.sum69_nm)}<br><span style="font-size:.6rem;color:#92400e">${r.rsum69_nm.toFixed(2)}%</span>${updn69}</td>`;
+    t3rows+=`<tr><td class="grp">${p.name}</td>${cells}</tr>`;
+  }
+
+  // total row cross
+  let totCells='';
+  for (let m=0;m<12;m++) {
+    const s68=products.reduce((s,p)=>s+safe(p.v68[m]),0);
+    const s69=m<nM?products.reduce((s,p)=>s+safe(p.v69[m]),0):null;
+    totCells+=`<td style="background:#eff6ff;color:var(--c68);text-align:right;font-family:var(--mono);font-size:.72rem;font-weight:700">${fmt(s68)}</td>`;
+    totCells+=s69!=null?`<td style="background:#fff7ed;color:var(--c69);text-align:right;font-family:var(--mono);font-size:.72rem;font-weight:700">${fmt(s69)}</td>`
+                       :`<td style="background:#eff6ff;color:#bbb;text-align:center;font-size:.7rem">—</td>`;
+  }
+  const tRsum68=ratios.length ? ratios.reduce((s,r)=>s+r.rsum68_full,0)/ratios.length : 0;
+  const tRsum69=ratios.length ? ratios.reduce((s,r)=>s+r.rsum69_nm,0)/ratios.length : 0;
+  totCells+=`<td style="background:#eff6ff;color:var(--c68);text-align:right;font-family:var(--mono);font-size:.72rem;font-weight:700">${fmt(total68_full)}<br><span style="font-size:.6rem;color:#1e40af">${tRsum68.toFixed(2)}%</span></td>`;
+  totCells+=`<td style="background:#fff7ed;color:var(--c69);text-align:right;font-family:var(--mono);font-size:.72rem;font-weight:700">${fmt(total69_nm)}<br><span style="font-size:.6rem;color:#92400e">${tRsum69.toFixed(2)}%</span></td>`;
+  t3rows+=`<tr class="tot-row"><td class="grp" style="font-weight:700">รวมทุกกลุ่ม</td>${totCells}</tr>`;
+
+  const crossId='cross-'+contentId;
+  const tableCross=`
+  <div class="sec-title">📅 กำไรรายกลุ่ม × รายเดือน (2568 เต็มปี · 2569 ม.ค.–${mEnd})</div>
+  <div class="leg">
+    <div style="display:flex;align-items:center;gap:5px"><span class="ld" style="background:var(--c68)"></span>2568</div>
+    <div style="display:flex;align-items:center;gap:5px"><span class="ld" style="background:var(--c69)"></span>2569</div>
+    <span style="font-size:.72rem;color:var(--muted)">· ตัวเลขเล็ก = สัดส่วนขายออก% (เฉลี่ย) · รวม = ค่าเฉลี่ยสัดส่วนทั้งช่วง · เดือนที่ยังไม่มีข้อมูลเว้นว่าง</span>
+  </div>
+  <div class="box" style="overflow:hidden">
+    <div class="cross-scroll-wrap" id="${crossId}-wrap">
+      <div class="cross-scroll-top" id="${crossId}-top">
+        <div class="cross-scroll-top-inner" id="${crossId}-top-inner"></div>
+      </div>
+      <div class="cross-scroll-body" id="${crossId}-body">
+        <table class="tbl-cross" id="${crossId}-tbl">
+          <thead><tr>${th1}</tr><tr>${th2}</tr></thead>
+          <tbody>${t3rows}</tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <script>
+  (function(){
+    var top=document.getElementById('${crossId}-top');
+    var body=document.getElementById('${crossId}-body');
+    var inner=document.getElementById('${crossId}-top-inner');
+    var tbl=document.getElementById('${crossId}-tbl');
+    function syncTopWidth(){
+      if(tbl) inner.style.width=tbl.scrollWidth+'px';
+    }
+    syncTopWidth();
+    var syncing=false;
+    top.addEventListener('scroll',function(){
+      if(syncing)return; syncing=true;
+      body.scrollLeft=top.scrollLeft;
+      syncing=false;
+    });
+    body.addEventListener('scroll',function(){
+      if(syncing)return; syncing=true;
+      top.scrollLeft=body.scrollLeft;
+      syncing=false;
+    });
+    // update width after fonts load
+    if(document.fonts&&document.fonts.ready)
+      document.fonts.ready.then(syncTopWidth);
+    setTimeout(syncTopWidth,600);
+  })();
+  <\/script>`;
+
+  // BAR CHART
+  const maxM=Math.max(...monthly.map(m=>Math.max(m.s68,m.s69)),1);
+  let chartCols='';
+  for (const m of monthly) {
+    const h68=m.s68?Math.round(m.s68/maxM*110):0;
+    const h69=m.s69?Math.round(m.s69/maxM*110):0;
+    const has69=m.s69>0;
+    // ผลรวมสัดส่วนแบบเดิม
+    const rSum68=ratios.reduce((s,r)=>s+(r.r68[m.m]||0),0);
+    const rSum69=has69?ratios.reduce((s,r)=>s+(r.r69?.[m.m]||0),0):null;
+    chartCols+=`<div class="chart-col">
+      <div class="chart-bars">
+        <div class="bar" style="background:var(--c68);height:${h68}px" title="2568 ${MONTHS_TH[m.m]}: ${fmt(m.s68)}"></div>
+        <div class="bar" style="background:${has69?'var(--c69)':'var(--border)'};height:${has69?h69:4}px;opacity:${has69?1:.3}"></div>
+      </div>
+      <div class="chart-label">${MONTHS_TH[m.m]}</div>
+      <div class="chart-label" style="font-size:.58rem;color:var(--c68)">${rSum68.toFixed(1)}%</div>
+      ${has69?`<div class="chart-label" style="font-size:.58rem;color:var(--c69)">${rSum69.toFixed(1)}%</div>`:'<div class="chart-label" style="font-size:.58rem"> </div>'}
+    </div>`;
+  }
+
+  let mRows='';
+  for (const m of monthly) {
+    const has69=m.s69>0;
+    const diff=has69?m.s69-m.s68:null;
+    const pct=has69&&m.s68?diff/m.s68*100:null;
+    // ผลรวมสัดส่วนแบบเดิม
+    const rSum68=ratios.reduce((s,r)=>s+(r.r68[m.m]||0),0);
+    const rSum69=has69?ratios.reduce((s,r)=>s+(r.r69?.[m.m]||0),0):null;
+    mRows+=`<tr>
+      <td class="L">${MONTHS_TH[m.m]}</td>
+      <td>${fmt(m.s68)}</td>
+      <td style="color:var(--muted);font-size:.7rem">${rSum68.toFixed(2)}%</td>
+      <td>${has69?fmt(m.s69):'<span class="m-blank">—</span>'}</td>
+      <td style="color:var(--muted);font-size:.7rem">${rSum69!=null?rSum69.toFixed(2)+'%':'—'}</td>
+      <td>${diff!==null?(diff>=0?'+':'')+fmt(diff):'<span class="m-blank">—</span>'}</td>
+      <td>${diff!==null?pctBadge(pct):'<span class="m-blank">—</span>'}</td>
+    </tr>`;
+  }
+
+  const tableMonthly=`
+  <div class="sec-title">📈 กำไรรายเดือน รวมทุกกลุ่ม เปรียบเทียบ 2568 vs 2569</div>
+  <div class="box">
+    <div class="box-head">📊 Bar Chart <span style="color:var(--muted);font-weight:400;font-size:.75rem">— น้ำเงิน=2568 · ส้ม=2569 · ตัวเลขใต้แท่ง=สัดส่วนรวม%</span></div>
+    <div class="chart-wrap"><div class="chart">${chartCols}</div></div>
+  </div>
+  <div class="box">
+    <div class="box-head">🗓️ ตารางรายเดือน รวมทุกกลุ่ม</div>
+    <table class="tbl-month">
+      <thead><tr>
+        <th class="L">เดือน</th>
+        <th style="color:var(--c68)">กำไร 2568</th><th style="color:var(--c68)">สัดส่วน%</th>
+        <th style="color:var(--c69)">กำไร 2569</th><th style="color:var(--c69)">สัดส่วน%</th>
+        <th>±บาท</th><th>±%</th>
+      </tr></thead>
+      <tbody>${mRows}</tbody>
+    </table>
+  </div>`;
+
+  // ── PIE CHART ──
+  // สีสำหรับแต่ละกลุ่ม (auto palette)
+  const PIE_COLORS = ['#2563eb','#e07b1e','#16a34a','#dc2626','#9333ea','#0891b2','#d97706','#db2777','#65a30d','#ea580c','#7c3aed','#0284c7'];
+
+  function buildPie(slices, title) {
+    const total = slices.reduce((s,sl)=>s+sl.value,0);
+    if (!total) return `<div class="pie-block"><div class="pie-title">${title}</div><div style="color:var(--muted);font-size:.75rem">ไม่มีข้อมูล</div></div>`;
+
+    // วาด pie โดยใช้ค่าจริง (ไม่ normalize เป็น 100%)
+    // ส่วนที่เหลือ (ไม่ได้ขาย) = พื้นที่สีเทา
+    const cx=90, cy=90, r=80;
+    let paths='', angle=-Math.PI/2;
+    const legItems = slices.map((sl,i) => {
+      const sweep = sl.value/100 * Math.PI*2;
+      const x1=cx+r*Math.cos(angle), y1=cy+r*Math.sin(angle);
+      angle+=sweep;
+      const x2=cx+r*Math.cos(angle), y2=cy+r*Math.sin(angle);
+      const large=sweep>Math.PI?1:0;
+      const col=PIE_COLORS[i%PIE_COLORS.length];
+      paths+=`<path d="M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${large},1 ${x2.toFixed(2)},${y2.toFixed(2)} Z"
+        fill="${col}" stroke="white" stroke-width="1.5">
+        <title>${sl.name}: ${sl.value.toFixed(2)}%</title>
+      </path>`;
+      return `<div class="pie-leg-item">
+        <div class="pie-leg-dot" style="background:${col}"></div>
+        <div class="pie-leg-name">${sl.name}</div>
+        <div class="pie-leg-val">${sl.value.toFixed(2)}%</div>
+      </div>`;
+    });
+    // ส่วนที่เหลือ (กลุ่มอื่น)
+    const remaining = 100 - total;
+    if (remaining > 0.01) {
+      const sweep = remaining/100 * Math.PI*2;
+      const x1=cx+r*Math.cos(angle), y1=cy+r*Math.sin(angle);
+      angle+=sweep;
+      const x2=cx+r*Math.cos(angle), y2=cy+r*Math.sin(angle);
+      const large=sweep>Math.PI?1:0;
+      paths+=`<path d="M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${large},1 ${x2.toFixed(2)},${y2.toFixed(2)} Z"
+        fill="#e5e7eb" stroke="white" stroke-width="1.5">
+        <title>กลุ่มอื่น: ${remaining.toFixed(2)}%</title>
+      </path>`;
+      legItems.push(`<div class="pie-leg-item">
+        <div class="pie-leg-dot" style="background:#e5e7eb;border:1px solid #d1d5db"></div>
+        <div class="pie-leg-name" style="color:var(--muted)">${remainingLabel}</div>
+        <div class="pie-leg-val" style="color:var(--muted)">${remaining.toFixed(2)}%</div>
+      </div>`);
+    }
+
+    return `<div class="pie-block">
+      <div class="pie-title">${title}<br><span style="font-size:.7rem;color:var(--muted)">รวมขายออก ${total.toFixed(2)}%</span></div>
+      <div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap;justify-content:center">
+        <svg width="180" height="180" viewBox="0 0 180 180">${paths}</svg>
+        <div class="pie-legend">${legItems.join('')}</div>
+      </div>
+    </div>`;
+  }
+
+  // คำนวณสัดส่วนเฉลี่ยแต่ละกลุ่ม สำหรับ pie
+  const pieSlices68 = ratios.map(r=>({name:r.name, value:r.rsum68_full})).filter(s=>s.value>0);
+  const pieSlices69 = ratios.map(r=>({name:r.name, value:r.rsum69_nm})).filter(s=>s.value>0);
+
+  const pieSectionHtml = `
+  <div class="sec-title">🥧 สัดส่วนยอดขายแบ่งตามกลุ่ม</div>
+  <div class="box">
+    <div class="box-head">📊 Pie Chart <span style="color:var(--muted);font-weight:400;font-size:.75rem">— สัดส่วนขายออกเฉลี่ยแต่ละกลุ่ม</span></div>
+    <div class="pie-wrap">
+      ${buildPie(pieSlices68,'ปี 2568 (เต็มปี · เฉลี่ย 12 เดือน)')}
+      ${buildPie(pieSlices69,`ปี 2569 (ม.ค.–${mEnd} · เฉลี่ย ${nM} เดือน)`)}
+    </div>
+  </div>`;
+
+  document.getElementById(contentId).innerHTML=cards+tableMonthly+pieSectionHtml+tableCross;
+}
+
+// ══════════════════════════════════════════════
+//  RENDER DETAIL (หน้า 5/6) — มี toggle สินค้าหลัก/อื่น
+// ══════════════════════════════════════════════
+// Parse main detail (โครงสร้างเดิม) — ใช้ร่วมกันทั้งหน้า 4/7 และหน้าแจ้งเตือน
+function parseMainDetail(rows) {
+  if (!rows || rows.length < 2) return {};
+  const dataRows = rows.slice(1).filter(r => r[0] && r[3]);
+  const grouped = {};
+  for (const r of dataRows) {
+    const grp = r[0]||''; const mon = n(r[1])||0; const sku = r[2]||'';
+    const desc = r[3]||''; const unit = r[4]||'';
+    const cost68=n(r[5]); const cost69=n(r[6]);
+    const qty68=n(r[7]); const qty69=n(r[8]);
+    const profit68=n(r[10]); const profit69=n(r[11]);
+    const price68=n(r[12]); const price69=n(r[13]);
+    const sale68=n(r[14]); const sale69=n(r[15]);
+    if (!grouped[grp]) grouped[grp]={};
+    const key=`${sku}__${desc}__${unit}`;
+    if (!grouped[grp][key]) grouped[grp][key]={sku,desc,unit,months:{}};
+    if (!grouped[grp][key].months[mon]) grouped[grp][key].months[mon]={};
+    const m=grouped[grp][key].months[mon];
+    m.cost68=cost68; m.cost69=cost69; m.price68=price68; m.price69=price69;
+    m.qty68=(m.qty68||0)+(qty68||0); m.qty69=(m.qty69||0)+(qty69||0);
+    m.profit68=(m.profit68||0)+(profit68||0); m.profit69=(m.profit69||0)+(profit69||0);
+    m.sale68=(m.sale68||0)+(sale68||0); m.sale69=(m.sale69||0)+(sale69||0);
+  }
+  return grouped;
+}
+
+// Parse other detail (โครงสร้างใหม่)
+// A=รหัส, B=ชื่อ, C=กลุ่มใหญ่, D=กลุ่มย่อย, เดือน m (1-based): baseCol=4+(m-1)*7
+// offset: 0=ต้นทุน, 1=ราคาขาย, 2=จำนวน, 3=กำไร/ชิ้น, 4=กำไรรวม, 5=สัดส่วน, 6=ยอดขายเซล
+function parseOtherDetail(rows) {
+  if (!rows || rows.length < 2) return {};
+  const dataRows = rows.slice(1).filter(r => r[1] || r[2]);
+  const grouped = {};
+  for (const r of dataRows) {
+    const grp = String(r[2]||'').trim();
+    if (!grp) continue;
+    if (!grouped[grp]) grouped[grp] = {};
+    const sku = String(r[0]||'').trim();
+    const desc = String(r[1]||'').trim();
+    const key = `${sku}__${desc}`;
+    if (!grouped[grp][key]) grouped[grp][key] = {sku, desc, unit:'', months:{}};
+    // เดือน 1–12 ปี 2568
+    for (let m = 1; m <= 12; m++) {
+      const baseCol = 4 + (m-1)*7;
+      const cost68  = n(r[baseCol]);
+      const price68 = n(r[baseCol+1]);
+      const qty68   = n(r[baseCol+2]);
+      const gpu68   = n(r[baseCol+3]);
+      const profit68= n(r[baseCol+4]);
+      const sale68  = n(r[baseCol+6]);
+      if (!grouped[grp][key].months[m]) grouped[grp][key].months[m] = {};
+      const md = grouped[grp][key].months[m];
+      md.cost68   = cost68;
+      md.price68  = price68;
+      md.qty68    = (md.qty68||0) + (qty68||0);
+      md.profit68 = (md.profit68||0) + (profit68||0);
+      md.sale68   = (md.sale68||0) + (sale68||0);
+    }
+    // เดือน 1–12 ปี 2569 (offset +84 คอลัมน์จาก E = col 4+84=88)
+    for (let m = 1; m <= 12; m++) {
+      const baseCol = 4 + 12*7 + (m-1)*7;
+      const cost69  = n(r[baseCol]);
+      const price69 = n(r[baseCol+1]);
+      const qty69   = n(r[baseCol+2]);
+      const gpu69   = n(r[baseCol+3]);
+      const profit69= n(r[baseCol+4]);
+      const sale69  = n(r[baseCol+6]);
+      if (!grouped[grp][key].months[m]) grouped[grp][key].months[m] = {};
+      const md = grouped[grp][key].months[m];
+      md.cost69   = cost69;
+      md.price69  = price69;
+      md.qty69    = (md.qty69||0) + (qty69||0);
+      md.profit69 = (md.profit69||0) + (profit69||0);
+      md.sale69   = (md.sale69||0) + (sale69||0);
+    }
+  }
+  return grouped;
+}
+
+function renderDetail(mainRows, otherRows, contentId, city) {
+  const mainGrouped  = parseMainDetail(mainRows);
+  const otherGrouped = parseOtherDetail(otherRows);
+
+  const mainGroups  = Object.keys(mainGrouped).sort();
+  const otherGroups = Object.keys(otherGrouped).sort();
+
+  let activeSection = 'main'; // 'main' | 'other'
+  let activeGrpMain  = mainGroups[0]  || '';
+  let activeGrpOther = otherGroups[0] || '';
+
+  function buildDetailTable(grouped, grp, cityLabel) {
+    const items = grouped[grp] || {};
+    const itemKeys = Object.keys(items);
+    if (!itemKeys.length) return '<div class="note">ไม่มีข้อมูลในกลุ่มนี้</div>';
+    let tbody = '';
+    for (const key of itemKeys) {
+      const item = items[key];
+      for (let mon = 1; mon <= 12; mon++) {
+        const m = item.months[mon];
+        if (!m) continue;
+        const has68 = (m.qty68||0) > 0;
+        const has69 = (m.qty69||0) > 0;
+        if (!has68 && !has69) continue;
+        const gpu68 = (m.price68!=null && m.cost68!=null) ? m.price68-m.cost68 : null;
+        const gpu69 = (m.price69!=null && m.cost69!=null) ? m.price69-m.cost69 : null;
+        tbody+=`<tr>
+          <td style="text-align:center;font-family:var(--font)">${MONTHS_TH[mon-1]}</td>
+          <td class="L" style="font-size:.7rem;max-width:220px;white-space:normal">${item.desc}</td>
+          <td>${m.cost68!=null?fmt2(m.cost68):'<span class="m-blank">—</span>'}</td>
+          <td>${m.cost69!=null?fmt2(m.cost69):'<span class="m-blank">—</span>'}</td>
+          <td>${m.price68!=null?fmt2(m.price68):'<span class="m-blank">—</span>'}</td>
+          <td>${m.price69!=null?fmt2(m.price69):'<span class="m-blank">—</span>'}</td>
+          <td><div class="cell-2row">
+            <div class="row1">${has68?fmt(m.qty68):'<span class="m-blank">—</span>'}</div>
+            <div class="row2" style="color:#1e40af">${gpu68!=null?fmt2(gpu68)+' /หน่วย':''}</div>
+            <div class="row2" style="color:#1e40af;font-weight:600">${has68?fmt(m.profit68):''}</div>
+          </div></td>
+          <td><div class="cell-2row">
+            <div class="row1">${has69?fmt(m.qty69):'<span class="m-blank">—</span>'}</div>
+            <div class="row2" style="color:#92400e">${gpu69!=null?fmt2(gpu69)+' /หน่วย':''}</div>
+            <div class="row2" style="color:var(--c69);font-weight:600">${has69?fmt(m.profit69):''}</div>
+          </div></td>
+        </tr>`;
+      }
+    }
+    if (!tbody) return '<div class="note">ไม่มีข้อมูลในกลุ่มนี้</div>';
+    return `
+    <div class="box" style="overflow-x:auto">
+      <div class="box-head">📦 ${grp} · ${cityLabel}</div>
+      <table class="tbl-detail">
+        <thead><tr>
+          <th class="L">เดือน</th>
+          <th class="L">รายละเอียด</th>
+          <th>ต้นทุนเฉลี่ย<br>2568</th>
+          <th>ต้นทุนเฉลี่ย<br>2569</th>
+          <th>ราคาขายเฉลี่ย<br>2568</th>
+          <th>ราคาขายเฉลี่ย<br>2569</th>
+          <th>จำนวนขาย 2568<br>
+            <span style="font-weight:400;color:#1e40af">กำไร/หน่วย</span> ·
+            <span style="font-weight:600;color:#1e40af">กำไรรวม</span>
+          </th>
+          <th>จำนวนขาย 2569<br>
+            <span style="font-weight:400;color:#92400e">กำไร/หน่วย</span> ·
+            <span style="font-weight:600;color:#92400e">กำไรรวม</span>
+          </th>
+        </tr></thead>
+        <tbody>${tbody}</tbody>
+      </table>
+    </div>`;
+  }
+
+  function renderTable() {
+    const tableDiv = document.getElementById(contentId+'-table');
+    if (activeSection === 'main') {
+      tableDiv.innerHTML = buildDetailTable(mainGrouped, activeGrpMain, city);
+    } else {
+      tableDiv.innerHTML = buildDetailTable(otherGrouped, activeGrpOther, city);
+    }
+  }
+
+  function renderBtns() {
+    const btnsDiv = document.getElementById(contentId+'-btns');
+    if (activeSection === 'main') {
+      btnsDiv.innerHTML = mainGroups.map((g,i)=>
+        `<button class="grp-btn${g===activeGrpMain?' active':''}" data-grp="${g}">${g}</button>`
+      ).join('');
+    } else {
+      btnsDiv.innerHTML = otherGroups.map((g,i)=>
+        `<button class="grp-btn${g===activeGrpOther?' active':''}" data-grp="${g}">${g}</button>`
+      ).join('');
+    }
+    btnsDiv.onclick = function(e) {
+      const btn = e.target.closest('.grp-btn');
+      if (!btn) return;
+      const grp = btn.dataset.grp;
+      if (activeSection==='main') activeGrpMain=grp;
+      else activeGrpOther=grp;
+      this.querySelectorAll('.grp-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderTable();
+    };
+  }
+
+  document.getElementById(contentId).innerHTML = `
+    <div class="note">📌 เลือกประเภทสินค้า แล้วเลือกกลุ่มที่ต้องการดู — จำนวน (บน) / กำไร (ล่าง)</div>
+    <div class="sec-toggle" id="${contentId}-toggle">
+      <button class="sec-toggle-btn active" data-sec="main">📦 สินค้าหลัก</button>
+      <button class="sec-toggle-btn" data-sec="other">🔧 สินค้าอื่น</button>
+    </div>
+    <div class="grp-filter" id="${contentId}-btns"></div>
+    <div id="${contentId}-table"></div>`;
+
+  document.getElementById(contentId+'-toggle').onclick = function(e) {
+    const btn = e.target.closest('.sec-toggle-btn');
+    if (!btn) return;
+    activeSection = btn.dataset.sec;
+    this.querySelectorAll('.sec-toggle-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    renderBtns();
+    renderTable();
+  };
+
+  renderBtns();
+  renderTable();
+}
+
+// ══════════════════════════════════════════════
+//  PARSE + RENDER ALERT PAGE (หน้า 7)
+// ══════════════════════════════════════════════
+function pctChange(cur, prev) {
+  return (prev===null||prev===undefined||prev===0||cur===null||cur===undefined) ? null : (cur-prev)/Math.abs(prev)*100;
+}
+
+// months: { [mon 1-12]: {cost68,cost69,price68,price69,qty68,qty69,profit68,profit69,sale68,sale69} }
+// ใช้ร่วมกันทั้งสินค้าหลัก (parseMainDetail) และสินค้าอื่น (parseOtherDetail)
+function computeAlertItem(grp, desc, months) {
+  let lastMon = 0;
+  for (let m=1; m<=12; m++) { if (months[m] && (months[m].qty69||0) > 0) lastMon = m; }
+  if (!lastMon) return null;
+  const cur = months[lastMon];
+  const curGpu = (cur.price69!=null && cur.cost69!=null) ? cur.price69-cur.cost69 : null;
+
+  // YoY: เดือนเดียวกัน ปีก่อน
+  const yoyGpu = (cur.price68!=null && cur.cost68!=null) ? cur.price68-cur.cost68 : null;
+  const yoy = {
+    gpu: pctChange(curGpu, yoyGpu),
+    profit: pctChange(cur.profit69, cur.profit68),
+    qty: pctChange(cur.qty69, cur.qty68),
+    sale: pctChange(cur.sale69, cur.sale68)
+  };
+
+  // MoM: เดือนก่อนหน้า (ถ้าเดือน1 ใช้ ธ.ค. ปีก่อนแทน)
+  let prevGpu=null, prevProfit=null, prevQty=null, prevSale=null;
+  if (lastMon > 1 && months[lastMon-1]) {
+    const p = months[lastMon-1];
+    prevGpu = (p.price69!=null && p.cost69!=null) ? p.price69-p.cost69 : null;
+    prevProfit = p.profit69; prevQty = p.qty69; prevSale = p.sale69;
+  } else if (months[12]) {
+    const p = months[12];
+    prevGpu = (p.price68!=null && p.cost68!=null) ? p.price68-p.cost68 : null;
+    prevProfit = p.profit68; prevQty = p.qty68; prevSale = p.sale68;
+  }
+  const mom = {
+    gpu: pctChange(curGpu, prevGpu),
+    profit: pctChange(cur.profit69, prevProfit),
+    qty: pctChange(cur.qty69, prevQty),
+    sale: pctChange(cur.sale69, prevSale)
+  };
+
+  return {
+    grp, desc, lastMon,
+    cost69: cur.cost69, price69: cur.price69, gpu: curGpu, profit: cur.profit69, qty: cur.qty69, sale: cur.sale69,
+    cost68: cur.cost68, price68: cur.price68, gpu68: yoyGpu, profit68: cur.profit68, qty68: cur.qty68, sale68: cur.sale68,
+    mom, yoy
+  };
+}
+
+function parseAlertItems(rows) {
+  const grouped = parseMainDetail(rows);
+  const out = [];
+  for (const grp in grouped) {
+    for (const key in grouped[grp]) {
+      const it = grouped[grp][key];
+      const alertItem = computeAlertItem(grp, it.desc, it.months);
+      if (alertItem) out.push(alertItem);
+    }
+  }
+  return out;
+}
+
+function parseAlertItemsOther(rows) {
+  const grouped = parseOtherDetail(rows);
+  const out = [];
+  for (const grp in grouped) {
+    for (const key in grouped[grp]) {
+      const it = grouped[grp][key];
+      const alertItem = computeAlertItem(grp, it.desc, it.months);
+      if (alertItem) out.push(alertItem);
+    }
+  }
+  return out;
+}
+
+function classifyAlert(item, thGpu, thProfit, thSale) {
+  const { gpu, profit, sale } = item.yoy;
+  const gpuDown = gpu!==null && gpu <= -thGpu;
+  const profitDown = profit!==null && profit <= -thProfit;
+  const saleDown = sale!==null && sale <= -thSale;
+
+  let urgency, label;
+  if (gpuDown && profitDown && saleDown) { urgency='red'; label='เร่งด่วน'; }
+  else if (!gpuDown && profitDown && saleDown) { urgency='red'; label='เร่งด่วน'; }
+  else if (gpuDown && profitDown && !saleDown) { urgency='orange'; label='ควรดู'; }
+  else if (!gpuDown && !profitDown && saleDown) { urgency='orange'; label='ควรดู'; }
+  else if (gpuDown && !profitDown && saleDown) { urgency='orange'; label='ควรดู'; }
+  else if (gpuDown && !profitDown && !saleDown) { urgency='yellow'; label='ค่อยดู'; }
+  else { urgency='gray'; label='ปกติ'; }
+
+  let main = '';
+  if (gpuDown && profitDown && saleDown) main = 'แย่ทุกด้าน ตรวจสอบสาเหตุด่วน';
+  else if (!gpuDown && profitDown && saleDown) main = 'พิจารณาปรับราคาลง / ทบทวนการขึ้นราคา';
+  else if (gpuDown && profitDown && !saleDown) main = 'ลดราคาเกินไป ทบทวนส่วนลด';
+  else if (!gpuDown && !profitDown && saleDown) main = 'กำไรยังดี แต่ยอดเซลเริ่มหด เฝ้าระวัง';
+  else if (gpuDown && !profitDown && !saleDown) main = 'ลดราคาได้ผล กำไรรวมและยอดเซลยังโต';
+  else if (!gpuDown && !profitDown && !saleDown) main = 'ดีต่อเนื่อง ไม่ต้องทำอะไร';
+  else main = 'ตัวเลขขัดแย้งกัน ควรตรวจสอบ';
+
+  let badge = '';
+  const { qty } = item.yoy;
+  if (gpu!==null && qty!==null && gpu>=10 && qty<=-10) {
+    badge = sale!==null && sale<0 ? 'danger' : 'warn';
+  }
+  return { urgency, label, main, badge };
+}
+
+function alertPctHtml(v) {
+  if (v===null||v===undefined||isNaN(v)) return '<span class="v" style="color:var(--muted2)">—</span>';
+  const cls = v<0 ? 'c-red' : (v>0 ? 'c-green' : '');
+  return `<span class="v ${cls}">${v>=0?'+':''}${v.toFixed(1)}%</span>`;
+}
+
+function renderAlertPage(bkkMainRows, pttMainRows, bkkOtherRows, pttOtherRows, contentId) {
+  const itemsBkk = parseAlertItems(bkkMainRows).concat(parseAlertItemsOther(bkkOtherRows));
+  const itemsPtt = parseAlertItems(pttMainRows).concat(parseAlertItemsOther(pttOtherRows));
+  let activeCity = 'bkk';
+  let lastClassified = []; // เก็บผลลัพธ์ล่าสุดไว้ใช้ export
+
+  function getItems() { return activeCity==='bkk' ? itemsBkk : itemsPtt; }
+
+  function buildRow(entry) {
+    const item = entry.item;
+    const c = entry.c;
+    let badgeHtml = '';
+    if (c.badge==='warn') badgeHtml += `<span class="alert-badge ab-warn">ขึ้นราคา ลูกค้าหาย</span>`;
+    if (c.badge==='danger') badgeHtml += `<span class="alert-badge ab-warn">ขึ้นราคา ลูกค้าหาย</span><span class="alert-badge ab-danger">ไม่ยั่งยืน</span>`;
+    return `<div class="alert-row">
+      <div class="alert-name">
+        <div class="nm">${item.desc}${badgeHtml}</div>
+        <div class="grp">${item.grp} · เดือน ${MONTHS_TH[item.lastMon-1]}/2569</div>
+        <div class="sug">💡 ${c.main}</div>
+      </div>
+      <div class="alert-pct">${alertPctHtml(item.yoy.gpu)}<div class="lbl">กำไร/หน่วย YoY</div></div>
+      <div class="alert-pct">${alertPctHtml(item.yoy.profit)}<div class="lbl">กำไรรวม YoY</div></div>
+      <div class="alert-pct">${alertPctHtml(item.yoy.sale)}<div class="lbl">ยอดเซล YoY</div></div>
+    </div>`;
+  }
+
+  function buildSection(secId, icon, title, entries, defaultOpen) {
+    const openCls = defaultOpen ? ' open' : '';
+    const arrow = defaultOpen ? '▾' : '▸';
+    if (!entries.length) {
+      return `<div class="alert-sec-toggle${openCls}" data-sec="${secId}">
+        <span class="arrow">${arrow}</span> ${icon} ${title} (0)
+      </div><div class="alert-sec-body${openCls}" id="sec-${secId}"><div class="alert-empty">ไม่มีรายการเข้าเกณฑ์</div></div>`;
+    }
+    return `<div class="alert-sec-toggle${openCls}" data-sec="${secId}">
+      <span class="arrow">${arrow}</span> ${icon} ${title} (${entries.length})
+    </div><div class="alert-sec-body${openCls}" id="sec-${secId}">${entries.map(buildRow).join('')}</div>`;
+  }
+
+  function renderLists() {
+    const thGpu = parseFloat(document.getElementById('th-gpu').value)||0;
+    const thProfit = parseFloat(document.getElementById('th-profit').value)||0;
+    const thSale = parseFloat(document.getElementById('th-sale').value)||0;
+    const items = getItems();
+
+    const classified = items.map(item => ({ item, c: classifyAlert(item, thGpu, thProfit, thSale) }));
+    lastClassified = classified;
+
+    const red    = classified.filter(e=>e.c.urgency==='red');
+    const orange = classified.filter(e=>e.c.urgency==='orange');
+    const yellow = classified.filter(e=>e.c.urgency==='yellow');
+    const gray   = classified.filter(e=>e.c.urgency==='gray');
+
+    document.getElementById(contentId+'-lists').innerHTML =
+      buildSection('red','🔴','เร่งด่วน', red, true) +
+      buildSection('orange','🟠','ควรดู', orange, true) +
+      buildSection('yellow','🟡','ค่อยดู', yellow, false) +
+      buildSection('gray','⚪','ปกติ', gray, false);
+
+    document.querySelectorAll('.alert-sec-toggle').forEach(el=>{
+      el.onclick = function(){
+        const body = document.getElementById('sec-'+this.dataset.sec);
+        const willOpen = !this.classList.contains('open');
+        this.classList.toggle('open', willOpen);
+        body.classList.toggle('open', willOpen);
+        this.querySelector('.arrow').textContent = willOpen ? '▾' : '▸';
+      };
+    });
+  }
+
+  function exportXlsx() {
+    const rows = [['กลุ่มสินค้า','รายการ','ระดับ',
+      'ต้นทุนปีที่แล้ว','ราคาขายเฉลี่ยปีที่แล้ว','กำไร/หน่วยปีที่แล้ว','กำไรรวมปีที่แล้ว','จำนวนขายปีที่แล้ว','ยอดขายเซลปีที่แล้ว',
+      'ต้นทุนปีนี้','ราคาขายเฉลี่ยปีนี้','กำไร/หน่วยปีนี้','กำไรรวมปีนี้','จำนวนขายปีนี้','ยอดขายเซลปีนี้',
+      'ข้อเสนอแนะ']];
+    lastClassified.forEach(({item,c})=>{
+      rows.push([
+        item.grp, item.desc, c.label,
+        item.cost68, item.price68, item.gpu68, item.profit68, item.qty68, item.sale68,
+        item.cost69, item.price69, item.gpu, item.profit, item.qty, item.sale,
+        c.main
+      ]);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'แจ้งเตือน');
+    const cityLabel = activeCity==='bkk' ? 'กรุงเทพ' : 'พัทยา';
+    XLSX.writeFile(wb, `แจ้งเตือนกำไรขาย-${cityLabel}.xlsx`);
+  }
+
+  document.getElementById(contentId).innerHTML = `
+    <div class="grp-filter">
+      <button class="grp-btn active" id="${contentId}-city-bkk">กรุงเทพ</button>
+      <button class="grp-btn" id="${contentId}-city-ptt">พัทยา</button>
+      <button class="btn-refresh" id="${contentId}-export" style="margin-left:auto">⬇ Export Excel</button>
+    </div>
+    <div class="alert-controls">
+      <div class="alert-field"><label>กำไร/หน่วยลดลงเกิน (%)</label><input type="number" id="th-gpu" value="5" min="0" max="100"></div>
+      <div class="alert-field"><label>กำไรรวมลดลงเกิน (%)</label><input type="number" id="th-profit" value="5" min="0" max="100"></div>
+      <div class="alert-field"><label>ยอดขายเซลลดลงเกิน (%)</label><input type="number" id="th-sale" value="5" min="0" max="100"></div>
+      <div class="alert-leg"><span>YoY = เทียบกับเดือนเดียวกันของปีก่อน</span></div>
+    </div>
+    <div id="${contentId}-lists"></div>`;
+
+  document.getElementById(contentId+'-city-bkk').onclick = function(){
+    activeCity='bkk';
+    this.classList.add('active');
+    document.getElementById(contentId+'-city-ptt').classList.remove('active');
+    renderLists();
+  };
+  document.getElementById(contentId+'-city-ptt').onclick = function(){
+    activeCity='ptt';
+    this.classList.add('active');
+    document.getElementById(contentId+'-city-bkk').classList.remove('active');
+    renderLists();
+  };
+  document.getElementById(contentId+'-export').onclick = exportXlsx;
+  ['th-gpu','th-profit','th-sale'].forEach(id=>{
+    document.getElementById(id).addEventListener('input', renderLists);
+  });
+  renderLists();
+}
+
+// ══════════════════════════════════════════════
+//  LOAD ALL DATA
+// ══════════════════════════════════════════════
+let dataCache = null;
+
+async function loadData(force=false) {
+  if (!force && dataCache) return;
+  document.getElementById('btn-refresh').textContent = '⟳ กำลังโหลด...';
+  document.getElementById('btn-refresh').disabled = true;
+  try {
+    const [bkkRows, pttRows, bkkDetailRows, pttDetailRows, bkkOtherRows, pttOtherRows] = await Promise.all([
+      fetchSheet(GIDS.bkk),
+      fetchSheet(GIDS.ptt),
+      fetchSheet(GIDS.bkkDetail),
+      fetchSheet(GIDS.pttDetail),
+      fetchSheet(GIDS.bkkOther),
+      fetchSheet(GIDS.pttOther),
+    ]);
+
+    // หน้า 1 · สินค้าหลัก กรุงเทพ
+    renderOverview(parseSummarySheet(bkkRows), 'bkk-content', 'bkk-sub', 'กรุงเทพ', 'สินค้าอื่น');
+    // หน้า 2 · สินค้าอื่น กรุงเทพ
+    renderOverview(parseOtherSheet(bkkOtherRows), 'bkk-other-content', 'bkk-other-sub', 'กรุงเทพ (สินค้าอื่น)');
+    // หน้า 3 · สินค้าหลัก พัทยา
+    renderOverview(parseSummarySheet(pttRows), 'ptt-content', 'ptt-sub', 'พัทยา', 'สินค้าอื่น');
+    // หน้า 4 · สินค้าอื่น พัทยา
+    renderOverview(parseOtherSheet(pttOtherRows), 'ptt-other-content', 'ptt-other-sub', 'พัทยา (สินค้าอื่น)');
+    // หน้า 5 · รายสินค้า กรุงเทพ
+    renderDetail(bkkDetailRows, bkkOtherRows, 'bkk-detail-content', 'กรุงเทพ');
+    // หน้า 6 · รายสินค้า พัทยา
+    renderDetail(pttDetailRows, pttOtherRows, 'ptt-detail-content', 'พัทยา');
+    // หน้า · แจ้งเตือน
+    renderAlertPage(bkkDetailRows, pttDetailRows, bkkOtherRows, pttOtherRows, 'alert-content');
+
+    dataCache = true;
+  } catch(e) {
+    console.error(e);
+    const errHtml = `<div class="err-box">⚠️ โหลดข้อมูลไม่ได้: ${e.message}<br>ตรวจสอบว่า Google Sheet ตั้งค่า "เผยแพร่สู่สาธารณะ" แล้ว</div>`;
+    ['bkk-content','bkk-other-content','ptt-content','ptt-other-content','bkk-detail-content','ptt-detail-content','alert-content'].forEach(id=>{
+      document.getElementById(id).innerHTML = errHtml;
+    });
+  } finally {
+    document.getElementById('btn-refresh').textContent = '↺ รีเฟรช';
+    document.getElementById('btn-refresh').disabled = false;
+  }
+}
+
+window.go = go;
+window.loadData = loadData;
+loadData();
+
+})();
+
+</script>
+<script>
+(function(){
+
 // ══════════════════════════════════════════════
 // CONFIG
 // ══════════════════════════════════════════════
@@ -1566,7 +3372,11 @@ function renderFooterInfo() {
   }
 }
 
-init();
+window.__startFinReport = init;
+window.switchTab = switchTab;
+window.toggleDataViewer = toggleDataViewer;
+})();
+
 </script>
 </body>
 </html>
