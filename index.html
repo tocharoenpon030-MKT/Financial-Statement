@@ -827,28 +827,6 @@ footer {
     </div>
   </div>
   <div id="summaryContent" style="display:none;">
-      <div class="section-title">ยอดขายต่อเดือน 2568 เทียบ 2569 (ข้อมูลจริง จากรายงานทางการเงิน)</div>
-      <div class="table-card" style="margin-bottom:16px;">
-        <div class="table-header">
-          <div class="chart-title" style="margin-bottom:2px;">ยอดขายรายเดือน ม.ค.–ธ.ค.</div>
-          <div class="chart-sub" style="margin-bottom:0;">หน่วย: ล้านบาท · เดือนที่ยังไม่มีข้อมูลปี 2569 จะแสดง —</div>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th class="L">เดือน</th>
-                <th style="color:#2563eb">ยอดขาย 2568</th>
-                <th style="color:#ea580c">ยอดขาย 2569</th>
-              </tr>
-            </thead>
-            <tbody id="sumSalesBody">
-              <tr><td colspan="3" style="text-align:center;color:var(--muted);padding:20px 0;">กำลังโหลดข้อมูล…</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
       <div class="section-title">เปรียบเทียบกำไรขาย ปี 2568 กับ 2569 (สินค้าหลัก + สินค้าอื่น กรุงเทพ + พัทยา)</div>
       <div class="kpi-grid" id="sumKpiGrid">
         <div class="loading-mini" style="grid-column:1/-1;text-align:center;color:var(--muted);padding:20px 0;">กำลังโหลดข้อมูล…</div>
@@ -874,12 +852,12 @@ footer {
             <thead>
               <tr>
                 <th class="L">เดือน</th>
-                <th style="color:#2563eb">กำไรขาย 68</th><th style="color:#2563eb">ค่าใช้จ่าย 68</th><th style="color:#2563eb">กำไรสุทธิ 68</th>
-                <th style="color:#ea580c">กำไรขาย 69</th><th style="color:#ea580c">ค่าใช้จ่าย 69</th><th style="color:#ea580c">กำไรสุทธิ 69</th>
+                <th style="color:#2563eb">ยอดขาย 2568</th><th style="color:#2563eb">กำไรขาย 68</th><th style="color:#2563eb">ค่าใช้จ่าย 68</th><th style="color:#2563eb">กำไรสุทธิ 68</th>
+                <th style="color:#ea580c">ยอดขาย 2569</th><th style="color:#ea580c">กำไรขาย 69</th><th style="color:#ea580c">ค่าใช้จ่าย 69</th><th style="color:#ea580c">กำไรสุทธิ 69</th>
               </tr>
             </thead>
             <tbody id="sumReconBody">
-              <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px 0;">กำลังโหลดข้อมูล…</td></tr>
+              <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px 0;">กำลังโหลดข้อมูล…</td></tr>
             </tbody>
           </table>
         </div>
@@ -986,7 +964,7 @@ footer {
   <div class="table-header">
     <div class="chart-title">ยอดขายต่อเดือนที่ต้องทำเพื่อแต่ละ Scenario</div>
     <div class="chart-sub">
-      <span style="color:#1d4ed8;font-weight:600;">ยอดขายจริง 2568</span> = ข้อมูลจริงทั้ง 12 เดือน (จากแท็บ "วีธีคิดยอดขาย") ·
+      <span style="color:#1d4ed8;font-weight:600;">ยอดขายจริง 2568</span> = ข้อมูลจริงทั้ง 12 เดือน (จากแท็บ "วิธีคิดยอดขาย" แถว 25) ·
       เดือน 1–5 = <span style="color:#888;font-style:italic;">ข้อมูลจริง (italic)</span> · 
       เดือน 6–12 = <span style="color:#2563eb;font-weight:600;">เป้าหมายที่ต้องทำ</span> · 
       หน่วย: บาท (แสดงทศนิยม 2 ตำแหน่ง)
@@ -1288,6 +1266,8 @@ footer {
   const FIN_SHEET_ID = '1rTHWxxQ-pTw7jvSDiTAQwGqiNENlV4dWG0xyb1wu4K4';
   const FIN_GID = '1464307538'; // แท็บ "สรุป"
   const FIN_CSV_URL = `https://docs.google.com/spreadsheets/d/${FIN_SHEET_ID}/export?format=csv&gid=${FIN_GID}`;
+  const SALES_METHOD_GID = '1807585238'; // แท็บ "วิธีคิดยอดขาย"
+  const SALES_METHOD_CSV_URL = `https://docs.google.com/spreadsheets/d/${FIN_SHEET_ID}/export?format=csv&gid=${SALES_METHOD_GID}`;
 
   const PROFIT_SHEET_ID = '15b_m7yDpWC0lUnt-_4sfAoayg3ysvDiE62WagXEKDiU';
   const PROFIT_GIDS = {
@@ -1418,12 +1398,13 @@ footer {
 
   async function init() {
     try {
-      const [finGrid, bkkMain, pttMain, bkkOther, pttOther] = await Promise.all([
+      const [finGrid, bkkMain, pttMain, bkkOther, pttOther, salesMethodGrid] = await Promise.all([
         fetchCSV(FIN_CSV_URL),
         fetchCSV(`https://docs.google.com/spreadsheets/d/${PROFIT_SHEET_ID}/export?format=csv&gid=${PROFIT_GIDS.bkk}`),
         fetchCSV(`https://docs.google.com/spreadsheets/d/${PROFIT_SHEET_ID}/export?format=csv&gid=${PROFIT_GIDS.ptt}`),
         fetchCSV(`https://docs.google.com/spreadsheets/d/${PROFIT_SHEET_ID}/export?format=csv&gid=${PROFIT_GIDS.bkkOther}`),
         fetchCSV(`https://docs.google.com/spreadsheets/d/${PROFIT_SHEET_ID}/export?format=csv&gid=${PROFIT_GIDS.pttOther}`),
+        fetchCSV(SALES_METHOD_CSV_URL).catch(err => { console.warn('โหลดแท็บ "วิธีคิดยอดขาย" ไม่สำเร็จ:', err.message); return null; }),
       ]);
 
       // 1) กำไรขายรวมรายเดือน (สินค้าหลัก+อื่น กทม.+พัทยา) — อ่านจากชีตเดียวกับหน้าสรุปกำไรขายทุกตัว
@@ -1461,13 +1442,15 @@ footer {
       // กำไรสุทธิตามงบรายเดือน ปี 2568 (คอลัมน์ D/H/L/P/T/X/AB/AF/AJ/AN/AR/AV = MONTH68_COLS เดียวกับที่ใช้ดึงค่าใช้จ่าย)
       const netBudget68Monthly = MONTH68_COLS.map(c => netRow ? numVal(netRow[c]) / 1e6 : 0);
 
-      const sales68 = MONTH68_COLS.map(c => salesRow ? numVal(salesRow[c]) : 0);
-      const sales69 = MONTH69_COLS.map(c => salesRow ? numVal(salesRow[c]) : 0);
+      // 3) ยอดขาย 2568/2569 จากแท็บ "วิธีคิดยอดขาย" — 2568 = แถว 25 (index 24), 2569 = แถว 34 (index 33), คอลัมน์ C:N (index 2-13)
+      const row25 = salesMethodGrid ? salesMethodGrid[24] : null;
+      const row34 = salesMethodGrid ? salesMethodGrid[33] : null;
+      const sales68 = row25 ? Array.from({length:12}, (_,i) => numVal(row25[2+i])) : Array(12).fill(0);
+      const sales69 = row34 ? Array.from({length:12}, (_,i) => numVal(row34[2+i])) : Array(12).fill(0);
 
       renderKPI(acc, profitActualMonths);
       renderChart(acc, profitActualMonths);
-      renderSalesTable(sales68, sales69, budgetActualMonths);
-      renderRecon(acc, expense68, expense69, profitActualMonths, budgetActualMonths, netBudget68, netBudget69ytd, netBudget68Monthly);
+      renderRecon(acc, expense68, expense69, profitActualMonths, budgetActualMonths, netBudget68, netBudget69ytd, netBudget68Monthly, sales68, sales69);
     } catch (err) {
       console.error(err);
       showError(err.message || String(err));
@@ -1495,31 +1478,6 @@ footer {
         <div class="kpi-val" style="color:#ea580c">${fmt(p69)} <small>ล้าน</small></div>
         <div class="kpi-change ${cls}">${arrow} ${Math.abs(chg).toFixed(1)}% จากช่วงเดียวกันปีก่อน</div>
       </div>`;
-  }
-
-  function renderSalesTable(sales68, sales69, budgetMonths) {
-    const body = document.getElementById('sumSalesBody');
-    if (!body) return;
-    let rows = '';
-    let total68 = 0, total69 = 0;
-    for (let i = 0; i < 12; i++) {
-      const v68 = sales68[i] / 1e6;
-      const v69ok = i < budgetMonths;
-      const v69 = v69ok ? sales69[i] / 1e6 : null;
-      total68 += v68;
-      if (v69ok) total69 += v69;
-      rows += `<tr>
-        <td class="L">${MONTH_NAMES[i]}</td>
-        <td style="color:#1d4ed8">${fmt(v68,2)}</td>
-        <td style="color:#c2410c">${v69===null?'—':fmt(v69,2)}</td>
-      </tr>`;
-    }
-    rows += `<tr style="background:#fdf8ec;font-weight:700;border-top:2px solid #2563eb">
-      <td class="L">รวม</td>
-      <td style="color:#1d4ed8">${fmt(total68,2)}</td>
-      <td style="color:#c2410c">${fmt(total69,2)}</td>
-    </tr>`;
-    body.innerHTML = rows;
   }
 
   let chartInstance = null;
@@ -1552,16 +1510,21 @@ footer {
     });
   }
 
-  function renderRecon(acc, expense68, expense69, profitMonths, budgetMonths, netBudget68, netBudget69ytd, netBudget68Monthly) {
+  function renderRecon(acc, expense68, expense69, profitMonths, budgetMonths, netBudget68, netBudget69ytd, netBudget68Monthly, sales68, sales69) {
     const body = document.getElementById('sumReconBody');
     if (!body) return;
     let rows = '';
     let sumProfit68 = 0, sumProfit69 = 0, sumExp68 = 0, sumExp69 = 0, sumNet68 = 0, sumNet69 = 0;
+    let sumSales68 = 0, sumSales69 = 0;
     // ผลรวม "เฉพาะเดือนที่มีข้อมูลจริงทั้ง 2 ปี" (เทียบเดือนต่อเดือนแบบ apples-to-apples) — คำนวณอัตโนมัติจากจำนวนเดือนจริง
     const commonMonths = Math.min(profitMonths, budgetMonths);
     let ytdProfit68 = 0, ytdExp68 = 0, ytdNet68 = 0, ytdProfit69 = 0, ytdExp69 = 0, ytdNet69 = 0;
+    let ytdSales68 = 0, ytdSales69 = 0;
     for (let m = 1; m <= 12; m++) {
       const i = m - 1;
+      const sl68 = (sales68 && sales68[i] || 0) / 1e6;
+      const sl69ok = i < budgetMonths;
+      const sl69 = sl69ok ? (sales69 && sales69[i] || 0) / 1e6 : null;
       const pr68 = acc.profit68[i] / 1e6;
       const pr69 = i < profitMonths ? acc.profit69[i] / 1e6 : null;
       const ex68 = expense68[i] / 1e6;
@@ -1569,18 +1532,22 @@ footer {
       const nt68 = pr68 - ex68;
       const nt69 = (pr69 !== null && ex69 !== null) ? (pr69 - ex69) : null;
 
+      sumSales68 += sl68; if (sl69ok) sumSales69 += sl69;
       sumProfit68 += pr68; sumExp68 += ex68; sumNet68 += nt68;
       if (i < profitMonths) sumProfit69 += pr69;
       if (i < budgetMonths) { sumExp69 += ex69; if (nt69 !== null) sumNet69 += nt69; }
 
       if (i < commonMonths) {
+        ytdSales68 += sl68; ytdSales69 += sl69;
         ytdProfit68 += pr68; ytdExp68 += ex68; ytdNet68 += nt68;
         ytdProfit69 += pr69; ytdExp69 += ex69; if (nt69 !== null) ytdNet69 += nt69;
       }
 
       rows += `<tr>
         <td class="L">${MONTH_NAMES[i]}</td>
+        <td style="color:#1d4ed8">${fmt(sl68,2)}</td>
         <td style="color:#1d4ed8">${fmt(pr68,2)}</td><td style="color:#1d4ed8">${fmt(ex68,2)}</td><td style="color:#1d4ed8">${fmt(nt68,2)}</td>
+        <td style="color:#c2410c">${sl69===null?'—':fmt(sl69,2)}</td>
         <td style="color:#c2410c">${pr69===null?'—':fmt(pr69,2)}</td>
         <td style="color:#c2410c">${ex69===null?'—':fmt(ex69,2)}</td>
         <td style="color:#c2410c">${nt69===null?'—':fmt(nt69,2)}</td>
@@ -1589,12 +1556,16 @@ footer {
     const commonLabel = commonMonths >= 1 ? `ม.ค.–${MONTH_NAMES[commonMonths-1]}` : '—';
     rows += `<tr style="background:#eef7ff;font-weight:700;border-top:2px solid #93c5fd">
       <td class="L">รวมเฉพาะเดือนที่มีข้อมูล (${commonLabel})</td>
+      <td style="color:#1d4ed8">${fmt(ytdSales68,2)}</td>
       <td style="color:#1d4ed8">${fmt(ytdProfit68,2)}</td><td style="color:#1d4ed8">${fmt(ytdExp68,2)}</td><td style="color:#1d4ed8">${fmt(ytdNet68,2)}</td>
+      <td style="color:#c2410c">${fmt(ytdSales69,2)}</td>
       <td style="color:#c2410c">${fmt(ytdProfit69,2)}</td><td style="color:#c2410c">${fmt(ytdExp69,2)}</td><td style="color:#c2410c">${fmt(ytdNet69,2)}</td>
     </tr>`;
     rows += `<tr style="background:#fdf8ec;font-weight:700;border-top:2px solid #2563eb">
       <td class="L">รวมเต็มปี 68 / YTD 69</td>
+      <td style="color:#1d4ed8">${fmt(sumSales68,2)}</td>
       <td style="color:#1d4ed8">${fmt(sumProfit68,2)}</td><td style="color:#1d4ed8">${fmt(sumExp68,2)}</td><td style="color:#1d4ed8">${fmt(sumNet68,2)}</td>
+      <td style="color:#c2410c">${fmt(sumSales69,2)}</td>
       <td style="color:#c2410c">${fmt(sumProfit69,2)}</td><td style="color:#c2410c">${fmt(sumExp69,2)}</td><td style="color:#c2410c">${fmt(sumNet69,2)}</td>
     </tr>`;
     body.innerHTML = rows;
@@ -2744,7 +2715,7 @@ loadData();
 const CONFIG = {
   SHEET_ID: '1rTHWxxQ-pTw7jvSDiTAQwGqiNENlV4dWG0xyb1wu4K4',
   SHEET_GID: '1464307538', // แท็บ "สรุป"
-  SALES_METHOD_GID: '1807585238', // แท็บ "วีธีคิดยอดขาย"
+  SALES_METHOD_GID: '1807585238', // แท็บ "วิธีคิดยอดขาย"
   USE_SHEETS: true,
   REFRESH_MS: 5 * 60 * 1000
 };
@@ -2961,21 +2932,21 @@ async function loadFromSheets() {
     }
     const monthlyOk = monthly.green.length === 12 && monthly.amber.length === 12 && monthly.red.length === 12;
 
-    // ยอดขายจริง 2568 ทั้ง 12 เดือน — จากแท็บ "วีธีคิดยอดขาย" แถว 68 คอลัมน์ C:N (เดือน1-12)
+    // ยอดขายจริง 2568 ทั้ง 12 เดือน — จากแท็บ "วิธีคิดยอดขาย" แถว 25 คอลัมน์ C:N (เดือน1-12)
     let actualSales2568 = null;
     try {
       const res68 = await fetch(CONFIG.SALES_METHOD_CSV_URL);
       if (res68.ok) {
         const grid68 = parseCSV(await res68.text());
-        const row68 = grid68[67]; // แถว 68 ในชีต = index 67
-        if (row68) {
+        const row25 = grid68[24]; // แถว 25 ในชีต = index 24
+        if (row25) {
           const arr = [];
-          for (let c = 2; c <= 13; c++) arr.push(numVal(row68[c])); // C=2 ... N=13
+          for (let c = 2; c <= 13; c++) arr.push(numVal(row25[c])); // C=2 ... N=13
           if (arr.length === 12) actualSales2568 = arr;
         }
       }
     } catch (e) {
-      console.warn('โหลดยอดขายจริง 2568 จากแท็บ "วีธีคิดยอดขาย" ไม่สำเร็จ:', e.message);
+      console.warn('โหลดยอดขายจริง 2568 จากแท็บ "วิธีคิดยอดขาย" ไม่สำเร็จ:', e.message);
     }
 
     // รายการค่าใช้จ่ายย่อย (สำหรับตาราง/พาย/หน้า 2) — รวม scenario ต่อแถวด้วย
@@ -3408,7 +3379,7 @@ function renderMonthlyTable(d) {
 
   const tbody = document.getElementById('monthlyTableBody');
 
-  // Actual sales 2568 row (ข้อมูลจริงทั้ง 12 เดือน จากแท็บ "วีธีคิดยอดขาย")
+  // Actual sales 2568 row (ข้อมูลจริงทั้ง 12 เดือน จากแท็บ "วิธีคิดยอดขาย")
   let rowActual68 = '';
   if (d.actualSales2568 && d.actualSales2568.length === 12) {
     const totalActual68 = d.actualSales2568.reduce((s,v) => s+v, 0);
