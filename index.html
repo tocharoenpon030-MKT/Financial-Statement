@@ -535,6 +535,21 @@ footer {
   .kpi-grid { grid-template-columns: repeat(2,1fr); }
   header { flex-direction: column; align-items: flex-start; }
   .header-meta { text-align: left; }
+
+  /* กล่องตั้งค่าเกณฑ์แจ้งเตือน (%) — จัดเรียงแนวตั้ง ขยายปุ่มกดให้กดง่ายบนมือถือ */
+  .alert-controls { flex-direction: column; align-items: stretch; gap: 12px; }
+  .alert-field { flex-direction: row; justify-content: space-between; align-items: center; gap: 10px; }
+  .alert-field label { font-size: 1rem; }
+  .alert-field input { width: 84px; padding: 8px 10px; font-size: 1rem; }
+  .alert-leg { margin-left: 0; font-size: .9rem; }
+
+  /* แถวรายการแจ้งเตือน — เพิ่มขนาดตัวหนังสือให้อ่านง่ายขึ้นบนมือถือ */
+  .alert-name .nm { font-size: .92rem; }
+  .alert-name .grp, .alert-name .sug { font-size: .78rem; }
+  .alert-pct { min-width: 56px; }
+  .alert-pct .v { font-size: .86rem; }
+  .alert-pct .lbl { font-size: .72rem; }
+  .alert-badge { font-size: .7rem; }
 }
 
 .fade-in { opacity:0; transform:translateY(12px); animation:fi .4s ease forwards; }
