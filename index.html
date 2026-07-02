@@ -17,7 +17,7 @@
   --border: rgba(0,0,0,0.08);
   --border2: rgba(0,0,0,0.15);
   --text: #1a1a1a;
-  --muted: #7a7060;
+  --muted: #5c5344;
   --accent: #2563eb;
   --green: #16a34a;
   --amber: #b45309;
@@ -29,6 +29,7 @@
   --c-blue: #2563eb;
   --c-teal: #0d9488;
   --c-green: #16a34a;
+  --c-orange: #f97316;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
@@ -51,20 +52,26 @@ body {
   margin-bottom: 0;
 }
 .tab-btn {
-  padding: 10px 28px;
+  padding: 12px 30px;
   border: none;
+  border-radius: 8px 8px 0 0;
   background: transparent;
   cursor: pointer;
   font-family: var(--sans);
-  font-size: 17px;
-  font-weight: 500;
-  color: var(--muted);
-  border-bottom: 2px solid transparent;
+  font-size: 18px;
+  font-weight: 600;
+  color: #4a4436;
+  border-bottom: 3px solid transparent;
   margin-bottom: -2px;
-  transition: color .2s, border-color .2s;
+  transition: color .2s, border-color .2s, background .2s;
+}
+.tab-btn:hover {
+  color: var(--accent);
+  background: rgba(37,99,235,0.06);
 }
 .tab-btn.active {
-  color: var(--accent);
+  color: #ffffff;
+  background: var(--accent);
   border-bottom-color: var(--accent);
 }
 .page { display: none; padding-top: 32px; }
@@ -167,6 +174,7 @@ h1 span { color: var(--accent); }
 }
 .kpi.blue::after  { background: var(--c-blue); }
 .kpi.green::after { background: var(--c-green); }
+.kpi.orange::after { background: var(--c-orange); }
 .kpi-label { font-size: 14px; color: var(--muted); margin-bottom: 8px; }
 .kpi-val {
   font-family: var(--mono);
@@ -541,7 +549,7 @@ footer {
   --accent:#2563eb; --green:#16a34a; --red:#dc2626; --yellow:#b45309;
   --text:#1a1a1a; --muted:#7a7060; --muted2:#a8a08c;
   --font:'Sarabun',sans-serif; --mono:'IBM Plex Mono',monospace;
-  --r:10px; --c68:#a8a08c; --c69:#2563eb;
+  --r:10px; --c68:#2563eb; --c69:#ea580c;
   font-family:var(--font); background:var(--bg); color:var(--text); font-size:14px;
 }
 
@@ -552,9 +560,9 @@ footer {
 .nav-row2 { display:flex; flex-direction:column; width:100%; padding:0 8px 5px }
 .nav-tabs { display:flex; width:100%; flex-wrap:wrap }
 .nav-tabs-r1 .nav-tab { flex:0 0 220px }
-.nav-tab { color:rgba(255,255,255,.7); padding:7px 4px; cursor:pointer; border:1px solid rgba(255,255,255,.2); border-radius:6px; white-space:nowrap; font-size:.75rem; font-weight:500; transition:all .15s; user-select:none; flex:1; text-align:center; margin:4px 3px; min-width:80px }
-.nav-tab:hover { color:#fff; background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.35) }
-.nav-tab.active { color:#fff; background:rgba(224,123,30,.3); border-color:var(--accent); font-weight:700 }
+.nav-tab { color:rgba(255,255,255,.88); padding:9px 6px; cursor:pointer; border:1px solid rgba(255,255,255,.28); border-radius:6px; white-space:nowrap; font-size:.86rem; font-weight:600; transition:all .15s; user-select:none; flex:1; text-align:center; margin:4px 3px; min-width:80px }
+.nav-tab:hover { color:#fff; background:rgba(255,255,255,.16); border-color:rgba(255,255,255,.45) }
+.nav-tab.active { color:#fff; background:var(--accent); border-color:#fff; font-weight:700; box-shadow:0 0 0 1px rgba(255,255,255,.4) }
 .nav-right { padding:0 14px; display:flex; gap:8px; align-items:center; margin-left:auto; flex-shrink:0 }
 .btn-sheet { display:flex; align-items:center; gap:6px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); color:rgba(255,255,255,.8); font-family:var(--font); font-size:.75rem; padding:6px 12px; border-radius:6px; cursor:pointer; text-decoration:none; transition:all .15s; white-space:nowrap }
 .btn-sheet:hover { background:rgba(255,255,255,.16); color:#fff }
@@ -564,9 +572,9 @@ footer {
 /* PAGE */
 #toppage-profit .page { display:none; padding:22px 18px; max-width:1320px; margin:0 auto }
 #toppage-profit .page.active { display:block }
-.page-title { font-size:1.2rem; font-weight:700; margin-bottom:3px }
-.page-sub { font-size:.78rem; color:var(--muted); margin-bottom:16px }
-.sec-title { font-size:.84rem; font-weight:700; margin:20px 0 10px; padding-left:10px; border-left:3px solid var(--accent); display:flex; align-items:center; gap:8px }
+.page-title { font-size:1.3rem; font-weight:700; margin-bottom:3px }
+.page-sub { font-size:.88rem; color:var(--muted); margin-bottom:16px }
+.sec-title { font-size:.92rem; font-weight:700; margin:20px 0 10px; padding-left:10px; border-left:3px solid var(--accent); display:flex; align-items:center; gap:8px }
 
 /* LOADING */
 .loading-wrap { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:80px 20px; color:var(--muted) }
@@ -751,7 +759,7 @@ footer {
   #toppage-profit .bb { width:36px }
   #toppage-profit .page { padding:12px 10px }
   #toppage-profit .chart { min-width:460px }
-  #toppage-profit .nav-tab { font-size:.68rem; padding:6px 3px }
+  #toppage-profit .nav-tab { font-size:.76rem; padding:7px 4px }
 }
 
 
@@ -759,9 +767,9 @@ footer {
 #toppage-profit .nav { background:var(--surface2); box-shadow:none; border-bottom:2px solid var(--border) }
 #toppage-profit .nav-row1 { border-bottom-color:var(--border) }
 #toppage-profit .nav-brand { color:var(--accent); border-right-color:var(--border) }
-#toppage-profit .nav-tab { color:var(--muted); border-color:var(--border) }
+#toppage-profit .nav-tab { color:#3d3628; border-color:var(--border); font-weight:600 }
 #toppage-profit .nav-tab:hover { color:var(--text); background:var(--surface); border-color:#c9bd98 }
-#toppage-profit .nav-tab.active { color:var(--accent); background:#eff6ff; border-color:var(--accent) }
+#toppage-profit .nav-tab.active { color:#ffffff; background:var(--accent); border-color:var(--accent); font-weight:700; box-shadow:0 1px 4px rgba(37,99,235,.4) }
 #toppage-profit .btn-sheet { background:var(--surface); border-color:var(--border); color:var(--muted) }
 #toppage-profit .btn-sheet:hover { background:var(--surface2); color:var(--text) }
 #toppage-profit .btn-refresh { background:#eff6ff; border-color:#bfdbfe; color:var(--accent) }
@@ -785,7 +793,7 @@ footer {
   transition: background .15s;
 }
 .pw-btn:hover { background: #1d4ed8; }
-.top-tabs .tab-btn { font-size: 18px; }
+.top-tabs .tab-btn { font-size: 19px; font-weight: 700; }
 
 </style>
 </head>
@@ -831,8 +839,8 @@ footer {
             <thead>
               <tr>
                 <th class="L">เดือน</th>
-                <th>กำไรขาย 68</th><th>ค่าใช้จ่าย 68</th><th>กำไรสุทธิ 68</th>
-                <th>กำไรขาย 69</th><th>ค่าใช้จ่าย 69</th><th>กำไรสุทธิ 69</th>
+                <th style="color:#2563eb">กำไรขาย 68</th><th style="color:#2563eb">ค่าใช้จ่าย 68</th><th style="color:#2563eb">กำไรสุทธิ 68</th>
+                <th style="color:#ea580c">กำไรขาย 69</th><th style="color:#ea580c">ค่าใช้จ่าย 69</th><th style="color:#ea580c">กำไรสุทธิ 69</th>
               </tr>
             </thead>
             <tbody id="sumReconBody">
@@ -1379,11 +1387,11 @@ footer {
     el.innerHTML = `
       <div class="kpi blue fade-in">
         <div class="kpi-label">กำไรขาย 2568 (${label})</div>
-        <div class="kpi-val" style="color:#7a7060">${fmt(p68)} <small>ล้าน</small></div>
+        <div class="kpi-val" style="color:#2563eb">${fmt(p68)} <small>ล้าน</small></div>
       </div>
-      <div class="kpi blue fade-in">
+      <div class="kpi orange fade-in">
         <div class="kpi-label">กำไรขาย 2569 (${label})</div>
-        <div class="kpi-val" style="color:#2563eb">${fmt(p69)} <small>ล้าน</small></div>
+        <div class="kpi-val" style="color:#ea580c">${fmt(p69)} <small>ล้าน</small></div>
         <div class="kpi-change ${cls}">${arrow} ${Math.abs(chg).toFixed(1)}% จากช่วงเดียวกันปีก่อน</div>
       </div>`;
   }
@@ -1400,8 +1408,8 @@ footer {
       data: {
         labels: MONTH_NAMES,
         datasets: [
-          { label: 'กำไรขาย 2568', data: p68, backgroundColor: 'rgba(122,112,96,0.55)', borderColor: '#7a7060', borderWidth: 1, borderRadius: 3 },
-          { label: 'กำไรขาย 2569', data: p69, backgroundColor: 'rgba(37,99,235,0.82)', borderColor: '#2563eb', borderWidth: 1, borderRadius: 3 },
+          { label: 'กำไรขาย 2568', data: p68, backgroundColor: 'rgba(37,99,235,0.75)', borderColor: '#2563eb', borderWidth: 1, borderRadius: 3 },
+          { label: 'กำไรขาย 2569', data: p69, backgroundColor: 'rgba(249,115,22,0.85)', borderColor: '#ea580c', borderWidth: 1, borderRadius: 3 },
         ]
       },
       options: {
@@ -1438,16 +1446,16 @@ footer {
 
       rows += `<tr>
         <td class="L">${MONTH_NAMES[i]}</td>
-        <td>${fmt(pr68,2)}</td><td>${fmt(ex68,2)}</td><td>${fmt(nt68,2)}</td>
-        <td>${pr69===null?'—':fmt(pr69,2)}</td>
-        <td>${ex69===null?'—':fmt(ex69,2)}</td>
-        <td>${nt69===null?'—':fmt(nt69,2)}</td>
+        <td style="color:#1d4ed8">${fmt(pr68,2)}</td><td style="color:#1d4ed8">${fmt(ex68,2)}</td><td style="color:#1d4ed8">${fmt(nt68,2)}</td>
+        <td style="color:#c2410c">${pr69===null?'—':fmt(pr69,2)}</td>
+        <td style="color:#c2410c">${ex69===null?'—':fmt(ex69,2)}</td>
+        <td style="color:#c2410c">${nt69===null?'—':fmt(nt69,2)}</td>
       </tr>`;
     }
-    rows += `<tr style="background:#fdf8ec;font-weight:600;border-top:2px solid #2563eb">
+    rows += `<tr style="background:#fdf8ec;font-weight:700;border-top:2px solid #2563eb">
       <td class="L">รวม / YTD</td>
-      <td>${fmt(sumProfit68,2)}</td><td>${fmt(sumExp68,2)}</td><td>${fmt(sumNet68,2)}</td>
-      <td>${fmt(sumProfit69,2)}</td><td>${fmt(sumExp69,2)}</td><td>${fmt(sumNet69,2)}</td>
+      <td style="color:#1d4ed8">${fmt(sumProfit68,2)}</td><td style="color:#1d4ed8">${fmt(sumExp68,2)}</td><td style="color:#1d4ed8">${fmt(sumNet68,2)}</td>
+      <td style="color:#c2410c">${fmt(sumProfit69,2)}</td><td style="color:#c2410c">${fmt(sumExp69,2)}</td><td style="color:#c2410c">${fmt(sumNet69,2)}</td>
     </tr>`;
     body.innerHTML = rows;
 
@@ -1497,10 +1505,12 @@ const GIDS = {
 };
 const MONTHS_TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
-// ── Navigation ──
+// ── Navigation (สโคปเฉพาะภายในหน้า "สรุปกำไรขาย" เท่านั้น กันชนกับแท็บชุดอื่น) ──
 function go(idx) {
-  document.querySelectorAll('.page').forEach((p,i)=>p.classList.toggle('active',i===idx));
-  document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  const scope = document.getElementById('toppage-profit');
+  if (!scope) return;
+  scope.querySelectorAll('.page').forEach((p,i)=>p.classList.toggle('active',i===idx));
+  scope.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
 }
 
 // ── CSV helpers ──
@@ -2631,10 +2641,12 @@ const STATIC = {
 // จำนวนเดือนที่เป็นข้อมูลจริง — คำนวณอัตโนมัติจาก Sheet ทุกครั้งที่โหลด (ดูฟังก์ชัน countActualMonths)
 let ACTUAL_MONTHS = 5; // ค่าเริ่มต้น/fallback ถ้าโหลดจาก Sheet ไม่สำเร็จ
 
-// ── Tab switching ──
+// ── Tab switching (สโคปเฉพาะภายในหน้า "รายงานทางการเงิน" เท่านั้น กันชนกับแท็บชุดอื่น) ──
 function switchTab(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const scope = document.getElementById('finContent');
+  if (!scope) return;
+  scope.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  scope.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
   event.target.classList.add('active');
 }
