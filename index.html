@@ -1433,10 +1433,12 @@ footer {
       const expense69 = MONTH69_COLS.map(c => expensesRow ? numVal(expensesRow[c]) : 0);
       const netBudget68    = netRow ? numVal(netRow[COL.y68]) / 1e6 : 0;
       const netBudget69ytd = netRow ? numVal(netRow[COL.y69ytd]) / 1e6 : 0;
+      // กำไรสุทธิตามงบรายเดือน ปี 2568 (คอลัมน์ D/H/L/P/T/X/AB/AF/AJ/AN/AR/AV = MONTH68_COLS เดียวกับที่ใช้ดึงค่าใช้จ่าย)
+      const netBudget68Monthly = MONTH68_COLS.map(c => netRow ? numVal(netRow[c]) / 1e6 : 0);
 
       renderKPI(acc, profitActualMonths);
       renderChart(acc, profitActualMonths);
-      renderRecon(acc, expense68, expense69, profitActualMonths, budgetActualMonths, netBudget68, netBudget69ytd);
+      renderRecon(acc, expense68, expense69, profitActualMonths, budgetActualMonths, netBudget68, netBudget69ytd, netBudget68Monthly);
     } catch (err) {
       console.error(err);
       showError(err.message || String(err));
@@ -1496,7 +1498,7 @@ footer {
     });
   }
 
-  function renderRecon(acc, expense68, expense69, profitMonths, budgetMonths, netBudget68, netBudget69ytd) {
+  function renderRecon(acc, expense68, expense69, profitMonths, budgetMonths, netBudget68, netBudget69ytd, netBudget68Monthly) {
     const body = document.getElementById('sumReconBody');
     if (!body) return;
     let rows = '';
@@ -1546,16 +1548,27 @@ footer {
     const diff68 = sumNet68 - netBudget68;
     const diff69 = sumNet69 - netBudget69ytd;
     const sign = v => v >= 0 ? '+' : '';
+
+    // กำไรสุทธิตามงบ 2568 เฉพาะ N เดือนแรก (N = budgetMonths เท่ากับของ 2569) เพื่อเทียบแบบจำนวนเดือนเท่ากัน
+    const netBudget68ytd = netBudget68Monthly.slice(0, budgetMonths).reduce((a,b)=>a+b, 0);
+    let ytdNet68Same = 0;
+    for (let i = 0; i < budgetMonths; i++) ytdNet68Same += (acc.profit68[i]/1e6) - expense68[i]/1e6;
+    const diff68ytd = ytdNet68Same - netBudget68ytd;
+
     const box = document.getElementById('sumVarianceRow');
     if (box) {
       box.innerHTML = `
         <div class="gs-note" style="margin:0">
-          <strong>กำไรสุทธิตามงบ 2568 (เต็มปี):</strong> ${fmt(netBudget68,2)} ล้าน ·
-          คำนวณจากกำไรขาย−ค่าใช้จ่ายได้ ${fmt(sumNet68,2)} ล้าน · ส่วนต่าง ${sign(diff68)}${fmt(diff68,2)} ล้าน
+          <strong>กำไรสุทธิตามงบ 2568 (ถึงเดือน ${budgetMonths}):</strong> ${fmt(netBudget68ytd,2)} ล้าน ·
+          คำนวณจากกำไรขาย−ค่าใช้จ่ายได้ ${fmt(ytdNet68Same,2)} ล้าน · ส่วนต่าง ${sign(diff68ytd)}${fmt(diff68ytd,2)} ล้าน
         </div>
         <div class="gs-note" style="margin:0;background:#fff7ed;border:1px solid #fed7aa;border-left:3px solid #ea580c;color:#c2410c">
           <strong>กำไรสุทธิตามงบ 2569 (ถึงเดือน ${budgetMonths}):</strong> ${fmt(netBudget69ytd,2)} ล้าน ·
           คำนวณได้ ${fmt(sumNet69,2)} ล้าน · ส่วนต่าง ${sign(diff69)}${fmt(diff69,2)} ล้าน
+        </div>
+        <div class="gs-note" style="margin:0">
+          <strong>กำไรสุทธิตามงบ 2568 (เต็มปี):</strong> ${fmt(netBudget68,2)} ล้าน ·
+          คำนวณจากกำไรขาย−ค่าใช้จ่ายได้ ${fmt(sumNet68,2)} ล้าน · ส่วนต่าง ${sign(diff68)}${fmt(diff68,2)} ล้าน
         </div>`;
     }
 
