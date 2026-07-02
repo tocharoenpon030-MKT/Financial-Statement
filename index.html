@@ -1260,9 +1260,14 @@ footer {
   }
   function numVal(v) {
     if (v === undefined || v === null) return 0;
-    const cleaned = String(v).replace(/,/g, '').replace(/^-\s+/, '-').trim();
+    let s = String(v).trim();
+    let neg = false;
+    // รองรับตัวเลขติดลบแบบวงเล็บบัญชี เช่น (108,639.21) ที่ Google Sheets export ออกมาเป็น CSV
+    if (/^\(.*\)$/.test(s)) { neg = true; s = s.slice(1, -1); }
+    const cleaned = s.replace(/,/g, '').replace(/^-\s+/, '-').trim();
     const n = parseFloat(cleaned);
-    return isNaN(n) ? 0 : n;
+    if (isNaN(n)) return 0;
+    return neg ? -Math.abs(n) : n;
   }
   function cellEmpty(v) {
     return v === undefined || v === null || String(v).trim() === '' || String(v).trim() === '-';
@@ -1578,8 +1583,13 @@ async function fetchSheet(gid) {
 
 function n(s) {
   if (s===null||s===undefined||s==='') return null;
-  const v = parseFloat(String(s).replace(/,/g,''));
-  return isNaN(v) ? null : v;
+  let str = String(s).trim();
+  let neg = false;
+  // รองรับตัวเลขติดลบแบบวงเล็บบัญชี เช่น (108,639.21) ที่ Google Sheets export ออกมาเป็น CSV
+  if (/^\(.*\)$/.test(str)) { neg = true; str = str.slice(1, -1); }
+  const v = parseFloat(str.replace(/,/g,''));
+  if (isNaN(v)) return null;
+  return neg ? -Math.abs(v) : v;
 }
 function fmt(v) {
   if (v===null||v===undefined) return '—';
@@ -2714,9 +2724,14 @@ function parseCSV(text) {
 // ── Helpers ──
 function numVal(v) {
   if (v === undefined || v === null) return 0;
-  const cleaned = String(v).replace(/,/g, '').replace(/^-\s+/, '-').trim();
+  let s = String(v).trim();
+  let neg = false;
+  // รองรับตัวเลขติดลบแบบวงเล็บบัญชี เช่น (108,639.21) ที่ Google Sheets export ออกมาเป็น CSV
+  if (/^\(.*\)$/.test(s)) { neg = true; s = s.slice(1, -1); }
+  const cleaned = s.replace(/,/g, '').replace(/^-\s+/, '-').trim();
   const n = parseFloat(cleaned);
-  return isNaN(n) ? 0 : n;
+  if (isNaN(n)) return 0;
+  return neg ? -Math.abs(n) : n;
 }
 function cellEmpty(v) {
   return v === undefined || v === null || String(v).trim() === '' || String(v).trim() === '-';
