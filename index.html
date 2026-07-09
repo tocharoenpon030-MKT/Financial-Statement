@@ -605,19 +605,63 @@ footer {
 .pa-badge.ค่อยดู { background:#dcfce7; color:var(--green); }
 .pa-badge.ปกติ { background:var(--surface2); color:var(--muted); }
 
-.pa-monthrow { display:flex; gap:20px; flex-wrap:wrap; font-size:12.5px; background:var(--surface2); border-radius:8px; padding:8px 12px; margin-bottom:14px; }
-.pa-monthrow b { font-family:var(--mono); }
+.pa-monthrow { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+.pa-mr-item { flex:1 1 130px; background:var(--surface2); border-radius:8px; padding:8px 10px; border-left:3px solid var(--border); min-width:0; }
+.pa-mr-label { font-size:10.5px; color:var(--muted); margin-bottom:2px; white-space:nowrap; }
+.pa-mr-val { font-family:var(--mono); font-weight:700; font-size:14.5px; }
+.pa-mr-sub { font-size:10px; margin-top:3px; font-family:var(--mono); line-height:1.4; }
+.pa-mr-sub.muted { color:var(--muted); font-family:var(--font); }
+.pa-mr-sub.up { color:var(--red); }
+.pa-mr-sub.dn { color:var(--green); }
+.pa-mr-item.cost { border-left-color:var(--amber); }
+.pa-mr-item.cost .pa-mr-val { color:var(--amber); }
+.pa-mr-item.comp { border-left-color:var(--red); }
+.pa-mr-item.comp .pa-mr-val { color:var(--red); }
+.pa-mr-item.market { border-left-color:var(--teal); }
+.pa-mr-item.market .pa-mr-val { color:var(--teal); }
 
 .pa-cols { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
 @media (max-width:680px) { .pa-cols { grid-template-columns:1fr; } }
 .pa-colhead { font-size:12.5px; font-weight:700; color:var(--muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:.03em; }
-.pa-tier { display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px dashed var(--border); flex-wrap:wrap; }
-.pa-tier:last-child { border-bottom:none; }
-.pa-tier-label { flex:0 0 92px; font-size:12px; color:var(--muted); }
-.pa-tier-price { flex:0 0 60px; font-family:var(--mono); font-weight:700; font-size:14px; }
-.pa-tier input[type=number] { flex:0 0 76px; padding:5px 6px; border:1px solid var(--border); border-radius:6px; font-family:var(--mono); font-size:14px; text-align:right; background:var(--surface); color:var(--text); }
-.pa-tier-meta { font-size:11px; color:var(--muted); flex:1 1 auto; min-width:120px; }
-.pa-tier-meta .amt { font-weight:700; color:var(--text); font-family:var(--mono); }
+
+.pa-tier { border-radius:8px; padding:8px 10px; margin-bottom:8px; }
+.pa-tier:last-child { margin-bottom:0; }
+.pa-tier-row1 { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.pa-tier-row2 { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:4px; flex-wrap:wrap; }
+.pa-tier-label { font-size:12px; font-weight:600; color:var(--text); }
+.pa-tier-price { font-family:var(--mono); font-weight:700; font-size:15px; }
+.pa-tier input[type=number] { font-family:var(--mono); font-weight:700; font-size:14px; text-align:right; border:1px solid var(--border2); border-radius:6px; padding:3px 6px; width:76px; background:var(--surface); color:var(--text); }
+.pa-tier-cost { font-size:11px; color:var(--muted); font-family:var(--mono); }
+.pa-diff { font-size:11px; font-weight:700; font-family:var(--mono); white-space:nowrap; }
+.pa-diff.cheap { color:var(--green); }
+.pa-diff.expensive { color:var(--red); }
+.pa-diff.neutral { color:var(--muted); font-weight:400; }
+
+.pa-tier.buy  { background:#eff6ff; border-left:3px solid var(--accent); }
+.pa-tier.iv   { background:#f0fdf4; border-left:3px solid var(--green); }
+.pa-tier.ikiv { background:#fff7ed; border-left:3px solid #f97316; }
+
+.pa-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; margin-bottom:12px; }
+.pa-table-wrap table { min-width:460px; }
+.pa-yr { font-weight:700; }
+.pa-yr.y68 { color:var(--c68); }
+.pa-yr.y69 { color:var(--c69); }
+
+/* ── มือถือจอเล็ก (ประมาณ 3 นิ้ว / ~320-360px) ── */
+@media (max-width:400px) {
+  #toppage-priceapproval .page { padding:14px 10px; }
+  .pa-card { padding:12px 12px; }
+  .pa-name { font-size:14px; }
+  .pa-note { font-size:11.5px; }
+  .pa-mr-item { flex:1 1 100%; }
+  .pa-tier-label { font-size:11px; }
+  .pa-tier-price { font-size:13.5px; }
+  .pa-tier input[type=number] { width:64px; font-size:13px; }
+  .pa-diff, .pa-tier-cost { font-size:10px; }
+  .pa-table-wrap table { min-width:420px; font-size:10.5px !important; }
+  .pa-toolbar { gap:6px; }
+  .pa-search, .pa-select, .pa-btn-outline, .pa-btn-google { font-size:12.5px; padding:7px 9px; }
+}
 
 .pa-approve-bar { position:sticky; bottom:0; background:var(--bg); border-top:1px solid var(--border); padding:12px 0; display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:8px; }
 .pa-selected-count { font-size:13.5px; color:var(--muted); font-weight:600; }
@@ -3840,28 +3884,50 @@ window.toggleDataViewer = toggleDataViewer;
     if (!comp || price === null) return null;
     return (comp - price) / comp * 100; // + = ถูกกว่าคู่แข่ง, - = แพงกว่า
   }
-  function paDiffText(diff) {
-    if (diff === null) return '-';
-    return diff >= 0 ? `ถูกกว่าคู่แข่ง ${paFmt(diff)}%` : `แพงกว่าคู่แข่ง ${paFmt(-diff)}%`;
+  function paDiffHtml(diff) {
+    if (diff === null) return '<span class="pa-diff neutral">-</span>';
+    return diff >= 0
+      ? `<span class="pa-diff cheap">ถูกกว่าคู่แข่ง ${paFmt(diff)}%</span>`
+      : `<span class="pa-diff expensive">แพงกว่าคู่แข่ง ${paFmt(-diff)}%</span>`;
   }
 
-  function paTierRowCurrent(label, price, item) {
+  function paCostChangeHtml(costMonth, cost69) {
+    if (costMonth === null || cost69 === null || !cost69) return '<div class="pa-mr-sub muted">-</div>';
+    const diff = costMonth - cost69;
+    const pct = diff / cost69 * 100;
+    if (Math.abs(diff) < 0.005) return '<div class="pa-mr-sub muted">เท่ากับปี 2569</div>';
+    const cls = diff > 0 ? 'up' : 'dn';
+    const word = diff > 0 ? 'เพิ่มขึ้นจากปี 2569' : 'ลดลงจากปี 2569';
+    return `<div class="pa-mr-sub ${cls}">${word} ${paFmt(Math.abs(diff))} บ. (${diff > 0 ? '+' : '-'}${paFmt(Math.abs(pct))}%)</div>`;
+  }
+
+  function paTierRowCurrent(label, key, price, item) {
     const profit = price === null ? null : price - item.costMonth;
     const diff = paVsComp(price, item.compPrice);
     return `
-      <div class="pa-tier">
-        <div class="pa-tier-label">${label}</div>
-        <div class="pa-tier-price">${paFmt(price)}</div>
-        <div class="pa-tier-meta">กำไร <span class="amt">${paFmt(profit)}</span> บ. · ${paDiffText(diff)}</div>
+      <div class="pa-tier ${key}">
+        <div class="pa-tier-row1">
+          <span class="pa-tier-label">${label}</span>
+          <span class="pa-tier-price">${paFmt(price)}</span>
+        </div>
+        <div class="pa-tier-row2">
+          <span class="pa-tier-cost">กำไร: ${paFmt(profit)} บ.</span>
+          ${paDiffHtml(diff)}
+        </div>
       </div>`;
   }
   function paTierRowPropose(label, key, item, defaultVal) {
     return `
-      <div class="pa-tier">
-        <div class="pa-tier-label">${label}</div>
-        <input type="number" step="0.01" class="pa-input" data-code="${item.code}" data-key="${key}"
-               id="pa_${key}_${item.code}" value="${defaultVal !== null ? defaultVal : ''}">
-        <div class="pa-tier-meta" id="pa_${key}_${item.code}_meta">กำไร <span class="amt">-</span> บ. · -</div>
+      <div class="pa-tier ${key}">
+        <div class="pa-tier-row1">
+          <span class="pa-tier-label">${label}</span>
+          <input type="number" step="0.01" class="pa-input" data-code="${item.code}" data-key="${key}"
+                 id="pa_${key}_${item.code}" value="${defaultVal !== null ? defaultVal : ''}">
+        </div>
+        <div class="pa-tier-row2" id="pa_${key}_${item.code}_meta">
+          <span class="pa-tier-cost">กำไร: - บ.</span>
+          <span class="pa-diff neutral">-</span>
+        </div>
       </div>`;
   }
 
@@ -3901,6 +3967,7 @@ window.toggleDataViewer = toggleDataViewer;
         </div>
         <div class="pa-note">${item.note || ''}</div>
 
+        <div class="pa-table-wrap">
         <table style="width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:12px;">
           <tr><th style="text-align:left;color:var(--muted);padding:5px 6px;"></th>
               <th style="text-align:right;color:var(--muted);padding:5px 6px;">ต้นทุน</th>
@@ -3909,14 +3976,14 @@ window.toggleDataViewer = toggleDataViewer;
               <th style="text-align:right;color:var(--muted);padding:5px 6px;">กำไร/หน่วย</th>
               <th style="text-align:right;color:var(--muted);padding:5px 6px;">กำไร%</th>
               <th style="text-align:right;color:var(--muted);padding:5px 6px;">กำไรรวม</th></tr>
-          <tr><td style="padding:5px 6px;">ปี 2568</td>
+          <tr><td style="padding:5px 6px;"><span class="pa-yr y68">ปี 2568</span></td>
               <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(item.cost68)}</td>
               <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(item.avgPrice68)}</td>
               <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(item.qty68)}</td>
               <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(item.profitU68)}</td>
               <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(m68)}%</td>
               <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(item.profitT68)}</td></tr>
-          <tr><td style="padding:5px 6px;">ปี 2569</td>
+          <tr><td style="padding:5px 6px;"><span class="pa-yr y69">ปี 2569</span></td>
               <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(item.cost69)}</td>
               <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(item.avgPrice69)}</td>
               <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(item.qty69)}</td>
@@ -3924,19 +3991,30 @@ window.toggleDataViewer = toggleDataViewer;
               <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(m69)}%</td>
               <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(item.profitT69)}</td></tr>
         </table>
+        </div>
 
         <div class="pa-monthrow">
-          <div>ต้นทุนเดือนนี้ <b>${paFmt(item.costMonth)}</b></div>
-          <div>ราคาคู่แข่ง <b>${paFmt(item.compPrice)}</b></div>
-          <div>ราคาตลาด <b>${paFmt(item.marketPrice)}</b></div>
+          <div class="pa-mr-item cost">
+            <div class="pa-mr-label">ต้นทุนเดือนนี้</div>
+            <div class="pa-mr-val">${paFmt(item.costMonth)}</div>
+            ${paCostChangeHtml(item.costMonth, item.cost69)}
+          </div>
+          <div class="pa-mr-item comp">
+            <div class="pa-mr-label">ราคาคู่แข่ง</div>
+            <div class="pa-mr-val">${paFmt(item.compPrice)}</div>
+          </div>
+          <div class="pa-mr-item market">
+            <div class="pa-mr-label">ราคาตลาด</div>
+            <div class="pa-mr-val">${paFmt(item.marketPrice)}</div>
+          </div>
         </div>
 
         <div class="pa-cols">
           <div>
             <div class="pa-colhead">ราคาที่ตั้งขายตอนนี้</div>
-            ${paTierRowCurrent('ราคาจัดซื้อ', item.buyNow, item)}
-            ${paTierRowCurrent('ราคา IV รับเอง', item.ivNow, item)}
-            ${paTierRowCurrent('ราคา IK-IV ส่งให้', item.ikivNow, item)}
+            ${paTierRowCurrent('ราคาจัดซื้อ', 'buy', item.buyNow, item)}
+            ${paTierRowCurrent('ราคา IV รับเอง', 'iv', item.ivNow, item)}
+            ${paTierRowCurrent('ราคา IK-IV ส่งให้', 'ikiv', item.ikivNow, item)}
           </div>
           <div>
             <div class="pa-colhead">ราคาที่เสนอปรับ (แก้ไขได้)</div>
@@ -3954,10 +4032,10 @@ window.toggleDataViewer = toggleDataViewer;
         const meta = card.querySelector(`#pa_${key}_${item.code}_meta`);
         const recalc = () => {
           const val = parseFloat(input.value);
-          if (isNaN(val)) { meta.innerHTML = 'กำไร <span class="amt">-</span> บ. · -'; return; }
+          if (isNaN(val)) { meta.innerHTML = '<span class="pa-tier-cost">กำไร: - บ.</span><span class="pa-diff neutral">-</span>'; return; }
           const profit = val - item.costMonth;
           const diff = paVsComp(val, item.compPrice);
-          meta.innerHTML = `กำไร <span class="amt">${paFmt(profit)}</span> บ. · ${paDiffText(diff)}`;
+          meta.innerHTML = `<span class="pa-tier-cost">กำไร: ${paFmt(profit)} บ.</span>${paDiffHtml(diff)}`;
         };
         input.addEventListener('input', recalc);
         recalc();
