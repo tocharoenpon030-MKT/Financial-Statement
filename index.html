@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 
 :root {
@@ -566,13 +567,66 @@ footer {
 .fade-in:nth-child(5){animation-delay:.25s}
 
 
-#toppage-profit {
+#toppage-profit, #toppage-priceapproval {
   --bg:#fffdf5; --surface:#ffffff; --surface2:#fdf8ec; --border:#e8e0cc;
   --accent:#2563eb; --green:#16a34a; --red:#dc2626; --yellow:#b45309;
   --text:#1a1a1a; --muted:#7a7060; --muted2:#a8a08c;
   --font:'Sarabun',sans-serif; --mono:'IBM Plex Mono',monospace;
   --r:10px; --c68:#2563eb; --c69:#ea580c;
   font-family:var(--font); background:var(--bg); color:var(--text); font-size:14px;
+}
+#toppage-priceapproval .page { display:none; padding:22px 18px; max-width:1320px; margin:0 auto }
+#toppage-priceapproval .page.active { display:block }
+
+/* ── ส่งพิจารณาปรับราคาขาย ── */
+.pa-toolbar { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; align-items:center; }
+.pa-search { flex:1 1 220px; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-family:var(--font); font-size:14px; background:var(--surface); color:var(--text); }
+.pa-select { padding:9px 10px; border:1px solid var(--border); border-radius:8px; font-family:var(--font); font-size:13.5px; background:var(--surface); color:var(--text); }
+.pa-btn-outline { padding:9px 14px; border:1px solid var(--accent); border-radius:8px; background:#eff6ff; color:var(--accent); font-family:var(--font); font-size:13.5px; font-weight:600; cursor:pointer; white-space:nowrap; }
+.pa-btn-outline:hover { background:#dbeafe; }
+.pa-btn-google { padding:9px 14px; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--text); font-family:var(--font); font-size:13.5px; font-weight:600; cursor:pointer; white-space:nowrap; }
+.pa-btn-google:hover { background:var(--surface2); }
+.pa-btn-google.signed-in { border-color:var(--green); color:var(--green); background:#f0fdf4; }
+.pa-signedin { font-size:13px; color:var(--muted); margin-bottom:10px; }
+.pa-status { font-size:13.5px; margin-bottom:12px; min-height:0; }
+.pa-status.ok { color:var(--green); }
+.pa-status.err { color:var(--red); }
+.pa-status.info { color:var(--accent); }
+
+.pa-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:16px 18px; margin-bottom:14px; }
+.pa-card-head { display:flex; gap:12px; align-items:flex-start; margin-bottom:6px; }
+.pa-card-head input[type=checkbox] { width:20px; height:20px; margin-top:2px; flex-shrink:0; accent-color:var(--accent); }
+.pa-code { font-family:var(--mono); font-size:12px; color:var(--muted); }
+.pa-name { font-size:15.5px; font-weight:700; margin:2px 0 4px; }
+.pa-note { font-size:12.5px; color:var(--muted); margin-bottom:12px; }
+.pa-badge { display:inline-block; padding:2px 9px; border-radius:20px; font-size:.68rem; font-weight:700; font-family:var(--mono); white-space:nowrap; }
+.pa-badge.เร่งด่วน { background:#fee2e2; color:var(--red); }
+.pa-badge.ควรดู { background:#fef3c7; color:#b45309; }
+.pa-badge.ค่อยดู { background:#dcfce7; color:var(--green); }
+.pa-badge.ปกติ { background:var(--surface2); color:var(--muted); }
+
+.pa-monthrow { display:flex; gap:20px; flex-wrap:wrap; font-size:12.5px; background:var(--surface2); border-radius:8px; padding:8px 12px; margin-bottom:14px; }
+.pa-monthrow b { font-family:var(--mono); }
+
+.pa-cols { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+@media (max-width:680px) { .pa-cols { grid-template-columns:1fr; } }
+.pa-colhead { font-size:12.5px; font-weight:700; color:var(--muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:.03em; }
+.pa-tier { display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px dashed var(--border); flex-wrap:wrap; }
+.pa-tier:last-child { border-bottom:none; }
+.pa-tier-label { flex:0 0 92px; font-size:12px; color:var(--muted); }
+.pa-tier-price { flex:0 0 60px; font-family:var(--mono); font-weight:700; font-size:14px; }
+.pa-tier input[type=number] { flex:0 0 76px; padding:5px 6px; border:1px solid var(--border); border-radius:6px; font-family:var(--mono); font-size:14px; text-align:right; background:var(--surface); color:var(--text); }
+.pa-tier-meta { font-size:11px; color:var(--muted); flex:1 1 auto; min-width:120px; }
+.pa-tier-meta .amt { font-weight:700; color:var(--text); font-family:var(--mono); }
+
+.pa-approve-bar { position:sticky; bottom:0; background:var(--bg); border-top:1px solid var(--border); padding:12px 0; display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:8px; }
+.pa-selected-count { font-size:13.5px; color:var(--muted); font-weight:600; }
+.pa-approve-btn { background:var(--accent); color:#fff; border:none; padding:11px 26px; border-radius:8px; font-family:var(--font); font-size:14.5px; font-weight:700; cursor:pointer; }
+.pa-approve-btn:hover { background:#1d4ed8; }
+.pa-approve-btn:disabled { background:#9ca3af; cursor:not-allowed; }
+@media (max-width:600px){
+  .pa-approve-bar{ flex-direction:column; align-items:stretch; }
+  .pa-approve-btn{ width:100%; }
 }
 
 /* NAV */
@@ -846,6 +900,7 @@ footer {
 <div class="page-tabs top-tabs" id="topTabs">
   <button class="tab-btn active" data-top="summary">🔒 สรุปการเงิน</button>
   <button class="tab-btn" data-top="finreport">🔒 รายงานทางการเงิน</button>
+  <button class="tab-btn" data-top="priceapproval">ส่งพิจารณาปรับราคาขาย</button>
   <button class="tab-btn" data-top="profit">สรุปกำไรขาย</button>
 </div>
 
@@ -1129,6 +1184,52 @@ footer {
   </div>
 </div>
 
+<div id="toppage-priceapproval" class="page">
+
+<div class="nav">
+  <div class="nav-row1">
+    <div class="nav-brand">📝 ส่งพิจารณาปรับราคาขาย</div>
+    <div class="nav-right">
+      <button class="btn-refresh" onclick="window.__paRefresh && window.__paRefresh()">↺ รีเฟรช</button>
+      <a class="btn-sheet" href="https://docs.google.com/spreadsheets/d/1G7FvoUqEouWXVTdCqZuCItEU_Tkuyjodbo6-A3eJWuo/edit" target="_blank">📋 DATA</a>
+    </div>
+  </div>
+</div>
+
+<div class="page active" id="pa-page">
+  <div class="page-title">รายการขออนุมัติปรับราคาขาย</div>
+  <div class="page-sub">ดึงเฉพาะสินค้าที่มีเลข 1 ในคอลัมน์ AE ของชีท · แก้ไขราคาในชีทแล้วกด "รีเฟรช" เพื่ออัปเดต</div>
+
+  <div class="pa-toolbar">
+    <input type="text" id="paSearch" class="pa-search" placeholder="ค้นหาชื่อสินค้า / รหัสสินค้า...">
+    <select id="paLevelFilter" class="pa-select">
+      <option value="ทั้งหมด">ระดับ: ทั้งหมด</option>
+      <option value="เร่งด่วน">เร่งด่วน</option>
+      <option value="ควรดู">ควรดู</option>
+      <option value="ค่อยดู">ค่อยดู</option>
+      <option value="ปกติ">ปกติ</option>
+    </select>
+    <select id="paGroupFilter" class="pa-select">
+      <option value="ทั้งหมด">กลุ่มสินค้า: ทั้งหมด</option>
+    </select>
+    <button id="paSelectAllBtn" class="pa-btn-outline">☑ เลือกทั้งหมด</button>
+    <button id="paSignInBtn" class="pa-btn-google">🔐 เข้าสู่ระบบ Google</button>
+  </div>
+
+  <div id="paSignedInAs" class="pa-signedin" style="display:none;"></div>
+
+  <div id="paStatus" class="pa-status"></div>
+
+  <div id="paCards"><div class="loading-wrap"><div class="spinner"></div><span>กำลังดึงข้อมูลจาก Google Sheets...</span></div></div>
+
+  <div class="pa-approve-bar">
+    <div id="paSelectedCount" class="pa-selected-count">เลือกอยู่ 0 รายการ</div>
+    <button id="paApproveBtn" class="pa-approve-btn">✔ อนุมัติรายการที่เลือก</button>
+  </div>
+</div>
+
+</div>
+
 <div id="toppage-profit" class="page">
 
 
@@ -1233,6 +1334,7 @@ footer {
   const topPages = {
     summary: document.getElementById('toppage-summary'),
     finreport: document.getElementById('toppage-finreport'),
+    priceapproval: document.getElementById('toppage-priceapproval'),
     profit: document.getElementById('toppage-profit'),
   };
 
@@ -2477,7 +2579,7 @@ function pctChange(cur, prev) {
 
 // months: { [mon 1-12]: {cost68,cost69,price68,price69,qty68,qty69,profit68,profit69,sale68,sale69} }
 // ใช้ร่วมกันทั้งสินค้าหลัก (parseMainDetail) และสินค้าอื่น (parseOtherDetail)
-function computeAlertItem(grp, sku, desc, unit, months) {
+function computeAlertItem(grp, sku, desc, months) {
   let lastMon = 0;
   for (let m=1; m<=12; m++) { if (months[m] && (months[m].qty69||0) > 0) lastMon = m; }
   if (!lastMon) return null;
@@ -2512,7 +2614,7 @@ function computeAlertItem(grp, sku, desc, unit, months) {
   };
 
   return {
-    grp, sku, desc, unit, lastMon,
+    grp, sku, desc, lastMon,
     cost69: cur.cost69, price69: cur.price69, gpu: curGpu, profit: cur.profit69, qty: cur.qty69, sale: cur.sale69,
     cost68: cur.cost68, price68: cur.price68, gpu68: yoyGpu, profit68: cur.profit68, qty68: cur.qty68, sale68: cur.sale68,
     mom, yoy
@@ -2525,7 +2627,7 @@ function parseAlertItems(rows) {
   for (const grp in grouped) {
     for (const key in grouped[grp]) {
       const it = grouped[grp][key];
-      const alertItem = computeAlertItem(grp, it.sku, it.desc, it.unit, it.months);
+      const alertItem = computeAlertItem(grp, it.sku, it.desc, it.months);
       if (alertItem) out.push(alertItem);
     }
   }
@@ -2538,7 +2640,7 @@ function parseAlertItemsOther(rows) {
   for (const grp in grouped) {
     for (const key in grouped[grp]) {
       const it = grouped[grp][key];
-      const alertItem = computeAlertItem(grp, it.sku, it.desc, it.unit, it.months);
+      const alertItem = computeAlertItem(grp, it.sku, it.desc, it.months);
       if (alertItem) out.push(alertItem);
     }
   }
@@ -2654,24 +2756,16 @@ function renderAlertPage(bkkMainRows, pttMainRows, bkkOtherRows, pttOtherRows, c
   }
 
   function exportXlsx() {
-    const rows = [['กลุ่ม','รหัสสินค้า','รายละเอียด','หน่วย',
-      'ระดับ','คำแนะนำ',
-      'ต้นทุน2568','ต้นทุน2569',
-      'จำนวนขาย2568','จำนวนขาย2569',
-      'กำไร/หน่วย2568','กำไร/หน่วย2569',
-      'กำไรรวม2568','กำไรรวม2569',
-      'ยอดขายเซล2568','ยอดขายเซล2569',
-      'ราคาขายเฉลี่ย2568','ราคาขายเฉลี่ย2569']];
+    const rows = [['รหัสสินค้า','กลุ่มสินค้า','รายการ','ระดับ',
+      'ต้นทุนปีที่แล้ว','ราคาขายเฉลี่ยปีที่แล้ว','กำไร/หน่วยปีที่แล้ว','กำไรรวมปีที่แล้ว','จำนวนขายปีที่แล้ว','ยอดขายเซลปีที่แล้ว',
+      'ต้นทุนปีนี้','ราคาขายเฉลี่ยปีนี้','กำไร/หน่วยปีนี้','กำไรรวมปีนี้','จำนวนขายปีนี้','ยอดขายเซลปีนี้',
+      'ข้อเสนอแนะ']];
     lastClassified.forEach(({item,c})=>{
       rows.push([
-        item.grp, item.sku||'', item.desc, item.unit||'',
-        c.label, c.main,
-        item.cost68, item.cost69,
-        item.qty68, item.qty,
-        item.gpu68, item.gpu,
-        item.profit68, item.profit,
-        item.sale68, item.sale,
-        item.price68, item.price69
+        item.sku||'', item.grp, item.desc, c.label,
+        item.cost68, item.price68, item.gpu68, item.profit68, item.qty68, item.sale68,
+        item.cost69, item.price69, item.gpu, item.profit, item.qty, item.sale,
+        c.main
       ]);
     });
     const ws = XLSX.utils.aoa_to_sheet(rows);
@@ -3633,6 +3727,349 @@ window.switchTab = switchTab;
 window.toggleDataViewer = toggleDataViewer;
 })();
 
+</script>
+<script>
+(function(){
+  // ══════════════════════════════════════════════════════════
+  //  ส่งพิจารณาปรับราคาขาย — CONFIG
+  //  1) CLIENT_ID: สร้างที่ Google Cloud Console > APIs & Services >
+  //     Credentials > OAuth Client ID (ประเภท Web application)
+  //     Authorized JavaScript origins ต้องเป็น:
+  //     https://tocharoenpon030-mkt.github.io
+  //  2) SHEET_NAME: ชื่อแท็บจริงในสเปรดชีต (ดูที่แท็บด้านล่างของ Google Sheets)
+  //     ค่าเริ่มต้นเดาไว้เป็น "Sheet1" — ถ้าชื่อแท็บไม่ตรง ให้แก้ตรงนี้
+  // ══════════════════════════════════════════════════════════
+  const CONFIG = {
+    SHEET_ID: '1G7FvoUqEouWXVTdCqZuCItEU_Tkuyjodbo6-A3eJWuo',
+    GID: '0',
+    SHEET_NAME: 'Sheet1',
+    CLIENT_ID: '909287669276-e9ra107720vef8hkirhod1el8j8aalt5.apps.googleusercontent.com',
+    SCOPE: 'https://www.googleapis.com/auth/spreadsheets',
+  };
+  CONFIG.CSV_URL = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/export?format=csv&gid=${CONFIG.GID}`;
+
+  // ── CSV parser (รองรับ comma ในเครื่องหมายคำพูด) ──
+  function paParseCSV(text) {
+    const rows = [];
+    let row = [], field = '', inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i], next = text[i+1];
+      if (inQuotes) {
+        if (c === '"' && next === '"') { field += '"'; i++; }
+        else if (c === '"') { inQuotes = false; }
+        else { field += c; }
+      } else {
+        if (c === '"') inQuotes = true;
+        else if (c === ',') { row.push(field); field = ''; }
+        else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+        else if (c === '\r') { /* skip */ }
+        else { field += c; }
+      }
+    }
+    if (field.length || row.length) { row.push(field); rows.push(row); }
+    return rows;
+  }
+  function paNum(v) {
+    if (v === null || v === undefined) return null;
+    const s = String(v).replace(/,/g, '').trim();
+    if (s === '' || s.toLowerCase() === 'ไม่มีจำหน่าย') return null;
+    const n = parseFloat(s);
+    return isNaN(n) ? null : n;
+  }
+  function paFmt(n) {
+    if (n === null || n === undefined || isNaN(n)) return '-';
+    return Number(n).toLocaleString('th-TH', { maximumFractionDigits: 2 });
+  }
+
+  let paItems = [];      // full dataset (AE === 1 only)
+  let paAccessToken = null;
+
+  async function paLoadData() {
+    const cardsEl = document.getElementById('paCards');
+    cardsEl.innerHTML = '<div class="loading-wrap"><div class="spinner"></div><span>กำลังดึงข้อมูลจาก Google Sheets...</span></div>';
+    try {
+      const res = await fetch(CONFIG.CSV_URL + '&_=' + Date.now());
+      if (!res.ok) throw new Error('โหลดชีทไม่สำเร็จ (' + res.status + ')');
+      const grid = paParseCSV(await res.text());
+      const items = [];
+      // แถวที่ 1 = หัวตาราง, ข้อมูลเริ่มแถวที่ 2 ของชีทจริง (index 1 ของ grid)
+      for (let i = 1; i < grid.length; i++) {
+        const r = grid[i];
+        if (!r || !r[0]) continue;
+        const flag = paNum(r[30]); // AE
+        if (flag !== 1) continue;
+        items.push({
+          sheetRow: i + 1, // 1-indexed sheet row number
+          group: r[0], code: r[1], name: r[2], unit: r[3], level: r[4], note: r[5],
+          cost68: paNum(r[6]), cost69: paNum(r[7]),
+          qty68: paNum(r[8]), qty69: paNum(r[9]),
+          profitU68: paNum(r[10]), profitU69: paNum(r[11]),
+          profitT68: paNum(r[12]), profitT69: paNum(r[13]),
+          sale68: paNum(r[14]), sale69: paNum(r[15]),
+          avgPrice68: paNum(r[16]), avgPrice69: paNum(r[17]),
+          costMonth: paNum(r[18]),
+          buyNow: paNum(r[19]), ivNow: paNum(r[20]), ikivNow: paNum(r[21]),
+          compPrice: paNum(r[22]), marketPrice: paNum(r[23]),
+          buyPropose: paNum(r[24]), ivPropose: paNum(r[25]), ikivPropose: paNum(r[26]),
+        });
+      }
+      paItems = items;
+      paPopulateGroupFilter();
+      paRender();
+    } catch (err) {
+      cardsEl.innerHTML = '<div class="err-box">โหลดข้อมูลไม่สำเร็จ: ' + err.message + '</div>';
+      console.error(err);
+    }
+  }
+  window.__paRefresh = paLoadData;
+
+  function paPopulateGroupFilter() {
+    const sel = document.getElementById('paGroupFilter');
+    const cur = sel.value;
+    const groups = Array.from(new Set(paItems.map(i => i.group))).sort();
+    sel.innerHTML = '<option value="ทั้งหมด">กลุ่มสินค้า: ทั้งหมด</option>' +
+      groups.map(g => `<option value="${g}">${g}</option>`).join('');
+    if (groups.includes(cur)) sel.value = cur;
+  }
+
+  function paMarginPct(price, cost) {
+    if (!cost) return null;
+    return (price - cost) / cost * 100;
+  }
+  function paVsComp(price, comp) {
+    if (!comp || price === null) return null;
+    return (comp - price) / comp * 100; // + = ถูกกว่าคู่แข่ง, - = แพงกว่า
+  }
+  function paDiffText(diff) {
+    if (diff === null) return '-';
+    return diff >= 0 ? `ถูกกว่าคู่แข่ง ${paFmt(diff)}%` : `แพงกว่าคู่แข่ง ${paFmt(-diff)}%`;
+  }
+
+  function paTierRowCurrent(label, price, item) {
+    const profit = price === null ? null : price - item.costMonth;
+    const diff = paVsComp(price, item.compPrice);
+    return `
+      <div class="pa-tier">
+        <div class="pa-tier-label">${label}</div>
+        <div class="pa-tier-price">${paFmt(price)}</div>
+        <div class="pa-tier-meta">กำไร <span class="amt">${paFmt(profit)}</span> บ. · ${paDiffText(diff)}</div>
+      </div>`;
+  }
+  function paTierRowPropose(label, key, item, defaultVal) {
+    return `
+      <div class="pa-tier">
+        <div class="pa-tier-label">${label}</div>
+        <input type="number" step="0.01" class="pa-input" data-code="${item.code}" data-key="${key}"
+               id="pa_${key}_${item.code}" value="${defaultVal !== null ? defaultVal : ''}">
+        <div class="pa-tier-meta" id="pa_${key}_${item.code}_meta">กำไร <span class="amt">-</span> บ. · -</div>
+      </div>`;
+  }
+
+  function paRender() {
+    const search = document.getElementById('paSearch').value.trim().toLowerCase();
+    const level = document.getElementById('paLevelFilter').value;
+    const group = document.getElementById('paGroupFilter').value;
+    const wrap = document.getElementById('paCards');
+    wrap.innerHTML = '';
+
+    const filtered = paItems.filter(it =>
+      (level === 'ทั้งหมด' || it.level === level) &&
+      (group === 'ทั้งหมด' || it.group === group) &&
+      (search === '' || String(it.name).toLowerCase().includes(search) || String(it.code).toLowerCase().includes(search))
+    );
+
+    if (filtered.length === 0) {
+      wrap.innerHTML = '<div class="pa-card">ไม่พบรายการตามเงื่อนไขที่เลือก</div>';
+      paUpdateSelectedCount();
+      return;
+    }
+
+    filtered.forEach(item => {
+      const m68 = paMarginPct(item.avgPrice68, item.cost68);
+      const m69 = paMarginPct(item.avgPrice69, item.cost69);
+      const card = document.createElement('div');
+      card.className = 'pa-card';
+      card.dataset.code = item.code;
+      card.innerHTML = `
+        <div class="pa-card-head">
+          <input type="checkbox" class="pa-check" data-code="${item.code}">
+          <div style="flex:1;">
+            <div class="pa-code">${item.group} · ${item.code}</div>
+            <div class="pa-name">${item.name}</div>
+          </div>
+          <div class="pa-badge ${item.level}">${item.level || 'ไม่ระบุ'}</div>
+        </div>
+        <div class="pa-note">${item.note || ''}</div>
+
+        <table style="width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:12px;">
+          <tr><th style="text-align:left;color:var(--muted);padding:5px 6px;"></th>
+              <th style="text-align:right;color:var(--muted);padding:5px 6px;">ต้นทุน</th>
+              <th style="text-align:right;color:var(--muted);padding:5px 6px;">ราคาขายเฉลี่ย</th>
+              <th style="text-align:right;color:var(--muted);padding:5px 6px;">จำนวนขาย</th>
+              <th style="text-align:right;color:var(--muted);padding:5px 6px;">กำไร/หน่วย</th>
+              <th style="text-align:right;color:var(--muted);padding:5px 6px;">กำไร%</th>
+              <th style="text-align:right;color:var(--muted);padding:5px 6px;">กำไรรวม</th></tr>
+          <tr><td style="padding:5px 6px;">ปี 2568</td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(item.cost68)}</td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(item.avgPrice68)}</td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(item.qty68)}</td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(item.profitU68)}</td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(m68)}%</td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(item.profitT68)}</td></tr>
+          <tr><td style="padding:5px 6px;">ปี 2569</td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(item.cost69)}</td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(item.avgPrice69)}</td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(item.qty69)}</td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(item.profitU69)}</td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(m69)}%</td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${paFmt(item.profitT69)}</td></tr>
+        </table>
+
+        <div class="pa-monthrow">
+          <div>ต้นทุนเดือนนี้ <b>${paFmt(item.costMonth)}</b></div>
+          <div>ราคาคู่แข่ง <b>${paFmt(item.compPrice)}</b></div>
+          <div>ราคาตลาด <b>${paFmt(item.marketPrice)}</b></div>
+        </div>
+
+        <div class="pa-cols">
+          <div>
+            <div class="pa-colhead">ราคาที่ตั้งขายตอนนี้</div>
+            ${paTierRowCurrent('ราคาจัดซื้อ', item.buyNow, item)}
+            ${paTierRowCurrent('ราคา IV รับเอง', item.ivNow, item)}
+            ${paTierRowCurrent('ราคา IK-IV ส่งให้', item.ikivNow, item)}
+          </div>
+          <div>
+            <div class="pa-colhead">ราคาที่เสนอปรับ (แก้ไขได้)</div>
+            ${paTierRowPropose('ราคาจัดซื้อ', 'buy', item, item.buyPropose)}
+            ${paTierRowPropose('ราคา IV รับเอง', 'iv', item, item.ivPropose)}
+            ${paTierRowPropose('ราคา IK-IV ส่งให้', 'ikiv', item, item.ikivPropose)}
+          </div>
+        </div>
+      `;
+      wrap.appendChild(card);
+
+      // live recalculation + checkbox counter
+      ['buy','iv','ikiv'].forEach(key => {
+        const input = card.querySelector(`#pa_${key}_${item.code}`);
+        const meta = card.querySelector(`#pa_${key}_${item.code}_meta`);
+        const recalc = () => {
+          const val = parseFloat(input.value);
+          if (isNaN(val)) { meta.innerHTML = 'กำไร <span class="amt">-</span> บ. · -'; return; }
+          const profit = val - item.costMonth;
+          const diff = paVsComp(val, item.compPrice);
+          meta.innerHTML = `กำไร <span class="amt">${paFmt(profit)}</span> บ. · ${paDiffText(diff)}`;
+        };
+        input.addEventListener('input', recalc);
+        recalc();
+      });
+      card.querySelector('.pa-check').addEventListener('change', paUpdateSelectedCount);
+    });
+
+    paUpdateSelectedCount();
+  }
+
+  function paUpdateSelectedCount() {
+    const n = document.querySelectorAll('#paCards .pa-check:checked').length;
+    document.getElementById('paSelectedCount').textContent = `เลือกอยู่ ${n} รายการ`;
+  }
+
+  function paSetStatus(msg, type) {
+    const el = document.getElementById('paStatus');
+    el.textContent = msg;
+    el.className = 'pa-status' + (type ? ' ' + type : '');
+  }
+
+  // ── Google Sign-In (OAuth token, ไม่ใช้ Apps Script) ──
+  let paTokenClient = null;
+  function paInitGoogleAuth() {
+    if (!window.google || !google.accounts || !google.accounts.oauth2) {
+      setTimeout(paInitGoogleAuth, 300);
+      return;
+    }
+    paTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CONFIG.CLIENT_ID,
+      scope: CONFIG.SCOPE,
+      callback: (resp) => {
+        if (resp.error) { paSetStatus('เข้าสู่ระบบ Google ไม่สำเร็จ: ' + resp.error, 'err'); return; }
+        paAccessToken = resp.access_token;
+        const btn = document.getElementById('paSignInBtn');
+        btn.textContent = '✅ เชื่อมต่อ Google แล้ว';
+        btn.classList.add('signed-in');
+        paSetStatus('เข้าสู่ระบบสำเร็จ พร้อมกดอนุมัติเพื่อบันทึกเข้าชีทได้แล้ว', 'ok');
+      },
+    });
+  }
+  function paSignIn(then) {
+    if (!paTokenClient) { paSetStatus('ระบบล็อกอิน Google ยังโหลดไม่เสร็จ ลองใหม่อีกครั้ง', 'err'); return; }
+    if (paAccessToken) { if (then) then(); return; }
+    paTokenClient.callback = (resp) => {
+      if (resp.error) { paSetStatus('เข้าสู่ระบบ Google ไม่สำเร็จ: ' + resp.error, 'err'); return; }
+      paAccessToken = resp.access_token;
+      const btn = document.getElementById('paSignInBtn');
+      btn.textContent = '✅ เชื่อมต่อ Google แล้ว';
+      btn.classList.add('signed-in');
+      paSetStatus('เข้าสู่ระบบสำเร็จ', 'ok');
+      if (then) then();
+    };
+    paTokenClient.requestAccessToken({ prompt: paAccessToken ? '' : 'consent' });
+  }
+
+  async function paApproveSelected() {
+    const checks = Array.from(document.querySelectorAll('#paCards .pa-check:checked'));
+    if (checks.length === 0) { paSetStatus('กรุณาติ๊กเลือกอย่างน้อย 1 รายการก่อนอนุมัติ', 'err'); return; }
+    if (!paAccessToken) { paSignIn(() => paApproveSelected()); return; }
+
+    const btn = document.getElementById('paApproveBtn');
+    btn.disabled = true;
+    paSetStatus(`กำลังบันทึก ${checks.length} รายการเข้า Google Sheets...`, 'info');
+
+    const data = checks.map(chk => {
+      const code = chk.dataset.code;
+      const item = paItems.find(i => String(i.code) === String(code));
+      const buy = document.getElementById(`pa_buy_${code}`).value;
+      const iv = document.getElementById(`pa_iv_${code}`).value;
+      const ikiv = document.getElementById(`pa_ikiv_${code}`).value;
+      return {
+        range: `${CONFIG.SHEET_NAME}!AB${item.sheetRow}:AD${item.sheetRow}`,
+        values: [[ buy === '' ? '' : parseFloat(buy), iv === '' ? '' : parseFloat(iv), ikiv === '' ? '' : parseFloat(ikiv) ]],
+      };
+    });
+
+    try {
+      const res = await fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values:batchUpdate`,
+        {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + paAccessToken, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ valueInputOption: 'USER_ENTERED', data }),
+        }
+      );
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error && j.error.message ? j.error.message : 'บันทึกไม่สำเร็จ');
+      paSetStatus(`บันทึกสำเร็จ ${checks.length} รายการ เข้าคอลัมน์ AB/AC/AD แล้ว`, 'ok');
+    } catch (err) {
+      paSetStatus('เกิดข้อผิดพลาด: ' + err.message, 'err');
+      console.error(err);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  document.getElementById('paSearch').addEventListener('input', paRender);
+  document.getElementById('paLevelFilter').addEventListener('change', paRender);
+  document.getElementById('paGroupFilter').addEventListener('change', paRender);
+  document.getElementById('paSelectAllBtn').addEventListener('click', () => {
+    const boxes = document.querySelectorAll('#paCards .pa-check');
+    const allChecked = Array.from(boxes).every(b => b.checked);
+    boxes.forEach(b => b.checked = !allChecked);
+    paUpdateSelectedCount();
+  });
+  document.getElementById('paSignInBtn').addEventListener('click', () => paSignIn());
+  document.getElementById('paApproveBtn').addEventListener('click', paApproveSelected);
+
+  paInitGoogleAuth();
+  paLoadData();
+})();
 </script>
 </body>
 </html>
