@@ -2477,7 +2477,7 @@ function pctChange(cur, prev) {
 
 // months: { [mon 1-12]: {cost68,cost69,price68,price69,qty68,qty69,profit68,profit69,sale68,sale69} }
 // ใช้ร่วมกันทั้งสินค้าหลัก (parseMainDetail) และสินค้าอื่น (parseOtherDetail)
-function computeAlertItem(grp, sku, desc, months) {
+function computeAlertItem(grp, sku, desc, unit, months) {
   let lastMon = 0;
   for (let m=1; m<=12; m++) { if (months[m] && (months[m].qty69||0) > 0) lastMon = m; }
   if (!lastMon) return null;
@@ -2512,7 +2512,7 @@ function computeAlertItem(grp, sku, desc, months) {
   };
 
   return {
-    grp, sku, desc, lastMon,
+    grp, sku, desc, unit, lastMon,
     cost69: cur.cost69, price69: cur.price69, gpu: curGpu, profit: cur.profit69, qty: cur.qty69, sale: cur.sale69,
     cost68: cur.cost68, price68: cur.price68, gpu68: yoyGpu, profit68: cur.profit68, qty68: cur.qty68, sale68: cur.sale68,
     mom, yoy
@@ -2525,7 +2525,7 @@ function parseAlertItems(rows) {
   for (const grp in grouped) {
     for (const key in grouped[grp]) {
       const it = grouped[grp][key];
-      const alertItem = computeAlertItem(grp, it.sku, it.desc, it.months);
+      const alertItem = computeAlertItem(grp, it.sku, it.desc, it.unit, it.months);
       if (alertItem) out.push(alertItem);
     }
   }
@@ -2538,7 +2538,7 @@ function parseAlertItemsOther(rows) {
   for (const grp in grouped) {
     for (const key in grouped[grp]) {
       const it = grouped[grp][key];
-      const alertItem = computeAlertItem(grp, it.sku, it.desc, it.months);
+      const alertItem = computeAlertItem(grp, it.sku, it.desc, it.unit, it.months);
       if (alertItem) out.push(alertItem);
     }
   }
@@ -2654,16 +2654,24 @@ function renderAlertPage(bkkMainRows, pttMainRows, bkkOtherRows, pttOtherRows, c
   }
 
   function exportXlsx() {
-    const rows = [['รหัสสินค้า','กลุ่มสินค้า','รายการ','ระดับ',
-      'ต้นทุนปีที่แล้ว','ราคาขายเฉลี่ยปีที่แล้ว','กำไร/หน่วยปีที่แล้ว','กำไรรวมปีที่แล้ว','จำนวนขายปีที่แล้ว','ยอดขายเซลปีที่แล้ว',
-      'ต้นทุนปีนี้','ราคาขายเฉลี่ยปีนี้','กำไร/หน่วยปีนี้','กำไรรวมปีนี้','จำนวนขายปีนี้','ยอดขายเซลปีนี้',
-      'ข้อเสนอแนะ']];
+    const rows = [['กลุ่ม','รหัสสินค้า','รายละเอียด','หน่วย',
+      'ระดับ','คำแนะนำ',
+      'ต้นทุน2568','ต้นทุน2569',
+      'จำนวนขาย2568','จำนวนขาย2569',
+      'กำไร/หน่วย2568','กำไร/หน่วย2569',
+      'กำไรรวม2568','กำไรรวม2569',
+      'ยอดขายเซล2568','ยอดขายเซล2569',
+      'ราคาขายเฉลี่ย2568','ราคาขายเฉลี่ย2569']];
     lastClassified.forEach(({item,c})=>{
       rows.push([
-        item.sku||'', item.grp, item.desc, c.label,
-        item.cost68, item.price68, item.gpu68, item.profit68, item.qty68, item.sale68,
-        item.cost69, item.price69, item.gpu, item.profit, item.qty, item.sale,
-        c.main
+        item.grp, item.sku||'', item.desc, item.unit||'',
+        c.label, c.main,
+        item.cost68, item.cost69,
+        item.qty68, item.qty,
+        item.gpu68, item.gpu,
+        item.profit68, item.profit,
+        item.sale68, item.sale,
+        item.price68, item.price69
       ]);
     });
     const ws = XLSX.utils.aoa_to_sheet(rows);
