@@ -1235,7 +1235,7 @@ footer {
     <div class="nav-brand">📝 ส่งพิจารณาปรับราคาขาย</div>
     <div class="nav-right">
       <button class="btn-refresh" onclick="window.__paRefresh && window.__paRefresh()">↺ รีเฟรช</button>
-      <a class="btn-sheet" href="https://docs.google.com/spreadsheets/d/1G7FvoUqEouWXVTdCqZuCItEU_Tkuyjodbo6-A3eJWuo/edit" target="_blank">📋 DATA</a>
+      <button class="btn-sheet" onclick="openSheetWithPassword('https://docs.google.com/spreadsheets/d/1G7FvoUqEouWXVTdCqZuCItEU_Tkuyjodbo6-A3eJWuo/edit')">🔒 DATA</button>
     </div>
   </div>
 </div>
@@ -1282,7 +1282,7 @@ footer {
     <div class="nav-brand">📊 สรุปกำไรขาย</div>
     <div class="nav-right">
       <button class="btn-refresh" onclick="loadData(true)" id="btn-refresh">↺ รีเฟรช</button>
-      <a class="btn-sheet" href="https://docs.google.com/spreadsheets/d/15b_m7yDpWC0lUnt-_4sfAoayg3ysvDiE62WagXEKDiU/edit" target="_blank">📋 DATA</a>
+      <button class="btn-sheet" onclick="openSheetWithPassword('https://docs.google.com/spreadsheets/d/15b_m7yDpWC0lUnt-_4sfAoayg3ysvDiE62WagXEKDiU/edit')">🔒 DATA</button>
     </div>
   </div>
   <div class="nav-row2">
@@ -1369,10 +1369,31 @@ footer {
 (function(){
   // ══════════════════════════════════════════════
   //  รหัสผ่านหน้า "รายงานทางการเงิน" และ "สรุปการเงิน"
-  //  ← แก้เลขตรงนี้บรรทัดเดียวเพื่อเปลี่ยนรหัสผ่าน
+  //  เก็บเป็น SHA-256 hash แทน plaintext เพื่อไม่ให้เห็นรหัสตรงๆ จาก "ดูซอร์ส"
+  //  หมายเหตุ: นี่ช่วยกันคนทั่วไปที่กด view-source ได้ แต่ไม่ใช่การป้องกันที่แน่นหนา
+  //  (เพราะ hash ก็ยังถูก brute-force ได้ถ้าใครตั้งใจจริง) — ถ้าข้อมูลอ่อนไหวมาก
+  //  ควรทำระบบล็อกอินผ่าน backend/Apps Script แทนการเช็คฝั่ง client แบบนี้
+  //  ← ถ้าจะเปลี่ยนรหัสผ่านใหม่ ต้องคำนวณ SHA-256 hash ของรหัสใหม่มาแทนค่าด้านล่าง
   // ══════════════════════════════════════════════
-  const FIN_REPORT_PASSWORD = '1294';
-  const SUMMARY_PASSWORD = '1294';
+  const FIN_REPORT_PASSWORD_HASH = '9c499c3ddf63c6ea23a4831f4ab64c36c8e5d64461dc4f09e12cf6d4da78ca4b';
+  const SUMMARY_PASSWORD_HASH = '9c499c3ddf63c6ea23a4831f4ab64c36c8e5d64461dc4f09e12cf6d4da78ca4b';
+
+  async function sha256Hex(text) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  // ใช้รหัสผ่านเดียวกับหน้า "สรุปการเงิน" — เปิดลิงก์ Sheet ได้ก็ต่อเมื่อใส่รหัสถูกต้อง
+  window.openSheetWithPassword = async function(url) {
+    const pw = prompt('ใส่รหัสผ่านเพื่อเปิด Google Sheets:');
+    if (pw === null) return; // กดยกเลิก
+    const hash = await sha256Hex(pw);
+    if (hash === SUMMARY_PASSWORD_HASH) {
+      window.open(url, '_blank');
+    } else {
+      alert('รหัสผ่านไม่ถูกต้อง');
+    }
+  };
 
   const topTabs = document.querySelectorAll('#topTabs .tab-btn');
   const topPages = {
@@ -1400,10 +1421,11 @@ footer {
     }
   }
 
-  function tryPassword() {
+  async function tryPassword() {
     const input = document.getElementById('finPwInput');
     const err = document.getElementById('finPwError');
-    if (input.value === FIN_REPORT_PASSWORD) {
+    const hash = await sha256Hex(input.value);
+    if (hash === FIN_REPORT_PASSWORD_HASH) {
       err.textContent = '';
       unlockFinReport();
     } else {
@@ -1428,10 +1450,11 @@ footer {
     }
   }
 
-  function trySummaryPassword() {
+  async function trySummaryPassword() {
     const input = document.getElementById('summaryPwInput');
     const err = document.getElementById('summaryPwError');
-    if (input.value === SUMMARY_PASSWORD) {
+    const hash = await sha256Hex(input.value);
+    if (hash === SUMMARY_PASSWORD_HASH) {
       err.textContent = '';
       unlockSummary();
     } else {
@@ -1450,12 +1473,13 @@ footer {
 </script>
 <script>
 (function(){
-  // ── CONFIG: ลิงก์ตรงกับ Google Sheets เดิมทั้ง 2 ไฟล์ ──
+  // ── CONFIG: ดึงข้อมูลผ่าน Apps Script endpoint แทนการ export CSV ตรงจาก Sheet ──
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTKU7Olz95H0Mq_bBBnh4E5aWDWYh-0Swb89z7SJH0-W9EOXY40ZN9Cw-CS4QgxrRw/exec';
   const FIN_SHEET_ID = '1rTHWxxQ-pTw7jvSDiTAQwGqiNENlV4dWG0xyb1wu4K4';
   const FIN_GID = '1464307538'; // แท็บ "สรุป"
-  const FIN_CSV_URL = `https://docs.google.com/spreadsheets/d/${FIN_SHEET_ID}/export?format=csv&gid=${FIN_GID}`;
+  const FIN_CSV_URL = `${APPS_SCRIPT_URL}?sheet=fin&gid=${FIN_GID}`;
   const SALES_METHOD_GID = '1807585238'; // แท็บ "วิธีคิดยอดขาย"
-  const SALES_METHOD_CSV_URL = `https://docs.google.com/spreadsheets/d/${FIN_SHEET_ID}/export?format=csv&gid=${SALES_METHOD_GID}`;
+  const SALES_METHOD_CSV_URL = `${APPS_SCRIPT_URL}?sheet=fin&gid=${SALES_METHOD_GID}`;
 
   const PROFIT_SHEET_ID = '15b_m7yDpWC0lUnt-_4sfAoayg3ysvDiE62WagXEKDiU';
   const PROFIT_GIDS = {
@@ -1588,10 +1612,10 @@ footer {
     try {
       const [finGrid, bkkMain, pttMain, bkkOther, pttOther, salesMethodGrid] = await Promise.all([
         fetchCSV(FIN_CSV_URL),
-        fetchCSV(`https://docs.google.com/spreadsheets/d/${PROFIT_SHEET_ID}/export?format=csv&gid=${PROFIT_GIDS.bkk}`),
-        fetchCSV(`https://docs.google.com/spreadsheets/d/${PROFIT_SHEET_ID}/export?format=csv&gid=${PROFIT_GIDS.ptt}`),
-        fetchCSV(`https://docs.google.com/spreadsheets/d/${PROFIT_SHEET_ID}/export?format=csv&gid=${PROFIT_GIDS.bkkOther}`),
-        fetchCSV(`https://docs.google.com/spreadsheets/d/${PROFIT_SHEET_ID}/export?format=csv&gid=${PROFIT_GIDS.pttOther}`),
+        fetchCSV(`${APPS_SCRIPT_URL}?sheet=profit&gid=${PROFIT_GIDS.bkk}`),
+        fetchCSV(`${APPS_SCRIPT_URL}?sheet=profit&gid=${PROFIT_GIDS.ptt}`),
+        fetchCSV(`${APPS_SCRIPT_URL}?sheet=profit&gid=${PROFIT_GIDS.bkkOther}`),
+        fetchCSV(`${APPS_SCRIPT_URL}?sheet=profit&gid=${PROFIT_GIDS.pttOther}`),
         fetchCSV(SALES_METHOD_CSV_URL).catch(err => { console.warn('โหลดแท็บ "วิธีคิดยอดขาย" ไม่สำเร็จ:', err.message); return null; }),
       ]);
 
@@ -1814,6 +1838,7 @@ footer {
 //  CONFIG
 // ══════════════════════════════════════════════
 const SHEET_ID = '15b_m7yDpWC0lUnt-_4sfAoayg3ysvDiE62WagXEKDiU';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTKU7Olz95H0Mq_bBBnh4E5aWDWYh-0Swb89z7SJH0-W9EOXY40ZN9Cw-CS4QgxrRw/exec';
 const GIDS = {
   bkk:          '71451120',
   ptt:          '2027844530',
@@ -1861,7 +1886,7 @@ function parseCSV(text) {
 }
 
 async function fetchSheet(gid) {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
+  const url = `${APPS_SCRIPT_URL}?sheet=profit&gid=${gid}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status} (gid=${gid})`);
   return parseCSV(await res.text());
@@ -2919,8 +2944,9 @@ const CONFIG = {
   USE_SHEETS: true,
   REFRESH_MS: 5 * 60 * 1000
 };
-CONFIG.CSV_URL = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/export?format=csv&gid=${CONFIG.SHEET_GID}`;
-CONFIG.SALES_METHOD_CSV_URL = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/export?format=csv&gid=${CONFIG.SALES_METHOD_GID}`;
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTKU7Olz95H0Mq_bBBnh4E5aWDWYh-0Swb89z7SJH0-W9EOXY40ZN9Cw-CS4QgxrRw/exec';
+CONFIG.CSV_URL = `${APPS_SCRIPT_URL}?sheet=fin&gid=${CONFIG.SHEET_GID}`;
+CONFIG.SALES_METHOD_CSV_URL = `${APPS_SCRIPT_URL}?sheet=fin&gid=${CONFIG.SALES_METHOD_GID}`;
 
 // ── Static data ──
 const STATIC = {
@@ -3790,7 +3816,8 @@ window.toggleDataViewer = toggleDataViewer;
     CLIENT_ID: '909287669276-e9ra107720vef8hkirhod1el8j8aalt5.apps.googleusercontent.com',
     SCOPE: 'https://www.googleapis.com/auth/spreadsheets',
   };
-  CONFIG.CSV_URL = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/export?format=csv&gid=${CONFIG.GID}`;
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTKU7Olz95H0Mq_bBBnh4E5aWDWYh-0Swb89z7SJH0-W9EOXY40ZN9Cw-CS4QgxrRw/exec';
+  CONFIG.CSV_URL = `${APPS_SCRIPT_URL}?sheet=price&gid=${CONFIG.GID}`;
 
   // ── CSV parser (รองรับ comma ในเครื่องหมายคำพูด) ──
   function paParseCSV(text) {
