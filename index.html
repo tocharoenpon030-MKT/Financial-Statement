@@ -3930,6 +3930,7 @@ window.toggleDataViewer = toggleDataViewer;
 
   function paTierRowCurrent(label, key, price, item) {
     const profit = price === null ? null : price - item.costMonth;
+    const profitPct = (profit === null || !item.costMonth) ? null : profit / item.costMonth * 100;
     const diff = paVsComp(price, item.compPrice);
     return `
       <div class="pa-tier ${key}">
@@ -3938,7 +3939,7 @@ window.toggleDataViewer = toggleDataViewer;
           <span class="pa-tier-price">${paFmt(price)}</span>
         </div>
         <div class="pa-tier-row2">
-          <span class="pa-tier-cost">กำไร: ${paFmt(profit)} บ.</span>
+          <span class="pa-tier-cost">กำไร: ${profitPct === null ? '-' : paFmt(profitPct) + '%'} (${paFmt(profit)} บ.)</span>
           ${paDiffHtml(diff)}
         </div>
       </div>`;
@@ -4061,8 +4062,9 @@ window.toggleDataViewer = toggleDataViewer;
           const val = parseFloat(input.value);
           if (isNaN(val)) { meta.innerHTML = '<span class="pa-tier-cost">กำไร: - บ.</span><span class="pa-diff neutral">-</span>'; return; }
           const profit = val - item.costMonth;
+          const profitPct = item.costMonth ? profit / item.costMonth * 100 : null;
           const diff = paVsComp(val, item.compPrice);
-          meta.innerHTML = `<span class="pa-tier-cost">กำไร: ${paFmt(profit)} บ.</span>${paDiffHtml(diff)}`;
+          meta.innerHTML = `<span class="pa-tier-cost">กำไร: ${profitPct === null ? '-' : paFmt(profitPct) + '%'} (${paFmt(profit)} บ.)</span>${paDiffHtml(diff)}`;
         };
         input.addEventListener('input', recalc);
         recalc();
