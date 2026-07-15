@@ -972,6 +972,7 @@ footer {
   <button class="tab-btn active" data-top="summary">🔒 สรุปการเงิน</button>
   <button class="tab-btn" data-top="finreport">🔒 รายงานทางการเงิน</button>
   <button class="tab-btn" data-top="priceapproval">ส่งพิจารณาปรับราคาขาย</button>
+  <button class="tab-btn" data-top="currentprice">ราคาขายสินค้าตอนนี้</button>
   <button class="tab-btn" data-top="profit">สรุปกำไรขาย</button>
 </div>
 
@@ -1306,6 +1307,41 @@ footer {
 
 </div>
 
+<div id="toppage-currentprice" class="page">
+
+<div class="nav">
+  <div class="nav-row1">
+    <div class="nav-brand">💰 ราคาขายสินค้าตอนนี้</div>
+    <div class="nav-right">
+      <button class="btn-refresh" onclick="window.__cpRefresh && window.__cpRefresh()">↺ รีเฟรช</button>
+      <button class="btn-sheet" onclick="openSheetWithPassword('https://docs.google.com/spreadsheets/d/1G7FvoUqEouWXVTdCqZuCItEU_Tkuyjodbo6-A3eJWuo/edit')">🔒 DATA</button>
+    </div>
+  </div>
+</div>
+
+<div class="page active" id="cp-page">
+  <div class="page-title">ราคาขายสินค้าปัจจุบัน</div>
+  <div class="page-sub">แสดงทุกรายการในชีท (ไม่กรองสถานะ) · ต้นทุนเดือนนี้ / ราคาคู่แข่ง / ราคาตลาด / ราคาขายปัจจุบัน 3 ระดับ</div>
+
+  <div class="pa-city-tabs">
+    <button class="pa-city-btn active" id="cpCityBkk" data-city="bkk">กรุงเทพ</button>
+    <button class="pa-city-btn" id="cpCityPtt" data-city="ptt">พัทยา</button>
+  </div>
+
+  <div class="pa-toolbar">
+    <input type="text" id="cpSearch" class="pa-search" placeholder="ค้นหาชื่อสินค้า / รหัสสินค้า...">
+    <select id="cpGroupFilter" class="pa-select">
+      <option value="ทั้งหมด">กลุ่มสินค้า: ทั้งหมด</option>
+    </select>
+  </div>
+
+  <div id="cpStatus" class="pa-status"></div>
+
+  <div id="cpCards"><div class="loading-wrap"><div class="spinner"></div><span>กำลังดึงข้อมูลจาก Google Sheets...</span></div></div>
+</div>
+
+</div>
+
 <div id="toppage-profit" class="page">
 
 
@@ -1396,7 +1432,30 @@ footer {
 
 </div><!-- .wrap -->
 
+<div id="paApprovalModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;align-items:center;justify-content:center;padding:16px;overflow-y:auto;">
+  <div style="width:100%;max-width:400px;margin:auto;">
+    <div id="paApprovalShot" style="background:#fdf8ec;border-radius:16px;padding:22px 18px;">
+      <div style="display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:14px;">
+        <div style="width:44px;height:44px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;margin-bottom:8px;">
+          <span style="font-size:22px;color:#16a34a;">✓</span>
+        </div>
+        <div style="font-weight:700;font-size:16px;color:#111;">อนุมัติปรับราคาขายสำเร็จ</div>
+        <div id="paApprovalDateTime" style="font-size:13px;color:#7a7060;margin-top:2px;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:8px;padding:8px 12px;margin-bottom:14px;border:1px solid #e8e0cc;">
+        <span id="paApprovalCityLabel" style="font-size:13px;color:#7a7060;"></span>
+        <span id="paApprovalCount" style="font-size:15px;font-weight:700;color:#111;"></span>
+      </div>
+      <div id="paApprovalList" style="display:flex;flex-direction:column;"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button id="paApprovalSaveBtn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:#2563eb;color:#fff;border:none;border-radius:8px;padding:12px;font-family:'Sarabun',sans-serif;font-size:14.5px;font-weight:600;cursor:pointer;">⬇ บันทึกเป็นรูปภาพ</button>
+      <button id="paApprovalCloseBtn" style="width:48px;background:#fff;border:1px solid #e8e0cc;border-radius:8px;cursor:pointer;font-size:16px;color:#5c5344;">✕</button>
+    </div>
+  </div>
+</div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 (function(){
   // ══════════════════════════════════════════════
@@ -1432,6 +1491,7 @@ footer {
     summary: document.getElementById('toppage-summary'),
     finreport: document.getElementById('toppage-finreport'),
     priceapproval: document.getElementById('toppage-priceapproval'),
+    currentprice: document.getElementById('toppage-currentprice'),
     profit: document.getElementById('toppage-profit'),
   };
 
@@ -4284,6 +4344,53 @@ window.toggleDataViewer = toggleDataViewer;
     paTokenClient.requestAccessToken({ prompt: paAccessToken ? '' : 'consent' });
   }
 
+  // ── ป๊อปอัพสรุปผลอนุมัติ + เซฟเป็นรูปภาพ ──
+  function paShowApprovalPopup(items, cityLabel) {
+    const modal = document.getElementById('paApprovalModal');
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Bangkok' });
+    const timeStr = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' });
+    document.getElementById('paApprovalDateTime').textContent = `${dateStr} · ${timeStr} น.`;
+    document.getElementById('paApprovalCityLabel').textContent = `สาขา${cityLabel} · อนุมัติทั้งหมด`;
+    document.getElementById('paApprovalCount').textContent = `${items.length} รายการ`;
+    const listEl = document.getElementById('paApprovalList');
+    listEl.innerHTML = items.map((it, idx) => `
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 2px;${idx < items.length - 1 ? 'border-bottom:1px solid #e8e0cc;' : ''}">
+        <div style="width:22px;height:22px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <span style="font-size:13px;color:#16a34a;">✓</span>
+        </div>
+        <span style="font-size:12px;color:#a8a08c;font-family:'IBM Plex Mono',monospace;min-width:44px;">${it.code || ''}</span>
+        <span style="font-size:14px;color:#1a1a1a;flex:1;">${it.name || ''}</span>
+      </div>`).join('');
+    modal.style.display = 'flex';
+  }
+
+  document.getElementById('paApprovalCloseBtn').addEventListener('click', () => {
+    document.getElementById('paApprovalModal').style.display = 'none';
+  });
+
+  document.getElementById('paApprovalSaveBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('paApprovalSaveBtn');
+    const shot = document.getElementById('paApprovalShot');
+    const originalText = btn.textContent;
+    btn.textContent = '⏳ กำลังบันทึก...';
+    btn.disabled = true;
+    try {
+      const canvas = await html2canvas(shot, { backgroundColor: '#fdf8ec', scale: 2, useCORS: true });
+      const link = document.createElement('a');
+      const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      link.download = `อนุมัติปรับราคาขาย-${ts}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      alert('บันทึกรูปภาพไม่สำเร็จ: ' + err.message);
+      console.error(err);
+    } finally {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  });
+
   async function paApproveSelected() {
     const checks = Array.from(document.querySelectorAll('#paCards .pa-check:checked'));
     if (checks.length === 0) { paSetStatus('กรุณาติ๊กเลือกอย่างน้อย 1 รายการก่อนอนุมัติ', 'err'); return; }
@@ -4293,6 +4400,11 @@ window.toggleDataViewer = toggleDataViewer;
     btn.disabled = true;
     const sheetName = CITY_SHEETS[paActiveCity].SHEET_NAME;
     paSetStatus(`กำลังบันทึก ${checks.length} รายการเข้า Google Sheets (${CITY_SHEETS[paActiveCity].LABEL})...`, 'info');
+
+    const approvedItems = checks.map(chk => {
+      const code = chk.dataset.code;
+      return { code, name: paByCode[paActiveCity][String(code)] ? paByCode[paActiveCity][String(code)].name : '' };
+    });
 
     const data = checks.map(chk => {
       const code = chk.dataset.code;
@@ -4318,6 +4430,7 @@ window.toggleDataViewer = toggleDataViewer;
       const j = await res.json();
       if (!res.ok) throw new Error(j.error && j.error.message ? j.error.message : 'บันทึกไม่สำเร็จ');
       paSetStatus(`บันทึกสำเร็จ ${checks.length} รายการ เข้าคอลัมน์ AB/AC/AD ของ ${sheetName} แล้ว`, 'ok');
+      paShowApprovalPopup(approvedItems, CITY_SHEETS[paActiveCity].LABEL);
     } catch (err) {
       paSetStatus('เกิดข้อผิดพลาด: ' + err.message, 'err');
       console.error(err);
@@ -4342,6 +4455,204 @@ window.toggleDataViewer = toggleDataViewer;
 
   paInitGoogleAuth();
   paLoadData();
+})();
+</script>
+<script>
+(function(){
+  // ══════════════════════════════════════════════════════════
+  //  ราคาขายสินค้าตอนนี้ — ใช้ชีทเดียวกับ "ส่งพิจารณาปรับราคาขาย"
+  //  แต่ดึงทุกแถว (ไม่กรองคอลัมน์ AE) และตัดส่วนราคาที่เสนอปรับ + ตารางปี 2568/2569 ออก
+  // ══════════════════════════════════════════════════════════
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTKU7Olz95H0Mq_bBBnh4E5aWDWYh-0Swb89z7SJH0-W9EOXY40ZN9Cw-CS4QgxrRw/exec';
+  const CITY_SHEETS = {
+    bkk: { GID: '0' },
+    ptt: { GID: '1739440371' },
+  };
+  function cpCsvUrl(gid) {
+    return `${APPS_SCRIPT_URL}?sheet=price&gid=${gid}`;
+  }
+
+  function cpParseCSV(text) {
+    const rows = [];
+    let row = [], field = '', inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i], next = text[i+1];
+      if (inQuotes) {
+        if (c === '"' && next === '"') { field += '"'; i++; }
+        else if (c === '"') { inQuotes = false; }
+        else { field += c; }
+      } else {
+        if (c === '"') inQuotes = true;
+        else if (c === ',') { row.push(field); field = ''; }
+        else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+        else if (c === '\r') { /* skip */ }
+        else { field += c; }
+      }
+    }
+    if (field.length || row.length) { row.push(field); rows.push(row); }
+    return rows;
+  }
+  function cpNum(v) {
+    if (v === null || v === undefined) return null;
+    const s = String(v).replace(/,/g, '').trim();
+    if (s === '' || s.toLowerCase() === 'ไม่มีจำหน่าย') return null;
+    const n = parseFloat(s);
+    return isNaN(n) ? null : n;
+  }
+  function cpFmt(n) {
+    if (n === null || n === undefined || isNaN(n)) return '-';
+    return Number(n).toLocaleString('th-TH', { maximumFractionDigits: 2 });
+  }
+
+  let cpDataByCity = { bkk: [], ptt: [] };
+  let cpActiveCity = 'bkk';
+
+  function cpParseRows(grid) {
+    const items = [];
+    for (let i = 1; i < grid.length; i++) {
+      const r = grid[i];
+      if (!r || !r[0]) continue;
+      // เอาทุกรายการที่มีข้อมูล ไม่กรองคอลัมน์ AE
+      items.push({
+        group: r[0], code: r[1], name: r[2], unit: r[3], level: r[4], note: r[5],
+        costMonth: cpNum(r[18]),
+        buyNow: cpNum(r[19]), ivNow: cpNum(r[20]), ikivNow: cpNum(r[21]),
+        compPrice: cpNum(r[22]), marketPrice: cpNum(r[23]),
+      });
+    }
+    return items;
+  }
+
+  async function cpFetchCsv(gid) {
+    const res = await fetch(cpCsvUrl(gid) + '&_=' + Date.now());
+    if (!res.ok) throw new Error('โหลดชีทไม่สำเร็จ (' + res.status + ')');
+    return cpParseCSV(await res.text());
+  }
+
+  async function cpLoadData() {
+    const cardsEl = document.getElementById('cpCards');
+    cardsEl.innerHTML = '<div class="loading-wrap"><div class="spinner"></div><span>กำลังดึงข้อมูลจาก Google Sheets...</span></div>';
+    try {
+      const [bkkGrid, pttGrid] = await Promise.all([
+        cpFetchCsv(CITY_SHEETS.bkk.GID),
+        cpFetchCsv(CITY_SHEETS.ptt.GID),
+      ]);
+      cpDataByCity.bkk = cpParseRows(bkkGrid);
+      cpDataByCity.ptt = cpParseRows(pttGrid);
+      cpPopulateGroupFilter();
+      cpRender();
+    } catch (err) {
+      cardsEl.innerHTML = '<div class="err-box">โหลดข้อมูลไม่สำเร็จ: ' + err.message + '</div>';
+      console.error(err);
+    }
+  }
+  window.__cpRefresh = cpLoadData;
+
+  function cpPopulateGroupFilter() {
+    const sel = document.getElementById('cpGroupFilter');
+    const cur = sel.value;
+    const groups = Array.from(new Set(cpDataByCity[cpActiveCity].map(i => i.group))).sort();
+    sel.innerHTML = '<option value="ทั้งหมด">กลุ่มสินค้า: ทั้งหมด</option>' +
+      groups.map(g => `<option value="${g}">${g}</option>`).join('');
+    if (groups.includes(cur)) sel.value = cur;
+  }
+
+  function cpVsComp(price, comp) {
+    if (!comp || price === null) return null;
+    return (comp - price) / comp * 100;
+  }
+  function cpDiffHtml(diff) {
+    if (diff === null) return '<span class="pa-diff neutral">-</span>';
+    return diff >= 0
+      ? `<span class="pa-diff cheap">ถูกกว่าคู่แข่ง ${cpFmt(diff)}%</span>`
+      : `<span class="pa-diff expensive">แพงกว่าคู่แข่ง ${cpFmt(-diff)}%</span>`;
+  }
+  function cpTierRow(label, key, price, item) {
+    const profit = price === null ? null : price - item.costMonth;
+    const profitPct = (profit === null || !item.costMonth) ? null : profit / item.costMonth * 100;
+    const diff = cpVsComp(price, item.compPrice);
+    return `
+      <div class="pa-tier ${key}">
+        <div class="pa-tier-row1">
+          <span class="pa-tier-label">${label}</span>
+          <span class="pa-tier-price">${cpFmt(price)}</span>
+        </div>
+        <div class="pa-tier-row2">
+          <span class="pa-tier-cost">กำไร: ${profitPct === null ? '-' : cpFmt(profitPct) + '%'} (${cpFmt(profit)} บ.)</span>
+          ${cpDiffHtml(diff)}
+        </div>
+      </div>`;
+  }
+
+  function cpRender() {
+    const search = document.getElementById('cpSearch').value.trim().toLowerCase();
+    const group = document.getElementById('cpGroupFilter').value;
+    const wrap = document.getElementById('cpCards');
+    wrap.innerHTML = '';
+
+    const items = cpDataByCity[cpActiveCity];
+    const filtered = items.filter(it =>
+      (group === 'ทั้งหมด' || it.group === group) &&
+      (search === '' || String(it.name).toLowerCase().includes(search) || String(it.code).toLowerCase().includes(search))
+    );
+
+    if (filtered.length === 0) {
+      wrap.innerHTML = '<div class="pa-card">ไม่พบรายการตามเงื่อนไขที่เลือก</div>';
+      return;
+    }
+
+    filtered.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'pa-card';
+      card.innerHTML = `
+        <div class="pa-card-head">
+          <div style="flex:1;">
+            <div class="pa-code">${item.group} · ${item.code}</div>
+            <div class="pa-name">${item.name}</div>
+          </div>
+        </div>
+        <div class="pa-note">${item.note || ''}</div>
+
+        <div class="pa-monthrow">
+          <div class="pa-mr-item cost">
+            <div class="pa-mr-label">ต้นทุนเดือนนี้</div>
+            <div class="pa-mr-val">${cpFmt(item.costMonth)}</div>
+          </div>
+          <div class="pa-mr-item comp">
+            <div class="pa-mr-label">ราคาคู่แข่ง</div>
+            <div class="pa-mr-val">${cpFmt(item.compPrice)}</div>
+          </div>
+          <div class="pa-mr-item market">
+            <div class="pa-mr-label">ราคาตลาด</div>
+            <div class="pa-mr-val">${cpFmt(item.marketPrice)}</div>
+          </div>
+        </div>
+
+        <div class="pa-colhead">ราคาที่ตั้งขายตอนนี้</div>
+        ${cpTierRow('ราคาจัดซื้อ', 'buy', item.buyNow, item)}
+        ${cpTierRow('ราคา IV รับเอง', 'iv', item.ivNow, item)}
+        ${cpTierRow('ราคา IK-IV ส่งให้', 'ikiv', item.ikivNow, item)}
+      `;
+      wrap.appendChild(card);
+    });
+  }
+
+  function cpSwitchCity(city) {
+    if (city === cpActiveCity) return;
+    cpActiveCity = city;
+    document.getElementById('cpCityBkk').classList.toggle('active', city === 'bkk');
+    document.getElementById('cpCityPtt').classList.toggle('active', city === 'ptt');
+    document.getElementById('cpSearch').value = '';
+    cpPopulateGroupFilter();
+    cpRender();
+  }
+
+  document.getElementById('cpSearch').addEventListener('input', cpRender);
+  document.getElementById('cpGroupFilter').addEventListener('change', cpRender);
+  document.getElementById('cpCityBkk').addEventListener('click', () => cpSwitchCity('bkk'));
+  document.getElementById('cpCityPtt').addEventListener('click', () => cpSwitchCity('ptt'));
+
+  cpLoadData();
 })();
 </script>
 </body>
