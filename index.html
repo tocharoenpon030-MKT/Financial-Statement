@@ -3918,6 +3918,26 @@ window.toggleDataViewer = toggleDataViewer;
     return `${APPS_SCRIPT_URL}?sheet=price&gid=${gid}`;
   }
 
+  // ── หาชื่อแท็บจริงจาก gid ผ่าน Sheets API แทนการเดาชื่อ (Sheet1/Sheet3 อาจไม่ตรงกับชื่อจริง
+  //    ถ้ามีคนเปลี่ยนชื่อแท็บในชีต) — cache ผลลัพธ์ไว้ ไม่ต้องเรียกซ้ำทุกครั้ง
+  let paSheetTitleCache = null;
+  async function paGetSheetTitle(gid) {
+    if (!paSheetTitleCache) {
+      const res = await fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}?fields=sheets.properties(sheetId,title)`,
+        { headers: { 'Authorization': 'Bearer ' + paAccessToken } }
+      );
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error && j.error.message ? j.error.message : 'อ่านรายชื่อแท็บไม่สำเร็จ');
+      paSheetTitleCache = {};
+      (j.sheets || []).forEach(s => { paSheetTitleCache[String(s.properties.sheetId)] = s.properties.title; });
+    }
+    const title = paSheetTitleCache[String(gid)];
+    if (!title) throw new Error(`ไม่พบแท็บที่มี gid=${gid} ในสเปรดชีต`);
+    // ใส่เครื่องหมายคำพูดครอบชื่อแท็บเสมอ (ป้องกันชื่อที่มีช่องว่าง/อักขระพิเศษ) และ escape ' เป็น ''
+    return `'${title.replace(/'/g, "''")}'`;
+  }
+
   // ── CSV parser (รองรับ comma ในเครื่องหมายคำพูด) ──
   function paParseCSV(text) {
     const rows = [];
@@ -4398,13 +4418,21 @@ window.toggleDataViewer = toggleDataViewer;
 
     const btn = document.getElementById('paApproveBtn');
     btn.disabled = true;
-    const sheetName = CITY_SHEETS[paActiveCity].SHEET_NAME;
     paSetStatus(`กำลังบันทึก ${checks.length} รายการเข้า Google Sheets (${CITY_SHEETS[paActiveCity].LABEL})...`, 'info');
 
     const approvedItems = checks.map(chk => {
       const code = chk.dataset.code;
       return { code, name: paByCode[paActiveCity][String(code)] ? paByCode[paActiveCity][String(code)].name : '' };
     });
+
+    let sheetName;
+    try {
+      sheetName = await paGetSheetTitle(CITY_SHEETS[paActiveCity].GID);
+    } catch (err) {
+      paSetStatus('เกิดข้อผิดพลาด: ' + err.message, 'err');
+      btn.disabled = false;
+      return;
+    }
 
     const data = checks.map(chk => {
       const code = chk.dataset.code;
