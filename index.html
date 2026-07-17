@@ -4267,8 +4267,8 @@ window.toggleDataViewer = toggleDataViewer;
 
       // live recalculation + checkbox counter
       ['buy','iv','ikiv'].forEach(key => {
-        const input = card.querySelector(`#pa_${key}_${item.code}`);
-        const meta = card.querySelector(`#pa_${key}_${item.code}_meta`);
+        const input = card.querySelector(`[id="pa_${key}_${item.code}"]`);
+        const meta = card.querySelector(`[id="pa_${key}_${item.code}_meta"]`);
         const recalc = () => {
           const val = parseFloat(input.value);
           if (isNaN(val)) { meta.innerHTML = '<span class="pa-tier-cost">กำไร: - บ.</span><span class="pa-diff neutral">-</span>'; return; }
@@ -4284,7 +4284,7 @@ window.toggleDataViewer = toggleDataViewer;
 
       // ประวัติตั้งราคาขาย — toggle
       const histBtn = card.querySelector('.pa-hist-toggle');
-      const histPanel = card.querySelector(`#pa_hist_${item.code}`);
+      const histPanel = card.querySelector(`[id="pa_hist_${item.code}"]`);
       const openHist = () => {
         histBtn.classList.add('open');
         histPanel.classList.add('open');
