@@ -4083,15 +4083,20 @@ window.toggleDataViewer = toggleDataViewer;
     if (!cost) return null;
     return (price - cost) / cost * 100;
   }
-  function paVsComp(price, comp) {
-    if (!comp || price === null) return null;
-    return (comp - price) / comp * 100; // + = ถูกกว่าคู่แข่ง, - = แพงกว่า
+  function paVsComp(price, item) {
+    // ถ้าไม่มีราคาคู่แข่ง ให้ใช้ราคาตลาดแทนในการเทียบ
+    let ref = item.compPrice;
+    let isMarket = false;
+    if (!ref) { ref = item.marketPrice; isMarket = true; }
+    if (!ref || price === null) return null;
+    return { pct: (ref - price) / ref * 100, isMarket }; // + = ถูกกว่า, - = แพงกว่า
   }
   function paDiffHtml(diff) {
     if (diff === null) return '<span class="pa-diff neutral">-</span>';
-    return diff >= 0
-      ? `<span class="pa-diff cheap">ถูกกว่าคู่แข่ง ${paFmt(diff)}%</span>`
-      : `<span class="pa-diff expensive">แพงกว่าคู่แข่ง ${paFmt(-diff)}%</span>`;
+    const label = diff.isMarket ? 'ราคาตลาด' : 'คู่แข่ง';
+    return diff.pct >= 0
+      ? `<span class="pa-diff cheap">ถูกกว่า${label} ${paFmt(diff.pct)}%</span>`
+      : `<span class="pa-diff expensive">แพงกว่า${label} ${paFmt(-diff.pct)}%</span>`;
   }
 
   function paCostChangeHtml(costMonth, cost69) {
@@ -4107,7 +4112,7 @@ window.toggleDataViewer = toggleDataViewer;
   function paTierRowCurrent(label, key, price, item, bkkPrice) {
     const profit = price === null ? null : price - item.costMonth;
     const profitPct = (profit === null || !item.costMonth) ? null : profit / item.costMonth * 100;
-    const diff = paVsComp(price, item.compPrice);
+    const diff = paVsComp(price, item);
     const bkkHtml = bkkPrice !== undefined ? `<span class="pa-tier-bkk">/ ${paFmt(bkkPrice)} (กรุงเทพ)</span>` : '';
     return `
       <div class="pa-tier ${key}">
@@ -4274,7 +4279,7 @@ window.toggleDataViewer = toggleDataViewer;
           if (isNaN(val)) { meta.innerHTML = '<span class="pa-tier-cost">กำไร: - บ.</span><span class="pa-diff neutral">-</span>'; return; }
           const profit = val - item.costMonth;
           const profitPct = item.costMonth ? profit / item.costMonth * 100 : null;
-          const diff = paVsComp(val, item.compPrice);
+          const diff = paVsComp(val, item);
           meta.innerHTML = `<span class="pa-tier-cost">กำไร: ${profitPct === null ? '-' : paFmt(profitPct) + '%'} (${paFmt(profit)} บ.)</span>${paDiffHtml(diff)}`;
         };
         input.addEventListener('input', recalc);
@@ -4543,6 +4548,11 @@ window.toggleDataViewer = toggleDataViewer;
       // เอาทุกรายการที่มีข้อมูล ไม่กรองคอลัมน์ AE
       items.push({
         group: r[0], code: r[1], name: r[2], unit: r[3], level: r[4], note: r[5],
+        cost68: cpNum(r[6]), cost69: cpNum(r[7]),
+        qty68: cpNum(r[8]), qty69: cpNum(r[9]),
+        profitU68: cpNum(r[10]), profitU69: cpNum(r[11]),
+        profitT68: cpNum(r[12]), profitT69: cpNum(r[13]),
+        avgPrice68: cpNum(r[16]), avgPrice69: cpNum(r[17]),
         costMonth: cpNum(r[18]),
         buyNow: cpNum(r[19]), ivNow: cpNum(r[20]), ikivNow: cpNum(r[21]),
         compPrice: cpNum(r[22]), marketPrice: cpNum(r[23]),
@@ -4585,20 +4595,29 @@ window.toggleDataViewer = toggleDataViewer;
     if (groups.includes(cur)) sel.value = cur;
   }
 
-  function cpVsComp(price, comp) {
-    if (!comp || price === null) return null;
-    return (comp - price) / comp * 100;
+  function cpMarginPct(price, cost) {
+    if (!cost) return null;
+    return (price - cost) / cost * 100;
+  }
+  function cpVsComp(price, item) {
+    // ถ้าไม่มีราคาคู่แข่ง ให้ใช้ราคาตลาดแทนในการเทียบ
+    let ref = item.compPrice;
+    let isMarket = false;
+    if (!ref) { ref = item.marketPrice; isMarket = true; }
+    if (!ref || price === null) return null;
+    return { pct: (ref - price) / ref * 100, isMarket };
   }
   function cpDiffHtml(diff) {
     if (diff === null) return '<span class="pa-diff neutral">-</span>';
-    return diff >= 0
-      ? `<span class="pa-diff cheap">ถูกกว่าคู่แข่ง ${cpFmt(diff)}%</span>`
-      : `<span class="pa-diff expensive">แพงกว่าคู่แข่ง ${cpFmt(-diff)}%</span>`;
+    const label = diff.isMarket ? 'ราคาตลาด' : 'คู่แข่ง';
+    return diff.pct >= 0
+      ? `<span class="pa-diff cheap">ถูกกว่า${label} ${cpFmt(diff.pct)}%</span>`
+      : `<span class="pa-diff expensive">แพงกว่า${label} ${cpFmt(-diff.pct)}%</span>`;
   }
   function cpTierRow(label, key, price, item) {
     const profit = price === null ? null : price - item.costMonth;
     const profitPct = (profit === null || !item.costMonth) ? null : profit / item.costMonth * 100;
-    const diff = cpVsComp(price, item.compPrice);
+    const diff = cpVsComp(price, item);
     return `
       <div class="pa-tier ${key}">
         <div class="pa-tier-row1">
@@ -4640,6 +4659,32 @@ window.toggleDataViewer = toggleDataViewer;
           </div>
         </div>
         <div class="pa-note">${item.note || ''}</div>
+
+        <div class="pa-table-wrap">
+        <table style="width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:12px;">
+          <tr><th style="text-align:left;color:var(--muted);padding:5px 6px;"></th>
+              <th style="text-align:right;color:var(--muted);padding:5px 6px;">ต้นทุน</th>
+              <th style="text-align:right;color:var(--muted);padding:5px 6px;">ราคาขายเฉลี่ย</th>
+              <th style="text-align:right;color:var(--muted);padding:5px 6px;">จำนวนขาย</th>
+              <th style="text-align:right;color:var(--muted);padding:5px 6px;">กำไร/หน่วย</th>
+              <th style="text-align:right;color:var(--muted);padding:5px 6px;">กำไร%</th>
+              <th style="text-align:right;color:var(--muted);padding:5px 6px;">กำไรรวม</th></tr>
+          <tr><td style="padding:5px 6px;"><span class="pa-yr y68">2568 (เดือนล่าสุด)</span></td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${cpFmt(item.cost68)}</td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${cpFmt(item.avgPrice68)}</td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${cpFmt(item.qty68)}</td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${cpFmt(item.profitU68)}</td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${cpFmt(cpMarginPct(item.avgPrice68, item.cost68))}%</td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${cpFmt(item.profitT68)}</td></tr>
+          <tr><td style="padding:5px 6px;"><span class="pa-yr y69">2569 (เดือนล่าสุด)</span></td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${cpFmt(item.cost69)}</td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${cpFmt(item.avgPrice69)}</td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${cpFmt(item.qty69)}</td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${cpFmt(item.profitU69)}</td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${cpFmt(cpMarginPct(item.avgPrice69, item.cost69))}%</td>
+              <td style="text-align:right;padding:5px 6px;font-family:var(--mono);">${cpFmt(item.profitT69)}</td></tr>
+        </table>
+        </div>
 
         <div class="pa-monthrow">
           <div class="pa-mr-item cost">
