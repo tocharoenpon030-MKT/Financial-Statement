@@ -3991,14 +3991,24 @@ window.toggleDataViewer = toggleDataViewer;
   const GROUP_IMG_GID = '1390978155'; // แท็บ "รูปกลุ่ม" — คอลัมน์ A=กลุ่มสินค้า, B=ลิงก์รูป
 
   // แปลงลิงก์ Google Drive (.../file/d/FILE_ID/view... หรือ ...?id=FILE_ID) ให้เป็นลิงก์รูปที่โหลดตรงได้
+  // ใช้ thumbnail API เป็นหลัก (เสถียรกว่าเรื่อง hotlink) และมี fallback เผื่อโหลดไม่ขึ้น
+  function paExtractDriveId(link) {
+    let m = link.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (m) return m[1];
+    m = link.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (m) return m[1];
+    return null;
+  }
   function paToDirectImageUrl(link) {
     if (!link) return null;
-    let id = null;
-    let m = link.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    if (m) id = m[1];
-    if (!id) { m = link.match(/[?&]id=([a-zA-Z0-9_-]+)/); if (m) id = m[1]; }
-    if (id) return `https://lh3.googleusercontent.com/d/${id}`;
-    return link; // ไม่ใช่ลิงก์ Drive ก็ใช้ตามที่ใส่มาเลย (เช่น ลิงก์รูปจากเว็บอื่น)
+    const id = paExtractDriveId(link);
+    if (id) {
+      return {
+        primary: `https://drive.google.com/thumbnail?id=${id}&sz=w1000`,
+        fallback: `https://lh3.googleusercontent.com/d/${id}`,
+      };
+    }
+    return { primary: link, fallback: null }; // ไม่ใช่ลิงก์ Drive ก็ใช้ตามที่ใส่มาเลย
   }
 
   function paParseGroupImages(grid) {
@@ -4310,14 +4320,23 @@ window.toggleDataViewer = toggleDataViewer;
 
     // แสดงรูปกลุ่มแค่ครั้งเดียวด้านบนสุด — เฉพาะตอนกรองเหลือกลุ่มเดียว (ไม่ใช่ "ทั้งหมด")
     if (group !== 'ทั้งหมด' && paGroupImages[group]) {
+      const imgInfo = paGroupImages[group];
       const banner = document.createElement('div');
       banner.className = 'pa-group-img-wrap';
       banner.innerHTML = `
-        <img src="${paGroupImages[group]}" alt="${group}" class="pa-group-img" data-full="${paGroupImages[group]}" data-label="${group}">
+        <img src="${imgInfo.primary}" alt="${group}" class="pa-group-img" data-fallback="${imgInfo.fallback || ''}" data-label="${group}">
         <div class="pa-group-img-hint">แตะรูปเพื่อขยาย</div>`;
       wrap.appendChild(banner);
-      banner.querySelector('.pa-group-img').addEventListener('click', () => {
-        paOpenLightbox(paGroupImages[group], group);
+      const imgEl = banner.querySelector('.pa-group-img');
+      imgEl.addEventListener('error', function onImgError() {
+        if (imgEl.dataset.fallback && imgEl.src !== imgEl.dataset.fallback) {
+          imgEl.src = imgEl.dataset.fallback; // ลองลิงก์สำรอง
+        } else {
+          banner.style.display = 'none'; // โหลดไม่ขึ้นทั้งสองแบบ ก็ซ่อนไปเลย ไม่โชว์ไอคอนรูปแตก
+        }
+      });
+      imgEl.addEventListener('click', () => {
+        paOpenLightbox(imgEl.src, group);
       });
     }
 
