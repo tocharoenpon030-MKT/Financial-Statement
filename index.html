@@ -734,12 +734,18 @@ footer {
   align-items: center;
   justify-content: center;
   padding: 24px;
+  overflow: hidden;
+  touch-action: none;
 }
 #paImageLightbox img {
   max-width: 100%;
   max-height: 88vh;
   border-radius: 8px;
   box-shadow: 0 8px 40px rgba(0,0,0,.5);
+  touch-action: none;
+  cursor: zoom-in;
+  transform-origin: center center;
+  will-change: transform;
 }
 #paImageLightbox .pa-lb-caption {
   position: absolute;
@@ -4302,6 +4308,19 @@ window.toggleDataViewer = toggleDataViewer;
       return;
     }
 
+    // แสดงรูปกลุ่มแค่ครั้งเดียวด้านบนสุด — เฉพาะตอนกรองเหลือกลุ่มเดียว (ไม่ใช่ "ทั้งหมด")
+    if (group !== 'ทั้งหมด' && paGroupImages[group]) {
+      const banner = document.createElement('div');
+      banner.className = 'pa-group-img-wrap';
+      banner.innerHTML = `
+        <img src="${paGroupImages[group]}" alt="${group}" class="pa-group-img" data-full="${paGroupImages[group]}" data-label="${group}">
+        <div class="pa-group-img-hint">แตะรูปเพื่อขยาย</div>`;
+      wrap.appendChild(banner);
+      banner.querySelector('.pa-group-img').addEventListener('click', () => {
+        paOpenLightbox(paGroupImages[group], group);
+      });
+    }
+
     filtered.forEach(item => {
       const bkkRef = isPtt ? paByCode['bkk'][String(item.code)] : null;
       const m68 = paMarginPct(item.avgPrice68, item.cost68);
@@ -4319,11 +4338,6 @@ window.toggleDataViewer = toggleDataViewer;
           <div class="pa-badge ${item.level}">${item.level || 'ไม่ระบุ'}</div>
         </div>
         <div class="pa-note">${item.note || ''}</div>
-        ${paGroupImages[item.group] ? `
-        <div class="pa-group-img-wrap">
-          <img src="${paGroupImages[item.group]}" alt="${item.group}" class="pa-group-img" data-full="${paGroupImages[item.group]}" data-label="${item.group}">
-          <div class="pa-group-img-hint">แตะรูปเพื่อขยาย</div>
-        </div>` : ''}
 
         <div class="pa-table-wrap">
         <table style="width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:12px;">
@@ -4391,13 +4405,6 @@ window.toggleDataViewer = toggleDataViewer;
         recalc();
       });
       card.querySelector('.pa-check').addEventListener('change', paUpdateSelectedCount);
-
-      const groupImgEl = card.querySelector('.pa-group-img');
-      if (groupImgEl) {
-        groupImgEl.addEventListener('click', () => {
-          paOpenLightbox(groupImgEl.dataset.full, groupImgEl.dataset.label);
-        });
-      }
 
       // ประวัติตั้งราคาขาย — toggle
       const histBtn = card.querySelector('.pa-hist-toggle');
@@ -4481,15 +4488,93 @@ window.toggleDataViewer = toggleDataViewer;
     paTokenClient.requestAccessToken({ prompt: paAccessToken ? '' : 'consent' });
   }
 
+  // ── ซูม/ลากรูปในหน้าต่างขยาย (pinch-zoom สองนิ้ว, double-tap, ลากตอนซูม) ──
+  let lbScale = 1, lbTx = 0, lbTy = 0;
+  let lbPinchStartDist = 0, lbPinchStartScale = 1;
+  let lbLastTapTime = 0;
+  let lbDragging = false, lbDragStartX = 0, lbDragStartY = 0, lbDragStartTx = 0, lbDragStartTy = 0;
+
+  function paLbApplyTransform() {
+    const img = document.getElementById('paLbImg');
+    img.style.transform = `translate(${lbTx}px, ${lbTy}px) scale(${lbScale})`;
+    img.style.cursor = lbScale > 1 ? 'move' : 'zoom-in';
+  }
+  function paLbResetZoom() {
+    lbScale = 1; lbTx = 0; lbTy = 0;
+    paLbApplyTransform();
+  }
+  function paLbDistance(touches) {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
   function paOpenLightbox(src, label) {
     document.getElementById('paLbImg').src = src;
     document.getElementById('paLbCaption').textContent = label || '';
     document.getElementById('paImageLightbox').style.display = 'flex';
+    paLbResetZoom();
   }
   function paCloseLightbox() {
     document.getElementById('paImageLightbox').style.display = 'none';
     document.getElementById('paLbImg').src = '';
+    paLbResetZoom();
   }
+
+  const paLbImgEl = document.getElementById('paLbImg');
+
+  // สองนิ้ว = ซูมเข้าออก, หนึ่งนิ้วตอนซูมอยู่ = ลากดูรูป, แตะสองครั้งเร็วๆ = ซูมเข้า/ออกสลับกัน
+  paLbImgEl.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 2) {
+      lbPinchStartDist = paLbDistance(e.touches);
+      lbPinchStartScale = lbScale;
+    } else if (e.touches.length === 1) {
+      const now = Date.now();
+      if (now - lbLastTapTime < 300) {
+        lbScale = lbScale > 1 ? 1 : 2.5;
+        lbTx = 0; lbTy = 0;
+        paLbApplyTransform();
+      }
+      lbLastTapTime = now;
+      lbDragging = true;
+      lbDragStartX = e.touches[0].clientX;
+      lbDragStartY = e.touches[0].clientY;
+      lbDragStartTx = lbTx;
+      lbDragStartTy = lbTy;
+    }
+  }, { passive: true });
+
+  paLbImgEl.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const dist = paLbDistance(e.touches);
+      lbScale = Math.min(Math.max(lbPinchStartScale * (dist / lbPinchStartDist), 1), 5);
+      paLbApplyTransform();
+    } else if (e.touches.length === 1 && lbDragging && lbScale > 1) {
+      e.preventDefault();
+      lbTx = lbDragStartTx + (e.touches[0].clientX - lbDragStartX);
+      lbTy = lbDragStartTy + (e.touches[0].clientY - lbDragStartY);
+      paLbApplyTransform();
+    }
+  }, { passive: false });
+
+  paLbImgEl.addEventListener('touchend', () => { lbDragging = false; });
+
+  // รองรับซูมด้วยล้อเมาส์บนคอมพิวเตอร์ด้วย
+  paLbImgEl.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    lbScale = Math.min(Math.max(lbScale - e.deltaY * 0.0015, 1), 5);
+    if (lbScale === 1) { lbTx = 0; lbTy = 0; }
+    paLbApplyTransform();
+  }, { passive: false });
+
+  // ดับเบิลคลิกด้วยเมาส์ก็ซูมได้เหมือนกัน
+  paLbImgEl.addEventListener('dblclick', () => {
+    lbScale = lbScale > 1 ? 1 : 2.5;
+    lbTx = 0; lbTy = 0;
+    paLbApplyTransform();
+  });
+
   document.getElementById('paLbClose').addEventListener('click', paCloseLightbox);
   document.getElementById('paImageLightbox').addEventListener('click', (e) => {
     if (e.target.id === 'paImageLightbox') paCloseLightbox(); // แตะพื้นหลังก็ปิดได้
