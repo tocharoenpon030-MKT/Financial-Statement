@@ -700,6 +700,68 @@ footer {
   .pa-approve-btn{ width:100%; }
 }
 
+/* ── รูปภาพประจำกลุ่มสินค้า (หน้าส่งพิจารณาปรับราคาขาย) ── */
+.pa-group-img-wrap {
+  margin-bottom: 12px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+}
+.pa-group-img {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  display: block;
+  cursor: zoom-in;
+  transition: opacity .15s;
+}
+.pa-group-img:hover { opacity: .9; }
+.pa-group-img-hint {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  padding: 4px 0 6px;
+  background: var(--surface2);
+}
+
+#paImageLightbox {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.85);
+  z-index: 100000;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+#paImageLightbox img {
+  max-width: 100%;
+  max-height: 88vh;
+  border-radius: 8px;
+  box-shadow: 0 8px 40px rgba(0,0,0,.5);
+}
+#paImageLightbox .pa-lb-caption {
+  position: absolute;
+  bottom: 18px;
+  left: 0; right: 0;
+  text-align: center;
+  color: #fff;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 14px;
+}
+#paImageLightbox .pa-lb-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 40px; height: 40px;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+
 /* NAV */
 .nav { background:#111827; display:flex; flex-direction:column; position:sticky; top:0; z-index:9999; box-shadow:0 2px 12px rgba(0,0,0,.4) }
 .nav-row1 { display:flex; align-items:center; width:100%; border-bottom:1px solid rgba(255,255,255,.08) }
@@ -1455,6 +1517,12 @@ footer {
   </div>
 </div>
 
+<div id="paImageLightbox">
+  <button class="pa-lb-close" id="paLbClose">✕</button>
+  <img id="paLbImg" src="" alt="">
+  <div class="pa-lb-caption" id="paLbCaption"></div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 (function(){
@@ -1968,8 +2036,8 @@ function parseCSV(text) {
     } else {
       if (c === '"') inQuotes = true;
       else if (c === ',') { row.push(field); field = ''; }
-      else if (c === '\r') { /* skip */ }
       else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+      else if (c === '\r') { /* skip */ }
       else { field += c; }
     }
   }
@@ -3914,6 +3982,32 @@ window.toggleDataViewer = toggleDataViewer;
     bkk: { GID: '0',          SHEET_NAME: 'Sheet1', HIST_GID: '1912683709', HIST_SHEET_NAME: 'Sheet2', LABEL: 'กรุงเทพ' },
     ptt: { GID: '1739440371', SHEET_NAME: 'Sheet3', HIST_GID: '1681150087', HIST_SHEET_NAME: 'Sheet4', LABEL: 'พัทยา' },
   };
+  const GROUP_IMG_GID = '1390978155'; // แท็บ "รูปกลุ่ม" — คอลัมน์ A=กลุ่มสินค้า, B=ลิงก์รูป
+
+  // แปลงลิงก์ Google Drive (.../file/d/FILE_ID/view... หรือ ...?id=FILE_ID) ให้เป็นลิงก์รูปที่โหลดตรงได้
+  function paToDirectImageUrl(link) {
+    if (!link) return null;
+    let id = null;
+    let m = link.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (m) id = m[1];
+    if (!id) { m = link.match(/[?&]id=([a-zA-Z0-9_-]+)/); if (m) id = m[1]; }
+    if (id) return `https://lh3.googleusercontent.com/d/${id}`;
+    return link; // ไม่ใช่ลิงก์ Drive ก็ใช้ตามที่ใส่มาเลย (เช่น ลิงก์รูปจากเว็บอื่น)
+  }
+
+  function paParseGroupImages(grid) {
+    const map = {};
+    for (let i = 1; i < grid.length; i++) {
+      const r = grid[i];
+      if (!r || !r[0]) continue;
+      const group = String(r[0]).trim();
+      const link = String(r[1] || '').trim();
+      if (!group || !link) continue;
+      const url = paToDirectImageUrl(link);
+      if (url) map[group] = url;
+    }
+    return map;
+  }
   function paCsvUrl(gid) {
     return `${APPS_SCRIPT_URL}?sheet=price&gid=${gid}`;
   }
@@ -3990,6 +4084,7 @@ window.toggleDataViewer = toggleDataViewer;
   let paAccessToken = null;
   let paLoaded = { bkk: false, ptt: false };
   let paOpenHistCodes = new Set();              // จำสถานะการ์ดที่เปิดประวัติไว้ ไม่ให้ยุบตอน re-render
+  let paGroupImages = {}; // { "กลุ่มคอนกรีต": "https://lh3.googleusercontent.com/d/xxxx", ... }
 
   function paParseMainRows(grid) {
     const items = [];
@@ -4060,7 +4155,12 @@ window.toggleDataViewer = toggleDataViewer;
     cardsEl.innerHTML = '<div class="loading-wrap"><div class="spinner"></div><span>กำลังดึงข้อมูลจาก Google Sheets...</span></div>';
     try {
       // โหลดทั้งกรุงเทพและพัทยาไว้เลย เพราะพัทยาต้องใช้ข้อมูลกรุงเทพมาเทียบราคา
-      await Promise.all([paLoadCity('bkk'), paLoadCity('ptt')]);
+      const [, , imgGrid] = await Promise.all([
+        paLoadCity('bkk'),
+        paLoadCity('ptt'),
+        paFetchCsv(GROUP_IMG_GID).catch(err => { console.warn('โหลดรูปกลุ่มไม่สำเร็จ:', err.message); return []; }),
+      ]);
+      paGroupImages = paParseGroupImages(imgGrid);
       paPopulateGroupFilter();
       paRender();
     } catch (err) {
@@ -4219,6 +4319,11 @@ window.toggleDataViewer = toggleDataViewer;
           <div class="pa-badge ${item.level}">${item.level || 'ไม่ระบุ'}</div>
         </div>
         <div class="pa-note">${item.note || ''}</div>
+        ${paGroupImages[item.group] ? `
+        <div class="pa-group-img-wrap">
+          <img src="${paGroupImages[item.group]}" alt="${item.group}" class="pa-group-img" data-full="${paGroupImages[item.group]}" data-label="${item.group}">
+          <div class="pa-group-img-hint">แตะรูปเพื่อขยาย</div>
+        </div>` : ''}
 
         <div class="pa-table-wrap">
         <table style="width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:12px;">
@@ -4286,6 +4391,13 @@ window.toggleDataViewer = toggleDataViewer;
         recalc();
       });
       card.querySelector('.pa-check').addEventListener('change', paUpdateSelectedCount);
+
+      const groupImgEl = card.querySelector('.pa-group-img');
+      if (groupImgEl) {
+        groupImgEl.addEventListener('click', () => {
+          paOpenLightbox(groupImgEl.dataset.full, groupImgEl.dataset.label);
+        });
+      }
 
       // ประวัติตั้งราคาขาย — toggle
       const histBtn = card.querySelector('.pa-hist-toggle');
@@ -4368,6 +4480,20 @@ window.toggleDataViewer = toggleDataViewer;
     };
     paTokenClient.requestAccessToken({ prompt: paAccessToken ? '' : 'consent' });
   }
+
+  function paOpenLightbox(src, label) {
+    document.getElementById('paLbImg').src = src;
+    document.getElementById('paLbCaption').textContent = label || '';
+    document.getElementById('paImageLightbox').style.display = 'flex';
+  }
+  function paCloseLightbox() {
+    document.getElementById('paImageLightbox').style.display = 'none';
+    document.getElementById('paLbImg').src = '';
+  }
+  document.getElementById('paLbClose').addEventListener('click', paCloseLightbox);
+  document.getElementById('paImageLightbox').addEventListener('click', (e) => {
+    if (e.target.id === 'paImageLightbox') paCloseLightbox(); // แตะพื้นหลังก็ปิดได้
+  });
 
   // ── ป๊อปอัพสรุปผลอนุมัติ + เซฟเป็นรูปภาพ ──
   function paShowApprovalPopup(items, cityLabel) {
