@@ -4457,6 +4457,7 @@ window.toggleDataViewer = toggleDataViewer;
     const el = document.getElementById('paStatus');
     el.textContent = msg;
     el.className = 'pa-status' + (type ? ' ' + type : '');
+    if (type === 'err' || type === 'ok') alert(msg);
   }
 
   function paSwitchCity(city) {
