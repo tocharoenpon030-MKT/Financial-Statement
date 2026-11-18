@@ -4647,27 +4647,79 @@ window.toggleDataViewer = toggleDataViewer;
   });
 
   async function paApproveSelected() {
-    const checks = Array.from(document.querySelectorAll('#paCards .pa-check:checked'));
-    if (checks.length === 0) { paSetStatus('กรุณาติ๊กเลือกอย่างน้อย 1 รายการก่อนอนุมัติ', 'err'); return; }
-    if (!paAccessToken) { paSignIn(() => paApproveSelected()); return; }
+  const checks = Array.from(document.querySelectorAll('#paCards .pa-check:checked'));
+  if (checks.length === 0) { paSetStatus('กรุณาติ๊กเลือกอย่างน้อย 1 รายการก่อนอนุมัติ', 'err'); return; }
+  if (!paAccessToken) { paSignIn(() => paApproveSelected()); return; }
 
-    const btn = document.getElementById('paApproveBtn');
-    btn.disabled = true;
-    paSetStatus(`กำลังบันทึก ${checks.length} รายการเข้า Google Sheets (${CITY_SHEETS[paActiveCity].LABEL})...`, 'info');
+  const btn = document.getElementById('paApproveBtn');
+  btn.disabled = true;
+  paSetStatus(`กำลังบันทึก ${checks.length} รายการ (${CITY_SHEETS[paActiveCity].LABEL})...`, 'info');
 
-    const approvedItems = checks.map(chk => {
-      const code = chk.dataset.code;
-      return { code, name: paByCode[paActiveCity][String(code)] ? paByCode[paActiveCity][String(code)].name : '' };
+  try {
+    const authHeaders = { 'Authorization': 'Bearer ' + paAccessToken };
+    const sheetName = await paGetSheetTitle(CITY_SHEETS[paActiveCity].GID);
+    const enc = (r) => encodeURIComponent(r);
+
+    // 1) อ่านคอลัมน์ B (รหัสสินค้า) จากชีทจริง เพื่อยืนยันแถว
+    const colRes = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${enc(sheetName + '!B:B')}`,
+      { headers: authHeaders }
+    );
+    const colJson = await colRes.json();
+    if (!colRes.ok) throw new Error(colJson.error?.message || 'อ่านคอลัมน์รหัสสินค้าไม่สำเร็จ');
+    const codeCol = (colJson.values || []).map(v => String((v && v[0]) || '').trim());
+
+    const data = [], approvedItems = [], written = [], notFound = [];
+    checks.forEach(chk => {
+      const code = String(chk.dataset.code).trim();
+      const item = paByCode[paActiveCity][code];
+      const row = (item && codeCol[item.sheetRow - 1] === code) ? item.sheetRow : codeCol.indexOf(code) + 1;
+      if (!row) { notFound.push(code); return; }
+      const buy  = document.getElementById(`pa_buy_${code}`).value;
+      const iv   = document.getElementById(`pa_iv_${code}`).value;
+      const ikiv = document.getElementById(`pa_ikiv_${code}`).value;
+      data.push({
+        range: `${sheetName}!AB${row}:AD${row}`,
+        values: [[ buy === '' ? '' : parseFloat(buy), iv === '' ? '' : parseFloat(iv), ikiv === '' ? '' : parseFloat(ikiv) ]],
+      });
+      approvedItems.push({ code, name: item ? item.name : '' });
+      written.push({ code, row, buy, iv, ikiv });
     });
+    if (data.length === 0) throw new Error('ไม่พบรหัสสินค้าในชีท: ' + notFound.join(', '));
 
-    let sheetName;
-    try {
-      sheetName = await paGetSheetTitle(CITY_SHEETS[paActiveCity].GID);
-    } catch (err) {
-      paSetStatus('เกิดข้อผิดพลาด: ' + err.message, 'err');
-      btn.disabled = false;
-      return;
-    }
+    // 2) เขียน
+    const res = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values:batchUpdate`,
+      { method: 'POST', headers: { ...authHeaders, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ valueInputOption: 'USER_ENTERED', data }) }
+    );
+    const j = await res.json();
+    if (!res.ok) throw new Error(j.error?.message || 'บันทึกไม่สำเร็จ');
+    console.log('batchUpdate response:', j);
+
+    // 3) อ่านกลับเพื่อยืนยันว่าค่าอยู่ในชีทจริง
+    const first = written[0];
+    const verifyRes = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${enc(`${sheetName}!AB${first.row}:AD${first.row}`)}`,
+      { headers: authHeaders }
+    );
+    const verifyJson = await verifyRes.json();
+    console.log('verify read-back:', verifyJson);
+
+    paSetStatus(
+      `บันทึกสำเร็จ ${data.length} รายการ → แท็บ ${sheetName} แถว ${written.map(w => w.row).join(', ')} คอลัมน์ AB:AD ` +
+      `(ตรวจอ่านกลับแถว ${first.row}: ${JSON.stringify((verifyJson.values || [[]])[0])})` +
+      (notFound.length ? ` · ไม่พบรหัส: ${notFound.join(', ')}` : ''),
+      notFound.length ? 'info' : 'ok'
+    );
+    paShowApprovalPopup(approvedItems, CITY_SHEETS[paActiveCity].LABEL);
+  } catch (err) {
+    paSetStatus('เกิดข้อผิดพลาด: ' + err.message, 'err');
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+  }
+}
 
     const data = checks.map(chk => {
       const code = chk.dataset.code;
