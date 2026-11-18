@@ -4483,6 +4483,7 @@ window.toggleDataViewer = toggleDataViewer;
     paTokenClient = google.accounts.oauth2.initTokenClient({
       client_id: CONFIG.CLIENT_ID,
       scope: CONFIG.SCOPE,
+      error_callback: (err) => { paSetStatus('เข้าสู่ระบบ Google ไม่สำเร็จ: ' + ((err && err.type) || 'unknown'), 'err'); },
       callback: (resp) => {
         if (resp.error) { paSetStatus('เข้าสู่ระบบ Google ไม่สำเร็จ: ' + resp.error, 'err'); return; }
         paAccessToken = resp.access_token;
@@ -4505,7 +4506,7 @@ window.toggleDataViewer = toggleDataViewer;
       paSetStatus('เข้าสู่ระบบสำเร็จ', 'ok');
       if (then) then();
     };
-    paTokenClient.requestAccessToken({ prompt: paAccessToken ? '' : 'consent' });
+    paTokenClient.requestAccessToken({ prompt: '' });
   }
 
   // ── ซูม/ลากรูปในหน้าต่างขยาย (pinch-zoom สองนิ้ว, double-tap, ลากตอนซูม) ──
