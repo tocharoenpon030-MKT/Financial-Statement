@@ -4040,7 +4040,7 @@ window.toggleDataViewer = toggleDataViewer;
       const j = await res.json();
       if (!res.ok) throw new Error(j.error && j.error.message ? j.error.message : 'อ่านรายชื่อแท็บไม่สำเร็จ');
       paSheetTitleCache = {};
-      (j.sheets || []).forEach(s => { paSheetTitleCache[String(s.properties.sheetId || 0)] = s.properties.title; // Sheets API ตัด sheetId=0 ทิ้ง ต้อง default เป็น 0 });
+      (j.sheets || []).forEach(s => { paSheetTitleCache[String(s.properties.sheetId || 0)] = s.properties.title; });
     }
     const title = paSheetTitleCache[String(gid)];
     if (!title) throw new Error(`ไม่พบแท็บที่มี gid=${gid} ในสเปรดชีต`);
